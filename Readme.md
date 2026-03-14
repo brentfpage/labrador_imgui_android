@@ -5,7 +5,7 @@ A compiled version of the app is located in this repo's root directory at labrad
 It can be uploaded to your Android device using the procedure outlined in [this guide](https://www.thecustomdroid.com/how-to-install-apk-on-android/) or using Android Studio.
 
 UI tricks:
-- long-press on a slider to start manual input mode
+- long-press on a slider label to start manual input mode
 - short-press on the sig. gen. freq. slider label to change the range of the slider (e.g., from 0 -> 100 Hz to 0-> 1000 Hz)
 - to collapse the settings panel, press the button in the top-right of it.  To re-expand the panel, tap the button again.
 
