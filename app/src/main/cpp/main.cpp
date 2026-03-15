@@ -89,6 +89,7 @@ int main(int, char**)
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     float main_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
+    float pixel_6a_main_scale = 2.625;
     SDL_WindowFlags window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
     SDL_Window* window = SDL_CreateWindow("Dear ImGui SDL3+OpenGL3 example", (int)(1280 * main_scale), (int)(800 * main_scale), window_flags);
     if (window == nullptr)
@@ -153,8 +154,10 @@ int main(int, char**)
     //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf");
     //IM_ASSERT(font != nullptr);
 
-    style.FontSizeBase = 19.0f;
+    style.FontSizeBase = 19.0f * pixel_6a_main_scale / main_scale;
     ImFont* defaultFont = io.Fonts->AddFontDefault();
+
+    float fontsize = style.FontSizeBase * style.FontScaleDpi;
 
     // for accessing android app resources
     JNIEnv *env = (JNIEnv *) SDL_GetAndroidJNIEnv();
@@ -179,15 +182,11 @@ int main(int, char**)
     waveform_glyph_font = io.Fonts->AddFontFromMemoryTTF(buf, nb_read, 13.f, &config);
     AAsset_close(asset);
 
-    jmethodID getStatusBarHeightID = env->GetMethodID(MainActivity, "getStatusBarHeight", "(Z)I");
-    jmethodID getNavigationBarHeightID = env->GetMethodID(MainActivity, "getNavigationBarHeight", "(Z)I");
+    jmethodID getStatusBarHeightID = env->GetMethodID(MainActivity, "getStatusBarHeight", "()I");
+    jmethodID getNavigationBarHeightID = env->GetMethodID(MainActivity, "getNavigationBarHeight", "()I");
     jmethodID getScreenWidth = env->GetMethodID(MainActivity, "getScreenWidth", "()I");
     jmethodID getScreenHeight = env->GetMethodID(MainActivity, "getScreenHeight", "()I");
     
-    int statusBarHeightLandscape = (int) env->CallIntMethod(MainActivityObject,getStatusBarHeightID, true);
-    int statusBarHeightPortrait = (int) env->CallIntMethod(MainActivityObject,getStatusBarHeightID, false);
-    int navigationBarHeightLandscape = (int) env->CallIntMethod(MainActivityObject,getNavigationBarHeightID, true);
-    int navigationBarHeightPortrait = (int) env->CallIntMethod(MainActivityObject,getNavigationBarHeightID, false);
 
     int portraitScreenHeight = (int) env->CallIntMethod(MainActivityObject,getScreenHeight);
     int portraitScreenWidth = (int) env->CallIntMethod(MainActivityObject,getScreenWidth);
@@ -275,25 +274,33 @@ int main(int, char**)
         if (show_demo_window)
             ImGui::ShowDemoWindow(&show_demo_window);
 
+
+
         if (show_mainwindow) {
             plot_ui.recompute_x_bounds(inputs_ui.changed_since_last(), inputs_ui.mode, inputs_ui.xy);
 
+            int statusBarHeight = (int) env->CallIntMethod(MainActivityObject,getStatusBarHeightID);
+            int navigationBarHeight = (int) env->CallIntMethod(MainActivityObject,getNavigationBarHeightID);
 
             bool landscape = true;
             static bool collapse_settings = false;
 
+            float settings_height;
+            float fontsize;
+            ImGui::SetNextWindowPos(ImVec2(0.f,statusBarHeight));
+            ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x,io.DisplaySize.y - statusBarHeight - navigationBarHeight));
             if(io.DisplaySize.y < io.DisplaySize.x) {
                 landscape = true;
-                ImGui::SetNextWindowPos(ImVec2(0.f,statusBarHeightLandscape));
-                ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x,io.DisplaySize.y - statusBarHeightLandscape - navigationBarHeightLandscape));
+                settings_height = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
+                fontsize = (settings_height - 18 * style.FramePadding.y - 10 * style.CellPadding.y)/15.;
 
             } else {
                 landscape = false;
-                ImGui::SetNextWindowPos(ImVec2(0.f,statusBarHeightPortrait));
-                ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x,io.DisplaySize.y - statusBarHeightPortrait - navigationBarHeightPortrait));
+                settings_height = 15 * ImGui::GetFontSize() + 18 * style.FramePadding.y + 10 * style.CellPadding.y;
+                fontsize = ImGui::GetFontSize();
             };
             ImGuiStyle& style = ImGui::GetStyle();
-            float settings_height = portraitScreenWidth - statusBarHeightLandscape - navigationBarHeightLandscape - 2 * style.WindowPadding.y; //using portraitWidth and Landscape values: not bugs.  Also, in portrait mode, this value is specifically the settings height when the settings are not collapsed.
+
             float settings_width = portraitScreenWidth - 2 * style.WindowPadding.x; //in landscape mode, this value is specifically the settings width when the settings are not collapsed.
 
 
@@ -341,6 +348,7 @@ int main(int, char**)
             }
             ImGuiID col2_id;
             ImVec2 settingsWindowTopRight;
+            ImGui::PushFont(NULL, style.FontSizeBase * fontsize/ImGui::GetFontSize());
             if(!collapse_settings) {
                 ImGui::BeginChild("settings",ImVec2(settings_width, settings_height),0,ImGuiWindowFlags_NoScrollbar);
                 {
@@ -394,6 +402,7 @@ int main(int, char**)
                 }
                 ImGui::EndChild();
             }
+            ImGui::PopFont();
             ImGui::End();
         }
 

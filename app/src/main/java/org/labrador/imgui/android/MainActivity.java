@@ -30,6 +30,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.lang.String;
 
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.ViewCompat;
+import android.content.pm.ActivityInfo;
+// import android.graphics.Insets;
+
 public class MainActivity extends SDLActivity {
     private static final String ACTION_USB_PERMISSION = "org.labrador.imgui.android.USB_PERMISSION";
     private static final String usbStateChangeAction = "android.hardware.usb.action.USB_STATE";
@@ -217,34 +222,16 @@ public class MainActivity extends SDLActivity {
         }
     };
 
-//     https://gist.github.com/hamakn/8939eb68a920a6d7a498
-    public int getStatusBarHeight(boolean landscape)
+    public int getStatusBarHeight()
     {
-        int statusBarHeight = 0;
-        int resourceId;
-        if(landscape) {
-            resourceId = getResources().getIdentifier("status_bar_height_landscape", "dimen", "android");
-        } else {
-            resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
-
-        }
-        if (resourceId > 0) {
-            statusBarHeight = getResources().getDimensionPixelSize(resourceId);
-        }
+        WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(getWindow().getDecorView());
+        int statusBarHeight = insets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.systemBars()).top;
         return statusBarHeight;
     }
-    public int getNavigationBarHeight(boolean landscape)
+    public int getNavigationBarHeight()
     {
-        int navigationBarHeight = 0;
-        int resourceId;
-        if(landscape) {
-            resourceId = getResources().getIdentifier("navigation_bar_height_landscape", "dimen", "android");
-        } else {
-            resourceId = getResources().getIdentifier("navigation_bar_height", "dimen", "android");
-        }
-        if (resourceId > 0) {
-            navigationBarHeight = getResources().getDimensionPixelSize(resourceId);
-        }
+        WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(getWindow().getDecorView());
+        int navigationBarHeight = insets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.systemBars()).bottom;
         return navigationBarHeight;
     }
 
