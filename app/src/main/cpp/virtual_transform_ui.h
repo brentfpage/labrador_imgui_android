@@ -15,7 +15,6 @@ class virtualTransformUI
     int ch_sel = 1;
     ch_settings both_ch_settings[2];
     ch_settings* curr_ch_settings = both_ch_settings;
-    std::chrono::steady_clock::time_point offset_button_press_start;
 public:
     void draw();
 };

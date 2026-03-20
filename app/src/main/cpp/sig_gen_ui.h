@@ -13,10 +13,7 @@ class sigGenUI
     const char* wf_names[4] = { "Sin", "Square", "Triangle", "Sawtooth" };
     const std::chrono::milliseconds between_usb_sends_min{100};
 
-    void amp_or_min_slider_and_button(const char* slider_label, const char* button_label, float *amp_or_min, float *amp_or_min_delayed, float *min_or_amp, float *min_or_amp_delayed, std::chrono::steady_clock::time_point *button_press_start);
-    std::chrono::steady_clock::time_point amp_button_press_start;
-    std::chrono::steady_clock::time_point min_button_press_start;
-    std::chrono::steady_clock::time_point freq_button_press_start;
+    void amp_or_min_slider_and_button(const char* slider_label, const char* button_label, float *amp_or_min, float *amp_or_min_delayed, float *min_or_amp, float *min_or_amp_delayed);
     std::chrono::steady_clock::time_point last_usb_send;
     struct ch_data {
         int wf = 0;

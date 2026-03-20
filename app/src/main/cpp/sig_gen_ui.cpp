@@ -7,7 +7,7 @@
 #include "sig_gen_ui.h"
 
 
-void sigGenUI::amp_or_min_slider_and_button(const char* slider_label, const char* button_label, float *amp_or_min, float *amp_or_min_delayed, float *min_or_amp, float *min_or_amp_delayed, std::chrono::steady_clock::time_point *button_press_start) {
+void sigGenUI::amp_or_min_slider_and_button(const char* slider_label, const char* button_label, float *amp_or_min, float *amp_or_min_delayed, float *min_or_amp, float *min_or_amp_delayed) {
     ImGuiStyle& style = ImGui::GetStyle();
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
@@ -92,8 +92,8 @@ void sigGenUI::draw(bool ch2_disabled)
             curr_ch_data->freq = std::min(curr_ch_data->freq, freq_slider_maxima[curr_ch_data->slider_base]); 
         }
 
-        amp_or_min_slider_and_button("##sg_amp_slider", "Amp.", &curr_ch_data->amp, &curr_ch_data->amp_delayed, &curr_ch_data->min_val, &curr_ch_data->min_val_delayed, &amp_button_press_start);
-        amp_or_min_slider_and_button("##sg_min_slider", "Min.", &curr_ch_data->min_val, &curr_ch_data->min_val_delayed, &curr_ch_data->amp, &curr_ch_data->amp_delayed, &min_button_press_start);
+        amp_or_min_slider_and_button("##sg_amp_slider", "Amp.", &curr_ch_data->amp, &curr_ch_data->amp_delayed, &curr_ch_data->min_val, &curr_ch_data->min_val_delayed);
+        amp_or_min_slider_and_button("##sg_min_slider", "Min.", &curr_ch_data->min_val, &curr_ch_data->min_val_delayed, &curr_ch_data->amp, &curr_ch_data->amp_delayed);
         ImGui::EndDisabled(); // ch_sel==2 && ch2_disabled
 
         ImGui::EndTable();
