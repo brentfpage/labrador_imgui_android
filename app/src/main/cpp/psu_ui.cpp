@@ -18,7 +18,7 @@ void psuUI::draw()
     }
     ImGui::SameLine();
     ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(-style.ItemSpacing.x + style.ItemInnerSpacing.x,0.f));
-    button_common("PSU", "##psu_slider", ImVec2(0.f,0.f), &psu_button_press_start, style);
+    button_common("PSU", "##psu_slider", ImVec2(0.f,0.f), style);
     ImGui::EndGroup();
 
     ImVec2 p0 = ImGui::GetItemRectMin() - ImVec2(style.FramePadding.x,style.FramePadding.x);

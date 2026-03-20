@@ -38,7 +38,7 @@ void virtualTransformUI::draw()
         ImGui::custom_SliderFloat("##offset", "V", &curr_ch_settings->offset, -20.f, 20.f, "%.1f V", ImGuiSliderFlags_ClampOnInput);
         ImGui::TableNextColumn();
         ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(style.CellPadding.x,0.f));
-        button_common("Offset", "##offset", ImVec2(0.f,0.f), &offset_button_press_start, style);
+        button_common("Offset", "##offset", ImVec2(0.f,0.f), style);
         ImGui::EndTable();
     }
     if(ImGui::BeginTable("helper3", 3, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH)) {

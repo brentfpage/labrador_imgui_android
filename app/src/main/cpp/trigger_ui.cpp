@@ -62,7 +62,7 @@ void triggerUI::draw(const bool scope_enable[2])
     float slider_bottom = ImGui::GetCursorScreenPos().y + ImGui::GetContentRegionAvail().y;//value_text_size.y + style.FramePadding.y * 2;
     ImVec2 value_text_pos = ImVec2(slider_left, slider_bottom) - value_text_size - style.FramePadding - style.FramePadding;
     ImGui::SetCursorScreenPos(value_text_pos - ImVec2(style.FramePadding.x,0.f));
-    button_common("##trigger_button", "##trigger_slider", value_text_size + style.FramePadding+ style.FramePadding, &trigger_button_press_start, style);
+    button_common("##trigger_button", "##trigger_slider", value_text_size + style.FramePadding+ style.FramePadding, style);
     ImGui::SetCursorScreenPos(ImVec2(slider_left, slider_top_right.y));
 
     ImGui::custom_VSliderFloat("##trigger_slider", "V",
