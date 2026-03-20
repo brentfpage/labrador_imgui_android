@@ -171,7 +171,7 @@ int main(int, char**)
     ImFontConfig config;
     config.MergeMode = true;
     config.GlyphOffset = { 0.f, 3.f };
-    config.FontDataOwnedByAtlas = false;
+    config.FontDataOwnedByAtlas = false; // prevents imperciptible crash when the app is closed
 //     https://stackoverflow.com/a/13317651/3474552
     const char* filename = "font/waveform-glyphs3.ttf";
     AAsset* asset = AAssetManager_open(mgr, filename, AASSET_MODE_STREAMING);

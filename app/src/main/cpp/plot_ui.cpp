@@ -85,13 +85,15 @@ void plotUI::draw(bool iso_thread_active, inputsUI::Mode mode, bool chA_enabled,
             ImPlot::SetupAxisLimitsConstraints(ImAxis_Y1, -20., 20.);
             ImPlot::SetupAxesLimits(xmin, xmax, ymin, ymax, ImPlotCond_Once);
 
+            ImPlotSpec spec = ImPlotSpec();
+            spec.LineWeight = 2;
             if(xy) {
-                ImPlot::PlotLine("CH A", from_librador_chA->data(), from_librador_chB->data(), from_librador_chA->size());
+                ImPlot::PlotLine("CH A", from_librador_chA->data(), from_librador_chB->data(), from_librador_chA->size(), spec);
             } else {
                 if(chA_enabled)
-                    ImPlot::PlotLine("CH A", time_array.data(), from_librador_chA->data(), from_librador_chA->size());
+                    ImPlot::PlotLine("CH A", time_array.data(), from_librador_chA->data(), from_librador_chA->size(), spec);
                 if(chB_enabled)
-                    ImPlot::PlotLine("CH B", time_array.data(), from_librador_chB->data(), from_librador_chB->size());
+                    ImPlot::PlotLine("CH B", time_array.data(), from_librador_chB->data(), from_librador_chB->size(), spec);
             }
             ImPlotRect axes_limits = ImPlot::GetPlotLimits();
 
