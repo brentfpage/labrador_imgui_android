@@ -375,6 +375,7 @@ int main(int, char**)
             }
 
             char label[36];
+
             ImGuiID collapse_id = ImGui::GetID("collapse");
             if(collapse_settings) {
                 if(landscape) {
@@ -387,19 +388,22 @@ int main(int, char**)
                     collapse_settings = !collapse_settings;
                 }
             } else {
-                ImGui::SetCursorScreenPos(settingsWindowTopRight);
                 if(landscape) {
                     strcpy(label, " > ###collapse");
                 } else {
                     strcpy(label, " v ###collapse");
                 }
-            // TODO worry about the label for the button being different depending on whether collapse_settings or !collapse_settings because in the latter case the button is made inside of a child window?
-                ImGui::BeginChild("collapse_button_helper", ImVec2(ImGui::CalcTextSize(" ^ ") + ImVec2(style.FramePadding.x*2, style.FramePadding.y*2)));
+                ImGui::BeginChild("settings");
+                ImGui::BeginChild("col2");
                 {
+                    ImGui::SetCursorScreenPos(settingsWindowTopRight);
+                    ImGui::PushOverrideID(collapse_id);
                     if(ImGui::Button(label)) {
                         collapse_settings = !collapse_settings;
                     }
+                    ImGui::PopID();
                 }
+                ImGui::EndChild();
                 ImGui::EndChild();
             }
             ImGui::PopFont();
