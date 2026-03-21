@@ -379,19 +379,21 @@ int main(int, char**)
             ImGuiID collapse_id = ImGui::GetID("collapse");
             if(collapse_settings) {
                 if(landscape) {
-                    strcpy(label, " < ###collapse");
+                    strcpy(label, " < ");
                 } else {
                     ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(" ^ ").x - 2 * style.FramePadding.x,0.f));
-                    strcpy(label, " ^ ###collapse");
+                    strcpy(label, " ^ ");
                 }
+                ImGui::PushOverrideID(collapse_id);
                 if(ImGui::Button(label)) {
                     collapse_settings = !collapse_settings;
                 }
+                ImGui::PopID();
             } else {
                 if(landscape) {
-                    strcpy(label, " > ###collapse");
+                    strcpy(label, " > ");
                 } else {
-                    strcpy(label, " v ###collapse");
+                    strcpy(label, " v ");
                 }
                 ImGui::BeginChild("settings");
                 ImGui::BeginChild("col2");
