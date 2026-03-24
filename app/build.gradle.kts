@@ -36,13 +36,14 @@ android {
         }
     }
     sourceSets {
-    getByName("main") {
-        // We're using SDLActivity from SDL sources, not copying that to our source tree
-        java.srcDir("src/main/cpp/deps/SDL/android-project/app/src/main/java")
-        // Instead of copying data files from the native project, we just add its data
-        // as another asset directory
-        // assets.srcDirs += listOf("src/main/cpp/data")
+        getByName("main") {
+            java {
+                directories.add("src/main/cpp/deps/SDL/android-project/app/src/main/java")
+            }
         }
+    }
+    aaptOptions{
+        ignoreAssetsPattern = "!pulse.svg:!svg(2)-converted.svg:!Readme.txt";
     }
 }
 
