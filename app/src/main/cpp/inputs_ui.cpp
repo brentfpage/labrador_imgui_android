@@ -51,11 +51,11 @@ void inputsUI::draw()
         }
 
         bool scope_checkbox_enable[2] = {
-            !logic_enable[1],
+            !logic_enable[1] && !mm,
             scope_enable[0] && !(logic_enable[0]) && !scope750
         };
         bool logic_checkbox_enable[2] = {
-            !scope_enable[1] && !scope750,
+            !scope_enable[1] && !scope750 && !mm,
             logic_enable[0] && !scope_enable[0]
         };
 
