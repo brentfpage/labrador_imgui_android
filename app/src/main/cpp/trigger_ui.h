@@ -8,6 +8,6 @@ class triggerUI
     o1buffer::trigger_settings both_ch_trigger_settings[2];
     o1buffer::trigger_settings* curr_ch_trigger_settings = &both_ch_trigger_settings[ch_sel-1];
 public:
-    void draw(const bool scope_enable[2]);
+    void draw(bool chA_enable, bool chB_enable);
 };
 #endif // SCOPEMOODEUI_H

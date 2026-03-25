@@ -138,6 +138,8 @@ private:
     void closeDevice_cpp();
     int findDevice_cpp();
     void dfu_launch();
+
+    int deviceMode_duplicate = 0;
 };
 
 template <typename T>
@@ -147,14 +149,14 @@ void usbCallHandler::setSettingsForChannel(int ch, T channel_scope_settings, o1b
     if(ch==1) {
         trigger_reset_needed = (ch1_375->*setSettings)(channel_scope_settings);
         if(trigger_reset_needed)
-            ch1_375->resetTrigger(current_scope_gain);
+            ch1_375->resetTrigger(current_scope_gain, deviceMode_duplicate==7);
         trigger_reset_needed = (ch1_750->*setSettings)(channel_scope_settings);
         if(trigger_reset_needed)
-            ch1_750->resetTrigger(current_scope_gain);
+            ch1_750->resetTrigger(current_scope_gain, deviceMode_duplicate==7);
     } else if (ch==2) {
         trigger_reset_needed = (ch2_375->*setSettings)(channel_scope_settings);
         if(trigger_reset_needed)
-            ch2_375->resetTrigger(current_scope_gain);
+            ch2_375->resetTrigger(current_scope_gain, deviceMode_duplicate==7);
     }
 }
 #endif // USBCALLHANDLER_H

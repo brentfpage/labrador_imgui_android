@@ -45,7 +45,7 @@ public:
     int mostRecentAddress = 0;
     int stream_index_at_last_call = 0;
     int distanceFromMostRecentAddress(int index);
-    void resetTrigger(double scope_gain);
+    void resetTrigger(double scope_gain, bool twelve_bit_multimeter);
     std::vector<double> *getMany_double(int numToGet, double interval_samples, int delay_sample, int filter_mode, double scope_gain, bool twelve_bit_multimeter);
     std::vector<double> *getMany_singleBit(int numToGet, double interval_subsamples, int delay_subsamples);
     std::vector<double> *getSinceLast(int feasible_window_begin, int feasible_window_end, int interval_samples, int filter_mode, double scope_gain, bool twelve_bit_multimeter);

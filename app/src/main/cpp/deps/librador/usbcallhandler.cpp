@@ -396,7 +396,10 @@ buffer_read_write_mutex.lock();
         }
         break;
     case 7:
-        if(channel == 1) temp_to_return = internal_o1_buffer_375_CHA->getMany_double(numToGet, interval_samples, delay_sample, filter_mode, current_scope_gain, true);
+        if(channel == 1) {
+            delay_including_trigger = internal_o1_buffer_375_CHA->getDelayIncludingFromTrigger(delay_sample, round(interval_samples * numToGet), &single_shot_reached);
+            temp_to_return = internal_o1_buffer_375_CHA->getMany_double(numToGet, interval_samples, delay_including_trigger, filter_mode, current_scope_gain, true);
+        }
         break;
     }
     buffer_read_write_mutex.unlock();
@@ -493,14 +496,18 @@ int usbCallHandler::set_device_mode(int mode){
         return -1;
     }
     deviceMode = mode;
+    deviceMode_duplicate = mode; // to enable use in usbcallhandler.h template function
     send_control_transfer_with_error_checks(0x40, 0xa5, (mode == 5 ? 0 : mode), gainMask, 0, nullptr);
 
     send_function_gen_settings(1);
     send_function_gen_settings(2);
 
     internal_o1_buffer_375_CHA->reset(false);
+    internal_o1_buffer_375_CHA->resetTrigger(current_scope_gain, deviceMode_duplicate==7);
     internal_o1_buffer_375_CHB->reset(false);
+    internal_o1_buffer_375_CHB->resetTrigger(current_scope_gain, deviceMode_duplicate==7);
     internal_o1_buffer_750->reset(false);
+    internal_o1_buffer_750->resetTrigger(current_scope_gain, deviceMode_duplicate==7);
 
     return 0;
 }

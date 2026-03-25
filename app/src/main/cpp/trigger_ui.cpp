@@ -7,11 +7,12 @@
 #include "trigger_ui.h"
 
 
-void triggerUI::draw(const bool scope_enable[2])
+void triggerUI::draw(bool chA_enable, bool chB_enable)
 {
+    bool enable_helper[2] = {chA_enable, chB_enable};
     for (int ch:{1,2})
     {
-        if(!scope_enable[ch-1]) {
+        if(!enable_helper[ch-1]) {
             both_ch_trigger_settings[ch-1] = o1buffer::trigger_settings();
         }
     }
@@ -21,8 +22,8 @@ void triggerUI::draw(const bool scope_enable[2])
 //     if (ImGui::BeginTable("trigger_helper", 2, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_BordersOuterH, ImVec2(ImGui::GetContentRegionAvail().x, 0.f)) {
     ImGui::BeginGroup();
         ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(style.FramePadding.x/2.,0.f)); // to give space for bounding rect
-        ImGui::RadioButton("CH1", &ch_sel, 1); ImGui::SameLine();
-        ImGui::RadioButton("CH2", &ch_sel, 2); 
+        ImGui::RadioButton("ChA", &ch_sel, 1); ImGui::SameLine();
+        ImGui::RadioButton("ChB", &ch_sel, 2); 
     ImGui::EndGroup();
     curr_ch_trigger_settings = &both_ch_trigger_settings[ch_sel - 1];
     ImVec2 p0 = ImGui::GetItemRectMin() - ImVec2(0.f,style.FramePadding.x/2.);
@@ -32,7 +33,7 @@ void triggerUI::draw(const bool scope_enable[2])
     draw_list->AddRect(p0, p1, IM_COL32(90, 90, 120, 255));
 
     ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0., style.FramePadding.y/2.));
-    ImGui::BeginDisabled(!scope_enable[ch_sel-1]);
+    ImGui::BeginDisabled(!enable_helper[ch_sel-1]);
     ImGui::BeginGroup();
         ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(style.FramePadding.x/2.,0.f)); // to give space for bounding rect
         ImGui::custom_RadioButton("Rising", (int *) &curr_ch_trigger_settings->trigger_type, 1);

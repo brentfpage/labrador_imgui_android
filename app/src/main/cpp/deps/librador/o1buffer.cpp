@@ -30,7 +30,6 @@ int o1buffer::reset(bool hard){
     if(hard){
         for (int i=0; i<NUM_SAMPLES_PER_CHANNEL; i++){
             buffer[i] = 0;
-            m_is_triggered[i] = false;
         }
     }
     return 0;
@@ -144,7 +143,7 @@ std::vector<double> *o1buffer::getMany_double(int numToGet, double interval_samp
         if(tempAddress < 0)
             tempAddress += NUM_SAMPLES_PER_CHANNEL;
         window_mean = get_filtered_sample(tempAddress, 1, round(interval_samples * numToGet), scope_gain, twelve_bit_multimeter);
-        m_ac_offset_adc_units = inverseSampleConvert(window_mean + voltage_ref, scope_gain, twelve_bit_multimeter);
+        m_ac_offset_adc_units = inverseSampleConvert(window_mean + twelve_bit_multimeter ? 0 : voltage_ref, scope_gain, twelve_bit_multimeter);
     } else {
         m_ac_offset_adc_units = 0;
     }
@@ -315,19 +314,19 @@ short o1buffer::inverseSampleConvert(double voltageLevel, double scope_gain, boo
     return sample;
 }
 
-void o1buffer::resetTrigger(double scope_gain)
+// gets called by setsettingsforchannel in usbcallhandler.h
+void o1buffer::resetTrigger(double scope_gain, bool twelve_bit_multimeter)
 {
     double TOP;
 
-//     if(twelve_bit_multimeter){
-//         TOP = 2048;
-//     } else TOP = 128;
-    TOP = 128;
+    if(twelve_bit_multimeter){
+        TOP = 2048;
+    } else TOP = 128;
 
     // user sets m_trigger_settings.trigger_level based on what they see in the waveform that includes virtual transforms; these transforms are compensated for in actual_trigger_level
     double actual_trigger_level = (m_trigger_settings.trigger_level - m_virtual_transform_settings.offset)/m_virtual_transform_settings.gain;
 
-    short new_triggerLevelADC = inverseSampleConvert(actual_trigger_level, scope_gain, false);
+    short new_triggerLevelADC = inverseSampleConvert(actual_trigger_level, scope_gain, twelve_bit_multimeter);
     trigger_clear_mutex.lock();
     memset(m_is_triggered, false, sizeof(bool) * NUM_SAMPLES_PER_CHANNEL);
     m_triggerSeekState = TriggerSeekState::Invalid;

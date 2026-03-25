@@ -355,7 +355,7 @@ int main(int, char**)
                     ImGui::BeginChild("col1",ImVec2(settings_width*0.34 - style.ItemSpacing.x/2, settings_height),0, ImGuiWindowFlags_NoScrollbar);
                     {
                         inputs_ui.draw();
-                        trigger_ui.draw(inputs_ui.scope_enable);
+                        trigger_ui.draw(inputs_ui.scope_enable[0] || inputs_ui.mm, inputs_ui.scope_enable[1]);
                     }
                     ImGui::EndChild();
 
