@@ -123,8 +123,7 @@ void inputsUI::draw()
         ImGui::BeginDisabled(!checkbox_enable[i]);
         if((ImGui::custom_Checkbox(internal_labels[i], checkbox_bool[i])) || (*checkbox_bool[i] && !checkbox_enable[i])) {
             changed = true;
-            if(i==0)
-                mode_update = true;
+            mode_update = true;
         }
         *checkbox_bool[i] &= checkbox_enable[i];
         ImGui::EndDisabled();

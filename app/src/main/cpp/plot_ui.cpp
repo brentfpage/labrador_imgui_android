@@ -27,8 +27,8 @@ void plotUI::recompute_x_bounds(bool mode_changed, inputsUI::Mode mode)
         }
     } else {
 //         if(!xy) {
-//             delay = -xmax;
-//             time_window = (xmax - xmin);
+            delay = -xmax;
+            time_window = (xmax - xmin);
 //         }
     }
 }
