@@ -347,7 +347,7 @@ int main(int, char**)
                 ImGui::SameLine();
             }
             ImGuiID col2_id;
-            ImVec2 settingsWindowTopRight;
+            ImVec2 settingsWindowPos;
             ImGui::PushFont(NULL, style.FontSizeBase * fontsize/ImGui::GetFontSize());
             if(!collapse_settings) {
                 ImGui::BeginChild("settings",ImVec2(settings_width, settings_height),0,ImGuiWindowFlags_NoScrollbar);
@@ -368,14 +368,16 @@ int main(int, char**)
                         logic_decode_ui.draw_settings(inputs_ui.logic_enable, inputs_ui.scopelogic_mode());
                     }
                     ImGui::EndChild();
-                    ImVec2 settingsWindowPos = ImGui::GetWindowPos();
-                    settingsWindowTopRight = settingsWindowPos + ImVec2(settings_width - (ImGui::CalcTextSize(" v ").x  + 2 * style.FramePadding.x), 0.);
+                    settingsWindowPos = ImGui::GetWindowPos();
                 }
                 ImGui::EndChild();
             }
 
             char label[36];
 
+//             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(style.FramePadding.x/2., 0.f));
+            style = ImGui::GetStyle();
+            ImVec2 settingsWindowTopRight = settingsWindowPos + ImVec2(settings_width - (ImGui::CalcTextSize(" v ").x  + 2 * style.FramePadding.x), 0.);
             ImGuiID collapse_id = ImGui::GetID("collapse");
             if(collapse_settings) {
                 if(landscape) {
@@ -408,6 +410,7 @@ int main(int, char**)
                 ImGui::EndChild();
                 ImGui::EndChild();
             }
+//             ImGui::PopStyleVar();
             ImGui::PopFont();
             ImGui::End();
         }
