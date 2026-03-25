@@ -109,12 +109,12 @@ void inputsUI::draw()
 
     bool* checkbox_bool[2] = {&scope750, &xy};
     bool checkbox_enable[2] = {scope_enable[0] && !(scope_enable[1] || logic_enable[0]), (scope_enable[0] && scope_enable[1])};
-    const char* print_labels[2] = {" 750 kHz", "XY"};
+    const char* print_labels[2] = {" 750 kHz", ""};
     const char* internal_labels[2] = {"##750 kHz","##XY Mode"};
     ImVec2 positions[2] = 
     {
         row3_pos + center_checkbox_delta(col_width + 2*style.CellPadding.x, style),
-        row4_pos + center_checkbox_delta(2 * col_width + 4*style.CellPadding.x, style)
+        row4_pos + ImVec2(2 * col_width + 2*style.CellPadding.x ,0.f) + center_checkbox_delta(col_width + 4*style.CellPadding.x, style)
     };
 
     for(int i = 0; i < 2; i++)
@@ -131,6 +131,10 @@ void inputsUI::draw()
         ImGui::SameLine();
         ImGui::Text("%s",print_labels[i]);
     }
+    ImGui::PushFont(NULL, style.FontSizeBase * 1.3);
+    ImGui::SetCursorScreenPos(row4_pos + ImVec2(col_width + style.CellPadding.x - ImGui::CalcTextSize("\xee\xa4\x82").x/2.,0.f));
+    ImGui::Text("\xee\xa4\x82");
+    ImGui::PopFont();
     ImGui::PopStyleVar();
     ImGui::SetCursorScreenPos(saved_pos);
 
