@@ -13,7 +13,7 @@ public:
     bool ch_enabled(int ch);
     enum Mode {Ch1Scope,ScopeLogic,ScopeScope,Ch1Logic,LogicLogic,None,Scope750,Multimeter};
     Mode mode = Mode::Ch1Scope;
-    bool xy;
+    bool mm; //multimeter
     bool logic_on();
     bool scopelogic_mode();
 };

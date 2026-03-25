@@ -107,10 +107,10 @@ void inputsUI::draw()
     ImVec2 row3_pos = p0 + ImVec2(style.CellPadding.x,header_row_height + 2*row_height + style.CellPadding.y);;
     ImVec2 row4_pos = row3_pos + ImVec2(0.f,row_height);
 
-    bool* checkbox_bool[2] = {&scope750, &xy};
-    bool checkbox_enable[2] = {scope_enable[0] && !(scope_enable[1] || logic_enable[0]), (scope_enable[0] && scope_enable[1])};
+    bool* checkbox_bool[2] = {&scope750, &mm};
+    bool checkbox_enable[2] = {scope_enable[0] && !(scope_enable[1] || logic_enable[0]), (!scope_enable[0] && !scope_enable[1])};
     const char* print_labels[2] = {" 750 kHz", ""};
-    const char* internal_labels[2] = {"##750 kHz","##XY Mode"};
+    const char* internal_labels[2] = {"##750 kHz","##MM Mode"};
     ImVec2 positions[2] = 
     {
         row3_pos + center_checkbox_delta(col_width + 2*style.CellPadding.x, style),

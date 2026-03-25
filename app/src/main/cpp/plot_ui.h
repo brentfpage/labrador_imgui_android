@@ -14,8 +14,8 @@ class plotUI
     double x_constraint_min = -10.;
     double x_constraint_max = 0.;
 public:
-    void recompute_x_bounds(bool mode_changed, inputsUI::Mode mode, bool xy);
-    void draw(bool iso_thread_active, inputsUI::Mode mode, bool chA_enabled, bool chB_enabled, bool xy, double data_width, double plot_height);
+    void recompute_x_bounds(bool mode_changed, inputsUI::Mode mode);
+    void draw(bool iso_thread_active, inputsUI::Mode mode, bool chA_enabled, bool chB_enabled, double data_width, double plot_height);
     double delay;
     double time_window;
 };

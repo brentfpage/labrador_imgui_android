@@ -277,7 +277,7 @@ int main(int, char**)
 
 
         if (show_mainwindow) {
-            plot_ui.recompute_x_bounds(inputs_ui.changed_since_last(), inputs_ui.mode, inputs_ui.xy);
+            plot_ui.recompute_x_bounds(inputs_ui.changed_since_last(), inputs_ui.mode);
 
             int statusBarHeight = (int) env->CallIntMethod(MainActivityObject,getStatusBarHeightID);
             int navigationBarHeight = (int) env->CallIntMethod(MainActivityObject,getNavigationBarHeightID);
@@ -335,7 +335,7 @@ int main(int, char**)
                 } else {
                     plot_height = ImGui::GetContentRegionAvail().y;
                 }
-                plot_ui.draw(iso_thread_active, inputs_ui.mode, inputs_ui.ch_enabled(1), inputs_ui.ch_enabled(2), inputs_ui.xy, data_width, plot_height);
+                plot_ui.draw(iso_thread_active, inputs_ui.mode, inputs_ui.ch_enabled(1), inputs_ui.ch_enabled(2), data_width, plot_height);
 
                 if(logic_decode_ui.decoding_on()) {
                     logic_decode_ui.draw_console(data_width);
