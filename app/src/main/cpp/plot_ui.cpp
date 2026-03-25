@@ -66,6 +66,9 @@ void plotUI::draw(bool iso_thread_active, inputsUI::Mode mode, bool chA_enabled,
         case inputsUI::Mode::Scope750:
             from_librador_chA = librador_get_analog_data(1,time_window,GRAPH_SAMPLES,delay, 0);
             break;
+        case inputsUI::Mode::Multimeter:
+            from_librador_chA = librador_get_analog_data(1,time_window,GRAPH_SAMPLES,delay, 0);
+            break;
         }
     } else {
         from_librador_chA = &blank_data;
