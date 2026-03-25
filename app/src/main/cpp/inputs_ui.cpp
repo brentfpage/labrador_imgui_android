@@ -108,7 +108,7 @@ void inputsUI::draw()
     ImVec2 row4_pos = row3_pos + ImVec2(0.f,row_height);
 
     bool* checkbox_bool[2] = {&scope750, &mm};
-    bool checkbox_enable[2] = {scope_enable[0] && !(scope_enable[1] || logic_enable[0]), (!scope_enable[0] && !scope_enable[1])};
+    bool checkbox_enable[2] = {scope_enable[0] && !(scope_enable[1] || logic_enable[0]), (!scope_enable[0] && !scope_enable[1] && !logic_enable[0] && !logic_enable[1])};
     const char* print_labels[2] = {" 750 kHz", ""};
     const char* internal_labels[2] = {"##750 kHz","##MM Mode"};
     ImVec2 positions[2] = 
@@ -185,6 +185,8 @@ void inputsUI::update_device_mode()
         mode = Mode::None;
     else if (scope750)
         mode = Mode::Scope750;
+    else if (mm)
+        mode = Mode::Multimeter;
 
     librador_set_device_mode((int) mode);
 }
