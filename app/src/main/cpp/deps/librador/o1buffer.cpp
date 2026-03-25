@@ -103,7 +103,7 @@ int o1buffer::addVector(short *firstElement, int numElements){
 
     trigger_clear_mutex.lock();
     for(int i=0; i< numElements; i++){
-        add(firstElement[i], currentAddress);
+        add(firstElement[i] >> 4, currentAddress);
         checkTriggered(currentAddress);
         currentAddress = (currentAddress + 1) % NUM_SAMPLES_PER_CHANNEL;
     }
@@ -294,11 +294,6 @@ double o1buffer::sampleConvert(int sample, double scope_gain, bool twelve_bit_mu
         if(twelve_bit_multimeter) voltageLevel *= -1;
     #endif
 
-    if(twelve_bit_multimeter){
-        #pragma message("Hack here.Do not know why this line works, but it does.")
-        voltageLevel = voltageLevel / 16;
-    }
-
     return voltageLevel;
 }
 
@@ -308,11 +303,6 @@ short o1buffer::inverseSampleConvert(double voltageLevel, double scope_gain, boo
     if(twelve_bit_multimeter){
         TOP = 2048;
     } else TOP = 128;
-
-    if(twelve_bit_multimeter){
-        #pragma message("Hack here.Do not know why this line works, but it does.")
-        voltageLevel = voltageLevel * 16;
-    }
 
     #ifdef MULTIMETER_INVERT
         if(twelve_bit_multimeter) voltageLevel *= -1;
