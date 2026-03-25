@@ -83,10 +83,8 @@ void inputsUI::draw()
                 ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + center_checkbox_delta(ImGui::GetColumnWidth() + 2*style.CellPadding.x, style));
                 ImGui::BeginDisabled(!(checkbox_enable[j][ch-1]));
                 if((ImGui::custom_Checkbox(full_checkbox_label, checkbox_bool[j][ch-1]))||(*checkbox_bool[j][ch-1] && !checkbox_enable[j][ch-1])) {
-                    if(j!=2) { 
-                        mode_update = true;
-                        changed = true;
-                    }
+                    mode_update = true;
+                    changed = true;
                 }
                 *(checkbox_bool[j][ch-1]) &= checkbox_enable[j][ch-1];
 
@@ -143,9 +141,11 @@ void inputsUI::draw()
 
 bool inputsUI::ch_enabled(int ch)
 {
-    // for argument 'ch': 1==ChA ; 2==ChB, where ChA/B refer to plotted lines.  Except in ScopeLogic mode, ChA is scope or logic Ch1 and ChB is scope or logic Ch2.
+    // for argument 'ch': 1==ChA ; 2==ChB, where ChA/B refer to plotted lines.  Except in ScopeLogic and Multimeter modes, ChA is scope or logic Ch1 and ChB is scope or logic Ch2.
     if(mode == Mode::ScopeLogic)
         return true;
+    else if (mode == Mode::Multimeter)
+        return ch==1;
     else
         return scope_enable[ch-1]||logic_enable[ch-1];
     return false;
@@ -180,7 +180,7 @@ void inputsUI::update_device_mode()
         mode = Mode::Ch1Logic;
     else if (logic_enable[0] && logic_enable[1])
         mode = Mode::LogicLogic;
-    else if (!(scope_enable[0] || scope_enable[1] || logic_enable[0] || logic_enable[1]))
+    else if (!(scope_enable[0] || scope_enable[1] || logic_enable[0] || logic_enable[1] || mm))
         mode = Mode::None;
     else if (scope750)
         mode = Mode::Scope750;
