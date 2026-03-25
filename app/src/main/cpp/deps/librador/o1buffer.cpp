@@ -331,7 +331,7 @@ void o1buffer::resetTrigger(double scope_gain, bool twelve_bit_multimeter)
     memset(m_is_triggered, false, sizeof(bool) * NUM_SAMPLES_PER_CHANNEL);
     m_triggerSeekState = TriggerSeekState::Invalid;
     m_triggerLevelADC = new_triggerLevelADC;
-    m_triggerSensitivity = static_cast<short>(1 + abs(actual_trigger_level * kTriggerSensitivityMultiplier * TOP / 128.));
+    m_triggerSensitivity = static_cast<short>((1 + abs(actual_trigger_level * kTriggerSensitivityMultiplier )) * TOP / 128.);
     trigger_clear_mutex.unlock();
 
     LOGW("Trigger Level: %d", m_triggerLevelADC);
