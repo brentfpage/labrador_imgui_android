@@ -7,6 +7,7 @@ class inputsUI : public Widget
     bool scope750 = false;
     bool changed = false;
 public:
+    inputsUI() : Widget(6) {};
     void update_device_mode();
     bool logic_enable[2] = {0,0};
     bool scope_enable[2] = {true,false};

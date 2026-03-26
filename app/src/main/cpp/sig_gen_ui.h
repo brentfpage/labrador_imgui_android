@@ -30,6 +30,7 @@ class sigGenUI : public Widget
     bool need_usb_send;
     int ch_sel = 1;
 public:
+    sigGenUI() : Widget(6) {};
     void draw(bool ch2_disabled);
     void usb_send_data(int ch);
     int get_height() override;

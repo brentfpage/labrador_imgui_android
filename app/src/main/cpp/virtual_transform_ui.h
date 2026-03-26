@@ -18,6 +18,7 @@ class virtualTransformUI : public Widget
     ch_settings both_ch_settings[2];
     ch_settings* curr_ch_settings = both_ch_settings;
 public:
+    virtualTransformUI() : Widget(4) {};
     void draw();
     int get_height() override;
 };

@@ -60,6 +60,7 @@ class logicDecodeUI : public Widget
     bool uart_ch_console_at_bottom[2] = {true, true};
     bool i2c_console_at_bottom = true;
 public:
+    logicDecodeUI() : Widget(2) {};
     bool decoding_on();
     void draw_settings(const bool logic_enable[2], bool scopelogic_mode);
     void draw_console(float window_content_width);//const char * from_librador_1, const char * from_librador_2 = nullptr);
