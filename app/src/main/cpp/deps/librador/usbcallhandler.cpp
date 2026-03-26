@@ -20,7 +20,6 @@ std::mutex get_set_iso_thread_active_mutex;
 bool iso_thread_active = false;
 bool iso_thread_shutdown_requested = false;
 int iso_thread_shutdown_remaining_transfers = NUM_FUTURE_CTX;
-int deviceMode = 0;
 
 int begin_iso_thread_shutdown(){
     iso_thread_shutdown_mutex.lock();
@@ -57,7 +56,7 @@ o1buffer *internal_o1_buffer_375_CHA;
 o1buffer *internal_o1_buffer_375_CHB;
 o1buffer *internal_o1_buffer_750;
 
-static void LIBUSB_CALL isoCallback(struct libusb_transfer * transfer){
+void LIBUSB_CALL isoCallback(struct libusb_transfer * transfer){
     //Thread mutex??
     //printf("Copy the data...\n");
     if(transfer->status==LIBUSB_TRANSFER_COMPLETED)
@@ -66,7 +65,7 @@ static void LIBUSB_CALL isoCallback(struct libusb_transfer * transfer){
         for(int i=0;i<transfer->num_iso_packets;i++){
             unsigned char *packetPointer = libusb_get_iso_packet_buffer_simple(transfer, i);
             //TODO: a switch statement here to handle all the modes.
-            switch(deviceMode){
+            switch(((usbCallHandler *)transfer->user_data)->deviceMode){
             case 0:
                 internal_o1_buffer_375_CHA->addVector((char*) packetPointer, 375);
                 break;
@@ -285,7 +284,7 @@ void usbCallHandler::alloc_iso_transfers(){
     for(int n=0;n<NUM_FUTURE_CTX;n++){
         for (unsigned char k=0;k<NUM_ISO_ENDPOINTS;k++){
             isoCtx[k][n] = libusb_alloc_transfer(ISO_PACKETS_PER_CTX);
-            libusb_fill_iso_transfer(isoCtx[k][n], handle, pipeID[k], dataBuffer[k][n], ISO_PACKET_SIZE*ISO_PACKETS_PER_CTX, ISO_PACKETS_PER_CTX, isoCallback, nullptr, 150); // assume the NUM_FUTURE_CTX=4 iso transfers are FIFO, in which case timeout should be > 1 ms (amount of data per packet) * NUM_PACKETS_PER_CTX * NUM_FUTURE_CTX 
+            libusb_fill_iso_transfer(isoCtx[k][n], handle, pipeID[k], dataBuffer[k][n], ISO_PACKET_SIZE*ISO_PACKETS_PER_CTX, ISO_PACKETS_PER_CTX, isoCallback, this, 150); // assume the NUM_FUTURE_CTX=4 iso transfers are FIFO, in which case timeout should be > 1 ms (amount of data per packet) * NUM_PACKETS_PER_CTX * NUM_FUTURE_CTX 
             libusb_set_iso_packet_lengths(isoCtx[k][n], ISO_PACKET_SIZE);
         }
     }
@@ -496,18 +495,17 @@ int usbCallHandler::set_device_mode(int mode){
         return -1;
     }
     deviceMode = mode;
-    deviceMode_duplicate = mode; // to enable use in usbcallhandler.h template function
     send_control_transfer_with_error_checks(0x40, 0xa5, (mode == 5 ? 0 : mode), gainMask, 0, nullptr);
 
     send_function_gen_settings(1);
     send_function_gen_settings(2);
 
     internal_o1_buffer_375_CHA->reset(false);
-    internal_o1_buffer_375_CHA->resetTrigger(current_scope_gain, deviceMode_duplicate==7);
+    internal_o1_buffer_375_CHA->resetTrigger(current_scope_gain, deviceMode==7);
     internal_o1_buffer_375_CHB->reset(false);
-    internal_o1_buffer_375_CHB->resetTrigger(current_scope_gain, deviceMode_duplicate==7);
+    internal_o1_buffer_375_CHB->resetTrigger(current_scope_gain, deviceMode==7);
     internal_o1_buffer_750->reset(false);
-    internal_o1_buffer_750->resetTrigger(current_scope_gain, deviceMode_duplicate==7);
+    internal_o1_buffer_750->resetTrigger(current_scope_gain, deviceMode==7);
 
     return 0;
 }
