@@ -63,5 +63,6 @@ public:
     void draw_settings(const bool logic_enable[2], bool scopelogic_mode);
     void draw_console(float window_content_width);//const char * from_librador_1, const char * from_librador_2 = nullptr);
     float get_console_height(float avail_y);
+    int get_height();
 };
 #endif // LOGICDECODEUI_H

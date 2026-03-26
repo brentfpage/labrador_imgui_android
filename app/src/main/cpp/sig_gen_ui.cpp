@@ -34,7 +34,6 @@ void sigGenUI::draw(bool ch2_disabled)
         both_ch_data[1] = ch_data();
     }
 
-    ImVec2 init_pos = ImGui::GetCursorScreenPos();
     ImGui::Text("Signal Generator");
     ImDrawList* draw_list;
     ImVec2 p0;
@@ -99,9 +98,7 @@ void sigGenUI::draw(bool ch2_disabled)
 
         ImGui::EndTable();
     }
-    ImVec2 final_pos = ImGui::GetCursorScreenPos();
-    LOGW("real height: %.2f", final_pos.y - init_pos.y);
-    LOGW("calc height: %.2f", (float) get_height());
+    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.f, -style.ItemSpacing.y));
     if(need_usb_send) {
         std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
         if(std::chrono::duration_cast<std::chrono::milliseconds>(now - last_usb_send) > between_usb_sends_min) {
@@ -122,7 +119,6 @@ int sigGenUI::get_height()
     ImGuiStyle& style = ImGui::GetStyle();
     int calc_height = style.ItemSpacing.y + ImGui::GetFontSize() + \
                       CHECKBOX_SIZE + 2 * style.CellPadding.y + \
-                      4 * (ImGui::GetFontSize() + 2 * style.FramePadding.y + 2 * style.CellPadding.y) + \
-                      style.ItemSpacing.y;
+                      4 * (ImGui::GetFontSize() + 2 * style.FramePadding.y + 2 * style.CellPadding.y);
     return calc_height;
 }

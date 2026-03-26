@@ -174,7 +174,7 @@ void logicDecodeUI::draw_settings(const bool logic_enable_in[2], bool scopelogic
         }
         ImGui::EndTable();
     }
-//     ImGui::EndGroup();
+    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.f, -style.ItemSpacing.y));
 
     for (int ch : {1,2})
     {
@@ -239,4 +239,12 @@ void logicDecodeUI::draw_settings(const bool logic_enable_in[2], bool scopelogic
         console_height = ch_console_height[0] + ch_console_height[1];
     else if (protocol_sel == Protocol::None)
         console_height = 0.f;
+}
+
+int logicDecodeUI::get_height()
+{
+    ImGuiStyle& style = ImGui::GetStyle();
+    int calc_height = style.ItemSpacing.y + ImGui::GetFontSize() + \
+                      2 * style.CellPadding.y + 2 * style.FramePadding.y + ImGui::GetFontSize();
+    return calc_height;
 }

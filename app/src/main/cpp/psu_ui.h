@@ -9,5 +9,6 @@ class psuUI
 public:
     void usb_send_data();
     void draw();
+    int get_height();
 };
 #endif // PSUUI_H
