@@ -12,6 +12,7 @@
 #include "implot.h"
 // #include "implot_internal.h"
 #include "imgui.h"
+#include "widget.h"
 #include "sig_gen_ui.h"
 #include "inputs_ui.h"
 #include "trigger_ui.h"
@@ -285,6 +286,15 @@ int main(int, char**)
             bool landscape = true;
             static bool collapse_settings = false;
 
+            enum Widgets {Inputs,Trigger,VirtTrans,SigGen,LogDec};
+            const int n_widgets = 6;
+            static bool widgets_enable[n_widgets];
+            memset(widgets_enable, true, sizeof(bool) * n_widgets);
+            const char * widget_names[n_widgets] = {"Inputs","Trigger","Virtual Transforms", "Signal Generator", "PSU", "Logic Decoding"};
+            Widget *widgets[n_widgets] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui};
+//             int (*get_height[n_widgets])() = {&inputsUI::get_height, &virtualTransformUI::get_height, &sigGenUI::get_height, &psuUI::get_height, &logicDecodeUI::get_height};
+//             int test = widgets[0]->get_height();
+
             float settings_height;
             float fontsize;
             ImGui::SetNextWindowPos(ImVec2(0.f,statusBarHeight));
@@ -300,6 +310,12 @@ int main(int, char**)
                 fontsize = ImGui::GetFontSize();
             };
             ImGuiStyle& style = ImGui::GetStyle();
+            LOGW("why: %.2f", 2*ImGui::GetFontSize());
+            LOGW("whywhy: %.2f", ImGui::CalcTextSize("Single\n shot").y);
+            float y1 = ImGui::GetCursorScreenPos().y;
+            ImGui::Text("Single\n shot");
+            float y2 = ImGui::GetCursorScreenPos().y;
+            LOGW("whywhywhy: %.2f", y2-y1);
 
             float settings_width = portraitScreenWidth - 2 * style.WindowPadding.x; //in landscape mode, this value is specifically the settings width when the settings are not collapsed.
 
@@ -419,10 +435,6 @@ int main(int, char**)
             ImGui::PopFont();
 
 
-            enum Widgets {Inputs,Trigger,VirtTrans,SigGen,LogDec};
-            const char * widgets[5] = {"Inputs","Trigger","Virtual Transforms", "Signal Generator", "Logic Decoding"};
-            static bool widgets_enable[5] = {true, true, true, true, true};
-
             if(open_widget_sel) {
                 ImGui::OpenPopup("config_settings");
             }
@@ -430,7 +442,7 @@ int main(int, char**)
                 ImGui::Text("Select widgets");
                 ImGui::Separator();
                 for (int i=0; i< sizeof(widgets_enable); i++) {
-                    ImGui::Checkbox(widgets[i], &widgets_enable[i]);
+                    ImGui::Checkbox(widget_names[i], &widgets_enable[i]);
                 }
                 ImGui::EndPopup();
             }

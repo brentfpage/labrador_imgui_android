@@ -2,8 +2,9 @@
 #define SIGGENUI_H
 
 #include <chrono>
+#include "widget.h"
 
-class sigGenUI
+class sigGenUI : public Widget
 {
     const static int n_bases = 5;
     const int freq_slider_bases[n_bases] = {1,1,1,1000,1000};
@@ -31,7 +32,7 @@ class sigGenUI
 public:
     void draw(bool ch2_disabled);
     void usb_send_data(int ch);
-    int get_height();
+    int get_height() override;
 };
 
 #endif // SIGGENUI_H

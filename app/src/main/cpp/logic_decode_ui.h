@@ -1,9 +1,10 @@
 #ifndef LOGICDECODEUI_H
 #define LOGICDECODEUI_H
 
+#include "widget.h"
 #include "uartstyledecoder.h"
 
-class logicDecodeUI
+class logicDecodeUI : public Widget
 {
     enum class Protocol {None, UART, I2C};
     Protocol protocol_sel = Protocol::None;
@@ -63,6 +64,6 @@ public:
     void draw_settings(const bool logic_enable[2], bool scopelogic_mode);
     void draw_console(float window_content_width);//const char * from_librador_1, const char * from_librador_2 = nullptr);
     float get_console_height(float avail_y);
-    int get_height();
+    int get_height() override;
 };
 #endif // LOGICDECODEUI_H

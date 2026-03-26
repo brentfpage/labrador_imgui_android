@@ -1,6 +1,8 @@
 #ifndef PSUUI_H
 #define PSUUI_H
-class psuUI
+
+#include "widget.h"
+class psuUI : public Widget
 {
     const std::chrono::milliseconds between_usb_sends_min{100};
     float psu = 4.5f;

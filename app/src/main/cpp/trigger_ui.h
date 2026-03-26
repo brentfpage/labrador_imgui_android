@@ -2,13 +2,14 @@
 #define TRIGGERUI_H
 
 #include "o1buffer.h"
-class triggerUI
+#include "widget.h"
+class triggerUI : public Widget
 {
     int ch_sel = 1;
     o1buffer::trigger_settings both_ch_trigger_settings[2];
     o1buffer::trigger_settings* curr_ch_trigger_settings = &both_ch_trigger_settings[ch_sel-1];
 public:
     void draw(bool chA_enable, bool chB_enable);
-    int get_height();
+    int get_height() override;
 };
-#endif // SCOPEMOODEUI_H
+#endif

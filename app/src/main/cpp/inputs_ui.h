@@ -1,6 +1,8 @@
 #ifndef INPUTSUI_H
 #define INPUTSUI_H
-class inputsUI
+
+#include "widget.h"
+class inputsUI : public Widget
 {
     bool scope750 = false;
     bool changed = false;
@@ -16,7 +18,7 @@ public:
     bool mm; //multimeter
     bool logic_on();
     bool scopelogic_mode();
-    int get_height();
+    int get_height() override;
 };
 
 #endif // INPUTSUI_H
