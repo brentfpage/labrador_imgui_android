@@ -51,44 +51,40 @@ bool safe_to_exit_thread(){
     return tempReturn;
 }
 
-//shared vars
-o1buffer *internal_o1_buffer_375_CHA;
-o1buffer *internal_o1_buffer_375_CHB;
-o1buffer *internal_o1_buffer_750;
-
 void LIBUSB_CALL isoCallback(struct libusb_transfer * transfer){
     //Thread mutex??
     //printf("Copy the data...\n");
+    usbCallHandler *usb_driver = (usbCallHandler *)transfer->user_data;
     if(transfer->status==LIBUSB_TRANSFER_COMPLETED)
     {
         buffer_read_write_mutex.lock(); 
         for(int i=0;i<transfer->num_iso_packets;i++){
             unsigned char *packetPointer = libusb_get_iso_packet_buffer_simple(transfer, i);
             //TODO: a switch statement here to handle all the modes.
-            switch(((usbCallHandler *)transfer->user_data)->deviceMode){
+            switch(usb_driver->deviceMode){
             case 0:
-                internal_o1_buffer_375_CHA->addVector((char*) packetPointer, 375);
+                usb_driver->internal_o1_buffer_375_CHA->addVector((char*) packetPointer, 375);
                 break;
             case 1:
-                internal_o1_buffer_375_CHA->addVector((char*) packetPointer, 375);
-                internal_o1_buffer_375_CHB->addVector((unsigned char*) &packetPointer[375], 375);
+                usb_driver->internal_o1_buffer_375_CHA->addVector((char*) packetPointer, 375);
+                usb_driver->internal_o1_buffer_375_CHB->addVector((unsigned char*) &packetPointer[375], 375);
                 break;
             case 2:
-                internal_o1_buffer_375_CHA->addVector((char*) packetPointer, 375);
-                internal_o1_buffer_375_CHB->addVector((char*) &packetPointer[375], 375);
+                usb_driver->internal_o1_buffer_375_CHA->addVector((char*) packetPointer, 375);
+                usb_driver->internal_o1_buffer_375_CHB->addVector((char*) &packetPointer[375], 375);
                 break;
             case 3:
-                internal_o1_buffer_375_CHA->addVector((unsigned char*) packetPointer, 375);
+                usb_driver->internal_o1_buffer_375_CHA->addVector((unsigned char*) packetPointer, 375);
                 break;
             case 4:
-                internal_o1_buffer_375_CHA->addVector((unsigned char*) packetPointer, 375);
-                internal_o1_buffer_375_CHB->addVector((unsigned char*) &packetPointer[375], 375);
+                usb_driver->internal_o1_buffer_375_CHA->addVector((unsigned char*) packetPointer, 375);
+                usb_driver->internal_o1_buffer_375_CHB->addVector((unsigned char*) &packetPointer[375], 375);
                 break;
             case 6:
-                internal_o1_buffer_750->addVector((char*) packetPointer, 750);
+                usb_driver->internal_o1_buffer_750->addVector((char*) packetPointer, 750);
                 break;
             case 7:
-                internal_o1_buffer_375_CHA->addVector((short*) packetPointer, 375);
+                usb_driver->internal_o1_buffer_375_CHA->addVector((short*) packetPointer, 375);
                 break;
             }
         }
