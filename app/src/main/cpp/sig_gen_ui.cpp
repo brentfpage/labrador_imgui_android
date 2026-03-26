@@ -29,17 +29,17 @@ void sigGenUI::amp_or_min_slider_and_button(const char* slider_label, const char
 
 void sigGenUI::draw(bool ch2_disabled)
 {
+    ImGuiStyle& style = ImGui::GetStyle();
     if(ch2_disabled) {
         both_ch_data[1] = ch_data();
     }
 
+    ImVec2 init_pos = ImGui::GetCursorScreenPos();
     ImGui::Text("Signal Generator");
     ImDrawList* draw_list;
-    ImGuiStyle& style = ImGui::GetStyle();
     ImVec2 p0;
     ImVec2 p1;
 
-//     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.f,0.f));
     if (ImGui::BeginTable("sg_table", 2, ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_RowBg , ImVec2(ImGui::GetContentRegionAvail().x,0.f)))
     {
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.75f);
@@ -94,11 +94,14 @@ void sigGenUI::draw(bool ch2_disabled)
 
         amp_or_min_slider_and_button("##sg_amp_slider", "Amp.", &curr_ch_data->amp, &curr_ch_data->amp_delayed, &curr_ch_data->min_val, &curr_ch_data->min_val_delayed);
         amp_or_min_slider_and_button("##sg_min_slider", "Min.", &curr_ch_data->min_val, &curr_ch_data->min_val_delayed, &curr_ch_data->amp, &curr_ch_data->amp_delayed);
+
         ImGui::EndDisabled(); // ch_sel==2 && ch2_disabled
 
         ImGui::EndTable();
     }
-//     ImGui::PopStyleVar();
+    ImVec2 final_pos = ImGui::GetCursorScreenPos();
+    LOGW("real height: %.2f", final_pos.y - init_pos.y);
+    LOGW("calc height: %.2f", (float) get_height());
     if(need_usb_send) {
         std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
         if(std::chrono::duration_cast<std::chrono::milliseconds>(now - last_usb_send) > between_usb_sends_min) {
@@ -112,4 +115,14 @@ void sigGenUI::draw(bool ch2_disabled)
 void sigGenUI::usb_send_data(int ch)
 {
     librador_send_wave(both_ch_data[ch-1].wf, ch, both_ch_data[ch-1].freq, both_ch_data[ch-1].amp, both_ch_data[ch-1].min_val);
+}
+
+int sigGenUI::get_height()
+{
+    ImGuiStyle& style = ImGui::GetStyle();
+    int calc_height = style.ItemSpacing.y + ImGui::GetFontSize() + \
+                      CHECKBOX_SIZE + 2 * style.CellPadding.y + \
+                      4 * (ImGui::GetFontSize() + 2 * style.FramePadding.y + 2 * style.CellPadding.y) + \
+                      style.ItemSpacing.y;
+    return calc_height;
 }

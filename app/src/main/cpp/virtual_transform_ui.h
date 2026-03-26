@@ -17,5 +17,6 @@ class virtualTransformUI
     ch_settings* curr_ch_settings = both_ch_settings;
 public:
     void draw();
+    int get_height();
 };
 #endif // VIRTUALTRANSFORMUI_H

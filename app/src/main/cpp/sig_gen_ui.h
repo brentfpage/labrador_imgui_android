@@ -31,6 +31,7 @@ class sigGenUI
 public:
     void draw(bool ch2_disabled);
     void usb_send_data(int ch);
+    int get_height();
 };
 
 #endif // SIGGENUI_H
