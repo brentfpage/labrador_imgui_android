@@ -347,7 +347,7 @@ int main(int, char**)
                 ImGui::SameLine();
             }
             ImGuiID col2_id;
-            ImVec2 settingsWindowPos;
+            ImVec2 settingsWindowTopRight;
             ImGui::PushFont(NULL, style.FontSizeBase * fontsize/ImGui::GetFontSize());
             if(!collapse_settings) {
                 ImGui::BeginChild("settings",ImVec2(settings_width, settings_height),0,ImGuiWindowFlags_NoScrollbar);
@@ -360,7 +360,8 @@ int main(int, char**)
                     ImGui::EndChild();
 
                     ImGui::SameLine();
-                    ImGui::BeginChild("col2",ImVec2(settings_width*0.66 - style.ItemSpacing.x/2, settings_height),0, ImGuiWindowFlags_NoScrollbar);
+                    float col2_width = settings_width*0.66 - style.ItemSpacing.x/2;
+                    ImGui::BeginChild("col2",ImVec2(col2_width, settings_height),0, ImGuiWindowFlags_NoScrollbar);
                     {
                         virtual_transform_ui.draw();
                         sig_gen_ui.draw(inputs_ui.logic_on());
@@ -368,7 +369,7 @@ int main(int, char**)
                         logic_decode_ui.draw_settings(inputs_ui.logic_enable, inputs_ui.scopelogic_mode());
                     }
                     ImGui::EndChild();
-                    settingsWindowPos = ImGui::GetWindowPos();
+                    settingsWindowTopRight = ImGui::GetWindowPos() + ImVec2(settings_width, 0.f);
                 }
                 ImGui::EndChild();
             }
@@ -377,7 +378,7 @@ int main(int, char**)
 
 //             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(style.FramePadding.x/2., 0.f));
             style = ImGui::GetStyle();
-            ImVec2 settingsWindowTopRight = settingsWindowPos + ImVec2(settings_width - (ImGui::CalcTextSize(" v ").x  + 2 * style.FramePadding.x), 0.);
+            bool open_widget_sel = false;
             ImGuiID collapse_id = ImGui::GetID("collapse");
             if(collapse_settings) {
                 if(landscape) {
@@ -400,8 +401,12 @@ int main(int, char**)
                 ImGui::BeginChild("settings");
                 ImGui::BeginChild("col2");
                 {
-                    ImGui::SetCursorScreenPos(settingsWindowTopRight);
+                    ImGui::SetCursorScreenPos(settingsWindowTopRight - ImVec2(ImGui::CalcTextSize("\xee\xa4\x83 v ").x   + 4 * style.FramePadding.x + style.ItemSpacing.x, 0.));
+                    if(ImGui::Button("\xee\xa4\x83##start_widget_sel")) {
+                        open_widget_sel = true;
+                    }
                     ImGui::PushOverrideID(collapse_id);
+                    ImGui::SameLine();
                     if(ImGui::Button(label)) {
                         collapse_settings = !collapse_settings;
                     }
@@ -412,6 +417,24 @@ int main(int, char**)
             }
 //             ImGui::PopStyleVar();
             ImGui::PopFont();
+
+
+            enum Widgets {Inputs,Trigger,VirtTrans,SigGen,LogDec};
+            const char * widgets[5] = {"Inputs","Trigger","Virtual Transforms", "Signal Generator", "Logic Decoding"};
+            static bool widgets_enable[5] = {true, true, true, true, true};
+
+            if(open_widget_sel) {
+                ImGui::OpenPopup("config_settings");
+            }
+            if(ImGui::BeginPopup("config_settings")) {
+                ImGui::Text("Select widgets");
+                ImGui::Separator();
+                for (int i=0; i< sizeof(widgets_enable); i++) {
+                    ImGui::Checkbox(widgets[i], &widgets_enable[i]);
+                }
+                ImGui::EndPopup();
+            }
+
             ImGui::End();
         }
 

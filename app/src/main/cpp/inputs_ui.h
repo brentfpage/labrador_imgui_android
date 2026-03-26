@@ -16,6 +16,7 @@ public:
     bool mm; //multimeter
     bool logic_on();
     bool scopelogic_mode();
+    int get_height();
 };
 
 #endif // INPUTSUI_H

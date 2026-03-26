@@ -29,10 +29,12 @@ void draw_rules(ImVec2 p0, double row_height, double header_row_height, double c
 
 void inputsUI::draw()
 {
+    ImVec2 start_pos = ImGui::GetCursorScreenPos();
     ImGui::Text("Inputs");
     bool mode_update = false;
     ImGuiStyle& style = ImGui::GetStyle();
     ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(style.CellPadding.x, style.CellPadding.y * 2));// if this line is active, make sure that the line that resets CellPadding at the end of this function is active as well
+    style = ImGui::GetStyle();
     float header_row_height = ImGui::GetFontSize() + style.CellPadding.y*2;
     float row_height = (ImGui::GetFontSize() + (style.FramePadding.y + style.CellPadding.y)*2);
     float col_width;
@@ -101,6 +103,8 @@ void inputsUI::draw()
     }
     ImVec2 saved_pos = ImGui::GetCursorScreenPos();
     ImVec2 p0 = ImGui::GetItemRectMin();
+    ImVec2 end_pos = ImGui::GetItemRectMax();
+    int real_height = (end_pos - start_pos).y;
     draw_rules(p0, row_height, header_row_height, col_width + 2* style.CellPadding.x );
     ImVec2 row3_pos = p0 + ImVec2(style.CellPadding.x,header_row_height + 2*row_height + style.CellPadding.y);;
     ImVec2 row4_pos = row3_pos + ImVec2(0.f,row_height);
@@ -166,6 +170,20 @@ bool inputsUI::logic_on()
 bool inputsUI::scopelogic_mode()
 {
     return mode == Mode::ScopeLogic;
+}
+
+int inputsUI::get_height()
+{
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(style.CellPadding.x, style.CellPadding.y * 2));// if this line is active, make sure that the line that resets CellPadding at the end of this function is active as well
+    style = ImGui::GetStyle();
+//     int height = ImGui::GetFontSize() * 6 + style.CellPadding.y * 10 + style.FramePadding.y * 8 + style.ItemSpacing.y;
+    int height = style.ItemSpacing.y + ImGui::GetFontSize() + \
+                 ImGui::GetFontSize() + style.CellPadding.y*2 + \
+                 4 * (ImGui::GetFontSize() + (style.CellPadding.y + style.FramePadding.y)*2);
+
+    ImGui::PopStyleVar();
+    return height;
 }
 
 void inputsUI::update_device_mode()
