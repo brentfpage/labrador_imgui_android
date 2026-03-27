@@ -90,10 +90,14 @@ int main(int, char**)
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     float main_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
+    SDL_Rect bounds;
+    SDL_zero(bounds);
+    SDL_GetDisplayBounds(SDL_GetPrimaryDisplay(), &bounds);
+
     float pixel_6a_main_scale = 2.625;
     float pixel_6a_aspect_ratio = 0.49; // excludes navigation, status bars
     SDL_WindowFlags window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
-    SDL_Window* window = SDL_CreateWindow("Dear ImGui SDL3+OpenGL3 example", (int)(1280 * main_scale), (int)(800 * main_scale), window_flags);
+    SDL_Window* window = SDL_CreateWindow("main window", (int)bounds.w, (int)bounds.h, window_flags);
     if (window == nullptr)
     {
         printf("Error: SDL_CreateWindow(): %s\n", SDL_GetError());
@@ -161,27 +165,26 @@ int main(int, char**)
 
     float fontsize = style.FontSizeBase * style.FontScaleDpi;
 
-    int prescale_settings_height = std::max(widget_col_heights[0], widget_col_heights[1]);
-    float prescale_fontsize = ImGui::GetFontSize();
-    float settings_width;
-    if(io.DisplaySize.y < io.DisplaySize.x) {
-        if(prescale_settings_height >= settings_height_max) {
-            float padding = prescale_settings_height - prescale_fontsize * n_text_lines;
-            fontsize = (settings_height_max - padding) / n_text_lines;
-            settings_height = settings_height_max;
-        } else {
-            settings_height = prescale_settings_height;
-            fontsize = ImGui::GetFontSize();
-        }
-    } else {
-        settings_height = prescale_settings_height;
-        if(aspect_ratio < pixel_6a_aspect_ratio) {
-            fontsize = ImGui::GetFontSize() * aspect_ratio / pixel_6a_aspect_ratio; // avoid squashing in the x direction
-        } else {
-            fontsize = ImGui::GetFontSize();
-        }
-        settings_width = portraitScreenWidth - 2 * style.WindowPadding.x; //in landscape mode, this value is specifically the settings width when the settings are not collapsed.
-    };
+    // scale
+//     int prescale_settings_height = std::max(widget_col_heights[0], widget_col_heights[1]);
+//     float prescale_fontsize = ImGui::GetFontSize();
+//     if(io.DisplaySize.y < io.DisplaySize.x) {
+//         if(prescale_settings_height >= settings_height_max) {
+//             float padding = prescale_settings_height - prescale_fontsize * n_text_lines;
+//             fontsize = (settings_height_max - padding) / n_text_lines;
+//             settings_height = settings_height_max;
+//         } else {
+//             settings_height = prescale_settings_height;
+//             fontsize = ImGui::GetFontSize();
+//         }
+//     } else {
+//         settings_height = prescale_settings_height;
+//         if(aspect_ratio < pixel_6a_aspect_ratio) {
+//             fontsize = ImGui::GetFontSize() * aspect_ratio / pixel_6a_aspect_ratio; // avoid squashing in the x direction
+//         } else {
+//             fontsize = ImGui::GetFontSize();
+//         }
+//     };
 
 
 
@@ -313,6 +316,7 @@ int main(int, char**)
             if(landscape) {
                 settings_height_max = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
             }
+            float settings_height = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
             static bool collapse_settings = false;
 
             enum Widgets {Inputs,Trigger,VirtTrans,SigGen,LogDec};
@@ -353,7 +357,7 @@ int main(int, char**)
                 if(landscape && (widget_height_sum < settings_height_max)) {
                     memset(widget_col, 0, sizeof(int) * n_widgets);
                 } else {
-                    memcpy(widget_col, widget_col_standard, sizeof(int) * n_widgets);
+                    memcpy(widget_col, widget_col_or_row_standard, sizeof(int) * n_widgets);
                     for(int i=0; i< n_widgets; i++) {
                         if(widgets_enable[i]) {
                             widget_col_heights[widget_col[i]] += widgets[i]->get_height();
@@ -363,7 +367,6 @@ int main(int, char**)
                 }
             }
 
-            float settings_height = 0.f;
             float fontsize;
             ImGui::SetNextWindowPos(ImVec2(0.f,statusBarHeight));
             ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x,io.DisplaySize.y - statusBarHeight - navigationBarHeight));
@@ -379,6 +382,7 @@ int main(int, char**)
 
             float data_width;
             float data_height;
+            float settings_width = portraitScreenWidth - 2 * style.WindowPadding.x; //in landscape mode, this value is specifically the settings width when the settings are not collapsed.
             if(landscape) {
                 data_height = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
                 if(collapse_settings) {
