@@ -128,7 +128,6 @@ void logicDecodeUI::draw(inputsUI* inputs_ui)
     bool i2c_allowed = logic_enable[0] && logic_enable[1];
 
     ImGuiStyle& style = ImGui::GetStyle();
-    ImGui::Separator();
 
     ImGui::BeginDisabled(!(logic_enable[0] || logic_enable[1])); //covers nearly entire fn.
     ImGui::Text("Logic Decoding");

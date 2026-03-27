@@ -284,18 +284,60 @@ int main(int, char**)
             int statusBarHeight = (int) env->CallIntMethod(MainActivityObject,getStatusBarHeightID);
             int navigationBarHeight = (int) env->CallIntMethod(MainActivityObject,getNavigationBarHeightID);
 
-            bool landscape = true;
+            float settings_height_max;
+            bool landscape = io.DisplaySize.y < io.DisplaySize.x ? true : false;
+            if(landscape) {
+                settings_height_max = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
+            }
             static bool collapse_settings = false;
 
             enum Widgets {Inputs,Trigger,VirtTrans,SigGen,LogDec};
             const int n_widgets = 6;
-            static bool widgets_enable[n_widgets];
-            memset(widgets_enable, true, sizeof(bool) * n_widgets);
+            static bool widgets_enable[n_widgets] = {true, true, true, true, true, true};
             const char * widget_names[n_widgets] = {"Inputs","Trigger","Virtual Transforms", "Signal Generator", "PSU", "Logic Decoding"};
             Widget *widgets[n_widgets] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui};
-            int widget_col[n_widgets] = {0,0,1,1,1,1};
-//             int (*get_height[n_widgets])() = {&inputsUI::get_height, &virtualTransformUI::get_height, &sigGenUI::get_height, &psuUI::get_height, &logicDecodeUI::get_height};
-//             int test = widgets[0]->get_height();
+            int n_1_3 = 0;
+            int n_enabled = 0;
+            float widget_height_sum = 0.f;
+            float widget_2_3_height_sum = 0.f;
+            int which_enabled[n_widgets];
+            for(int i=0; i< n_widgets; i++) {
+                if(widgets_enable[i]) {
+                    widget_height_sum += widgets[i]->get_height();
+                    which_enabled[n_enabled] = i;
+                    n_enabled++;
+                    if(widgets[i]->width == Widget::Width::one_third) {
+                        n_1_3++;
+                    } else {
+                        widget_2_3_height_sum += widgets[i]->get_height();
+                    }
+                }
+            }
+
+            static int widget_col[n_widgets];
+            float widget_col_heights[2] = {0.f, 0.f};
+            int widget_col_n_lines[2] = {0, 0};
+
+            static int widget_row[n_widgets] = {0,0,1,1,1,1};
+
+            const int widget_col_or_row_standard[n_widgets] = {0,0,1,1,1,1};
+
+            bool go_by_rows = ((landscape && (n_1_3 > 0)) || (!landscape && (n_1_3 == 2))) &&
+                (widget_2_3_height_sum < settings_height_max/2.);
+
+            if(!go_by_rows) {
+                if(landscape && (widget_height_sum < settings_height_max)) {
+                    memset(widget_col, 0, sizeof(int) * n_widgets);
+                } else {
+                    memcpy(widget_col, widget_col_standard, sizeof(int) * n_widgets);
+                    for(int i=0; i< n_widgets; i++) {
+                        if(widgets_enable[i]) {
+                            widget_col_heights[widget_col[i]] += widgets[i]->get_height();
+                            widget_col_n_lines[widget_col[i]] += widgets[i]->n_lines;
+                        }
+                    }
+                }
+            }
 
             float settings_height = 0.f;
             float fontsize;
@@ -303,22 +345,11 @@ int main(int, char**)
             ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x,io.DisplaySize.y - statusBarHeight - navigationBarHeight));
             float aspect_ratio = static_cast<double>(io.DisplaySize.x)/(io.DisplaySize.y - statusBarHeight - navigationBarHeight);
 
-            float widget_col_heights[2] = {0.f, 0.f};
-            int widget_col_n_lines[2] = {0,0};
-
-            for(int i=0; i< n_widgets; i++) {
-                if(widgets_enable[i]) {
-                    widget_col_heights[widget_col[i]] += widgets[i]->get_height();
-                    widget_col_n_lines[widget_col[i]] += widgets[i]->n_lines;
-                }
-            }
             int n_text_lines = std::max(widget_col_n_lines[0], widget_col_n_lines[1]);
             int prescale_settings_height = std::max(widget_col_heights[0], widget_col_heights[1]);
             float prescale_fontsize = ImGui::GetFontSize();
+            float settings_width;
             if(io.DisplaySize.y < io.DisplaySize.x) {
-                landscape = true;
-
-                float settings_height_max = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
                 if(prescale_settings_height >= settings_height_max) {
                     float padding = prescale_settings_height - prescale_fontsize * n_text_lines;
                     fontsize = (settings_height_max - padding) / n_text_lines;
@@ -328,18 +359,16 @@ int main(int, char**)
                     fontsize = ImGui::GetFontSize();
                 }
             } else {
-                landscape = false;
                 settings_height = prescale_settings_height;
                 if(aspect_ratio < pixel_6a_aspect_ratio) {
                     fontsize = ImGui::GetFontSize() * aspect_ratio / pixel_6a_aspect_ratio; // avoid squashing in the x direction
                 } else {
                     fontsize = ImGui::GetFontSize();
                 }
+                settings_width = portraitScreenWidth - 2 * style.WindowPadding.x; //in landscape mode, this value is specifically the settings width when the settings are not collapsed.
             };
-            LOGW("sh: %.2f", settings_height);
             ImGuiStyle& style = ImGui::GetStyle();
 
-            float settings_width = portraitScreenWidth - 2 * style.WindowPadding.x; //in landscape mode, this value is specifically the settings width when the settings are not collapsed.
 
             ImGui::Begin("MainWindow",
                          &show_mainwindow,
@@ -348,7 +377,7 @@ int main(int, char**)
             float data_width;
             float data_height;
             if(landscape) {
-                data_height = settings_height;
+                data_height = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
                 if(collapse_settings) {
                     data_width = ImGui::GetContentRegionAvail().x - std::max(ImGui::GetFontSize(), ImGui::CalcTextSize(" < ").x) - 2 * style.FramePadding.x - style.ItemSpacing.x;
                 } else {
@@ -396,6 +425,7 @@ int main(int, char**)
                                 widgets[i]->draw(&inputs_ui);
                             }
                         }
+                        ImGui::Dummy(ImVec2(0.f, 0.f));
                     }
                     ImGui::EndChild();
 
@@ -408,10 +438,7 @@ int main(int, char**)
                                 widgets[i]->draw(&inputs_ui);
                             }
                         }
-//                         virtual_transform_ui.draw();
-//                         sig_gen_ui.draw(&inputs_ui);
-//                         psu_ui.draw();
-//                         logic_decode_ui.draw(&inputs_ui);
+                        ImGui::Dummy(ImVec2(0.f, 0.f));
                     }
                     ImGui::EndChild();
                     settingsWindowTopRight = ImGui::GetWindowPos() + ImVec2(settings_width, 0.f);
