@@ -11,7 +11,7 @@ class psuUI : public Widget
 public:
     psuUI() : Widget(1) {};
     void usb_send_data();
-    void draw();
-    int get_height();
+    void draw(bool* ctrls = nullptr, int n_ctrls = 0) override;
+    int get_height() override;
 };
 #endif // PSUUI_H

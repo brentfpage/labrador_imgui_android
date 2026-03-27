@@ -27,8 +27,9 @@ void sigGenUI::amp_or_min_slider_and_button(const char* slider_label, const char
     button_common(button_label, slider_label, ImVec2(ImGui::GetContentRegionAvail().x + style.CellPadding.x,0.f), style);
 }
 
-void sigGenUI::draw(bool ch2_disabled)
+void sigGenUI::draw(bool* ctrls, int n_ctrls)
 {
+    bool ch2_disabled = ctrls[0];
     ImGuiStyle& style = ImGui::GetStyle();
     if(ch2_disabled) {
         both_ch_data[1] = ch_data();

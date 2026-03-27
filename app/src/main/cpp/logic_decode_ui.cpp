@@ -111,14 +111,15 @@ bool logicDecodeUI::decoding_on()
     return both_ch_uart_settings[0].decode_on || both_ch_uart_settings[1].decode_on || protocol_sel == Protocol::I2C;
 }
 
-void logicDecodeUI::draw_settings(const bool logic_enable_in[2], bool scopelogic_mode)
+void logicDecodeUI::draw(bool* ctrls, int n_ctrls)
 {
     bool logic_enable[2];
+    bool scopelogic_mode = ctrls[2];
     if(scopelogic_mode) {
         logic_enable[0] = false;
         logic_enable[1] = true;
     } else {
-        memcpy(logic_enable, logic_enable_in, 2 * sizeof(bool));
+        memcpy(logic_enable, ctrls, 2 * sizeof(bool));
     }
     ch_console_height[0] = console_height - ch_console_height[1];
     bool uart_changed = false;

@@ -7,7 +7,7 @@
 #include "virtual_transform_ui.h"
 
 
-void virtualTransformUI::draw()
+void virtualTransformUI::draw(bool* ctrls, int n_ctrls)
 {
     ImGuiStyle& style = ImGui::GetStyle();
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, 0.f));

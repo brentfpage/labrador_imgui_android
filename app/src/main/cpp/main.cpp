@@ -91,6 +91,7 @@ int main(int, char**)
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     float main_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
     float pixel_6a_main_scale = 2.625;
+    float pixel_6a_aspect_ratio = 0.49; // excludes navigation, status bars
     SDL_WindowFlags window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
     SDL_Window* window = SDL_CreateWindow("Dear ImGui SDL3+OpenGL3 example", (int)(1280 * main_scale), (int)(800 * main_scale), window_flags);
     if (window == nullptr)
@@ -292,33 +293,52 @@ int main(int, char**)
             memset(widgets_enable, true, sizeof(bool) * n_widgets);
             const char * widget_names[n_widgets] = {"Inputs","Trigger","Virtual Transforms", "Signal Generator", "PSU", "Logic Decoding"};
             Widget *widgets[n_widgets] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui};
+            int widget_col[n_widgets] = {0,0,1,1,1,1};
 //             int (*get_height[n_widgets])() = {&inputsUI::get_height, &virtualTransformUI::get_height, &sigGenUI::get_height, &psuUI::get_height, &logicDecodeUI::get_height};
 //             int test = widgets[0]->get_height();
 
-            float settings_height;
+            float settings_height = 0.f;
             float fontsize;
             ImGui::SetNextWindowPos(ImVec2(0.f,statusBarHeight));
             ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x,io.DisplaySize.y - statusBarHeight - navigationBarHeight));
+            float aspect_ratio = static_cast<double>(io.DisplaySize.x)/(io.DisplaySize.y - statusBarHeight - navigationBarHeight);
+
+            float widget_col_heights[2] = {0.f, 0.f};
+            int widget_col_n_lines[2] = {0,0};
+
+            for(int i=0; i< n_widgets; i++) {
+                if(widgets_enable[i]) {
+                    widget_col_heights[widget_col[i]] += widgets[i]->get_height();
+                    widget_col_n_lines[widget_col[i]] += widgets[i]->n_lines;
+                }
+            }
+            int n_text_lines = std::max(widget_col_n_lines[0], widget_col_n_lines[1]);
+            int prescale_settings_height = std::max(widget_col_heights[0], widget_col_heights[1]);
+            float prescale_fontsize = ImGui::GetFontSize();
             if(io.DisplaySize.y < io.DisplaySize.x) {
                 landscape = true;
-                settings_height = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
-                fontsize = (settings_height - 18 * style.FramePadding.y - 10 * style.CellPadding.y)/15.;
 
+                float settings_height_max = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
+                if(prescale_settings_height >= settings_height_max) {
+                    float padding = prescale_settings_height - prescale_fontsize * n_text_lines;
+                    fontsize = (settings_height_max - padding) / n_text_lines;
+                    settings_height = settings_height_max;
+                } else {
+                    settings_height = prescale_settings_height;
+                    fontsize = ImGui::GetFontSize();
+                }
             } else {
                 landscape = false;
-                settings_height = 15 * ImGui::GetFontSize() + 18 * style.FramePadding.y + 10 * style.CellPadding.y;
-                fontsize = ImGui::GetFontSize();
+                if(aspect_ratio < pixel_6a_aspect_ratio) {
+                    fontsize = ImGui::GetFontSize() * aspect_ratio / pixel_6a_aspect_ratio; // avoid squashing in the x direction
+                } else {
+                    settings_height = prescale_settings_height;
+                    fontsize = ImGui::GetFontSize();
+                }
             };
             ImGuiStyle& style = ImGui::GetStyle();
-            LOGW("why: %.2f", 2*ImGui::GetFontSize());
-            LOGW("whywhy: %.2f", ImGui::CalcTextSize("Single\n shot").y);
-            float y1 = ImGui::GetCursorScreenPos().y;
-            ImGui::Text("Single\n shot");
-            float y2 = ImGui::GetCursorScreenPos().y;
-            LOGW("whywhywhy: %.2f", y2-y1);
 
             float settings_width = portraitScreenWidth - 2 * style.WindowPadding.x; //in landscape mode, this value is specifically the settings width when the settings are not collapsed.
-
 
             ImGui::Begin("MainWindow",
                          &show_mainwindow,
@@ -371,7 +391,8 @@ int main(int, char**)
                     ImGui::BeginChild("col1",ImVec2(settings_width*0.34 - style.ItemSpacing.x/2, settings_height),0, ImGuiWindowFlags_NoScrollbar);
                     {
                         inputs_ui.draw();
-                        trigger_ui.draw(inputs_ui.scope_enable[0] || inputs_ui.mm, inputs_ui.scope_enable[1]);
+                        bool enable_chAB_trigger[2] = {inputs_ui.scope_enable[0] || inputs_ui.mm, inputs_ui.scope_enable[1]};
+                        trigger_ui.draw(enable_chAB_trigger, 2);
                     }
                     ImGui::EndChild();
 
@@ -380,9 +401,11 @@ int main(int, char**)
                     ImGui::BeginChild("col2",ImVec2(col2_width, settings_height),0, ImGuiWindowFlags_NoScrollbar);
                     {
                         virtual_transform_ui.draw();
-                        sig_gen_ui.draw(inputs_ui.logic_on());
+                        bool sgui_ctrl[1] = {inputs_ui.logic_on()};
+                        sig_gen_ui.draw(sgui_ctrl, 1);
                         psu_ui.draw();
-                        logic_decode_ui.draw_settings(inputs_ui.logic_enable, inputs_ui.scopelogic_mode());
+                        bool ldui_ctrl[3] = {inputs_ui.logic_enable[0], inputs_ui.logic_enable[1], inputs_ui.scopelogic_mode()};
+                        logic_decode_ui.draw(ldui_ctrl, 3);
                     }
                     ImGui::EndChild();
                     settingsWindowTopRight = ImGui::GetWindowPos() + ImVec2(settings_width, 0.f);
