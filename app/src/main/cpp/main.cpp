@@ -160,7 +160,6 @@ int main(int, char**)
     //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf");
     //IM_ASSERT(font != nullptr);
 
-    style.FontSizeBase = 19.0f * pixel_6a_main_scale / main_scale;
     ImFont* defaultFont = io.Fonts->AddFontDefault();
 
 
@@ -201,11 +200,7 @@ int main(int, char**)
         portraitScreenHeight = temp;
     }
 
-
     // Our state
-    bool show_simple_window = false;
-    bool show_demo_window = false;
-    bool show_another_window = false;
     bool show_mainwindow = true;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     
@@ -216,8 +211,6 @@ int main(int, char**)
     psuUI psu_ui = psuUI();
     logicDecodeUI logic_decode_ui = logicDecodeUI();
     plotUI plot_ui = plotUI();
-
-
 
     // Main loop
     bool done = false;
@@ -331,13 +324,16 @@ int main(int, char**)
         static int widget_row[n_widgets] = {0,0,1,1,1,1};
 
         const int widget_col_or_row_standard[n_widgets] = {0,0,1,1,1,1};
+(landscape && (n_1_3 > 0))
+        bool go_by_rows = ((!landscape && (n_1_3 == 2)) && (widget_2_3_height_sum < settings_height_max/2.)) || \
+            ((landscape && (n_1_3 > 0)) && (0 < widget_2_3_height_sum < settings_height_max/2.))
 
-        bool go_by_rows = ((landscape && (n_1_3 > 0)) || (!landscape && (n_1_3 == 2))) &&
-            (widget_2_3_height_sum < settings_height_max/2.);
-
+        // config which widgets go in which columns
         if(!go_by_rows) {
             if(landscape && (widget_height_sum < settings_height_max)) {
                 memset(widget_col, 0, sizeof(int) * n_widgets);
+                widget_col_heights[0] = widget_height_sum;
+                widget_col_heights[1] = 0.f;
             } else {
                 memcpy(widget_col, widget_col_or_row_standard, sizeof(int) * n_widgets);
                 for(int i=0; i< n_widgets; i++) {
@@ -353,23 +349,35 @@ int main(int, char**)
 
         ImGuiStyle& style = ImGui::GetStyle();
 
-
         ImGui::Begin("MainWindow",
                      &show_mainwindow,
                      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);   
 
         float data_width;
         float data_height;
-        float settings_width = portraitScreenWidth - 2 * style.WindowPadding.x; //in landscape mode, this value is specifically the settings width when the settings are not collapsed.
+        float settings_height;
+        float settings_width;
         if(landscape) {
             data_height = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
+            settings_width = 0.f;
+            if(go_by_rows) {
+                if(widget_2_3_height_sum > 0.f) {
+                    settings_width = DisplaySize.y * 2./3; // .y is not a bug
+                } else {
+                    settings_width = n_1_3 * DisplaySize.y * 1./3; // .y is not a bug
+                }
+            } else {
+                settings_width = DisplaySize.y * ((n_1_3 > 0) * 1./3 + (widget_2_3_height_sum > 0.f) * 2./3);
+            }
             if(collapse_settings) {
                 data_width = ImGui::GetContentRegionAvail().x - std::max(ImGui::GetFontSize(), ImGui::CalcTextSize(" < ").x) - 2 * style.FramePadding.x - style.ItemSpacing.x;
             } else {
                 data_width = ImGui::GetContentRegionAvail().x - settings_width - style.ItemSpacing.x;
             }
         } else {
-            data_width = settings_width;
+            settings_width = data_width = portraitScreenWidth - 2 * style.WindowPadding.x;
+            settings_height = std::max(widget_col_heights[0], widget_col_heights[1]);
+
             if(collapse_settings) {
                 data_height = ImGui::GetContentRegionAvail().y - ImGui::GetFontSize() - 2 * style.FramePadding.y - style.ItemSpacing.y;
             } else {
@@ -399,36 +407,55 @@ int main(int, char**)
         }
         ImGuiID col2_id;
         ImVec2 settingsWindowTopRight;
+        ImGui::PushFont(NULL, style.FontSizeBase * scaling);
         if(!collapse_settings) {
-            ImGui::BeginChild("settings",ImVec2(settings_width, settings_height),0,ImGuiWindowFlags_NoScrollbar);
+            ImGui::BeginChild("settings",ImVec2(settings_width, settings_height),0,ImGuiWindowFlags_NoScrollbar | (landscape ? ImGuiChildFlags_ResizeX : ImGuiChildFlags_ResizeY) );
             {
-                ImGui::BeginChild("col1",ImVec2(settings_width*0.34 - style.ItemSpacing.x/2, settings_height),0, ImGuiWindowFlags_NoScrollbar);
-                {
-                    for(int i=0; i<n_widgets; i++) {
-                        if (widgets_enable[i] && (widget_col[i] == 0)) {
-                            widgets[i]->draw(&inputs_ui);
+                if(go_by_rows) {
+                    for(int row : {0,1}) {
+                        for(int i=0; i<n_widgets; i++) {
+                            if (widgets_enable[i] && (widget_col_or_row_standard[i] == row)) {
+                                widgets[i]->draw(&inputs_ui);
+                                ImGui::SameLine();
+                            }
                         }
+                        ImGui::NewLine(); // overrides previous sameline
                     }
-                    ImGui::Dummy(ImVec2(0.f, 0.f));
-                }
-                ImGui::EndChild();
+                } else {
+                    bool two_cols = (widget_col_heights[0] > 0.f) && (widget_col_heights[1] > 0.f);
+                    float col_widths = {
+                    for(int col : {1,2}) {
+                        if(widget_col_heights[0] > 0)
+                            ImGui::BeginChild("col1",ImVec2(settings_width*0.34 - style.ItemSpacing.x/2 * two_cols, settings_height),0, ImGuiWindowFlags_NoScrollbar);
+                            {
+                                for(int i=0; i<n_widgets; i++) {
+                                    if (widgets_enable[i] && (widget_col[i] == 0)) {
+                                        widgets[i]->draw(&inputs_ui);
+                                    }
+                                }
+                                ImGui::Dummy(ImVec2(0.f, 0.f));
+                            }
+                            ImGui::EndChild();
+                    }
 
-                ImGui::SameLine();
-                float col2_width = settings_width*0.66 - style.ItemSpacing.x/2;
-                ImGui::BeginChild("col2",ImVec2(col2_width, settings_height),0, ImGuiWindowFlags_NoScrollbar);
-                {
-                    for(int i=0; i<n_widgets; i++) {
-                        if (widgets_enable[i] && (widget_col[i] == 1)) {
-                            widgets[i]->draw(&inputs_ui);
+                    ImGui::SameLine();
+                    float col2_width = settings_width*0.66 - style.ItemSpacing.x/2;
+                    ImGui::BeginChild("col2",ImVec2(col2_width, settings_height),0, ImGuiWindowFlags_NoScrollbar);
+                    {
+                        for(int i=0; i<n_widgets; i++) {
+                            if (widgets_enable[i] && (widget_col[i] == 1)) {
+                                widgets[i]->draw(&inputs_ui);
+                            }
                         }
+                        ImGui::Dummy(ImVec2(0.f, 0.f));
                     }
-                    ImGui::Dummy(ImVec2(0.f, 0.f));
+                    ImGui::EndChild();
                 }
-                ImGui::EndChild();
                 settingsWindowTopRight = ImGui::GetWindowPos() + ImVec2(settings_width, 0.f);
             }
             ImGui::EndChild();
         }
+        ImGui::PopFont();
 
         char label[36];
 
@@ -455,7 +482,8 @@ int main(int, char**)
                 strcpy(label, " v ");
             }
             ImGui::BeginChild("settings");
-            ImGui::BeginChild("col2");
+            if(!go_by_rows)
+                ImGui::BeginChild("col2");
             {
                 ImGui::SetCursorScreenPos(settingsWindowTopRight - ImVec2(ImGui::CalcTextSize("\xee\xa4\x83 v ").x   + 4 * style.FramePadding.x + style.ItemSpacing.x, 0.));
                 if(ImGui::Button("\xee\xa4\x83##start_widget_sel")) {
@@ -469,7 +497,8 @@ int main(int, char**)
                 ImGui::PopID();
             }
             ImGui::EndChild();
-            ImGui::EndChild();
+            if(!go_by_rows)
+                ImGui::EndChild();
         }
 //             ImGui::PopStyleVar();
 
@@ -487,41 +516,6 @@ int main(int, char**)
         }
 
         ImGui::End();
-
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
-        if (show_simple_window)
-        {
-            static float f = 0.0f;
-            static int counter = 0;
-
-            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-            ImGui::Checkbox("Another Window", &show_another_window);
-            ImGui::Checkbox("Labrador", &show_mainwindow);
-
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-                counter++;
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
-
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-            ImGui::End();
-        }
-
-        // 3. Show another simple window.
-        if (show_another_window)
-        {
-            ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-            ImGui::Text("Hello from another window!");
-            if (ImGui::Button("Close Me"))
-                show_another_window = false;
-            ImGui::End();
-        }
 
         // Rendering
         ImGui::Render();
