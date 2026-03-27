@@ -329,13 +329,14 @@ int main(int, char**)
                 }
             } else {
                 landscape = false;
+                settings_height = prescale_settings_height;
                 if(aspect_ratio < pixel_6a_aspect_ratio) {
                     fontsize = ImGui::GetFontSize() * aspect_ratio / pixel_6a_aspect_ratio; // avoid squashing in the x direction
                 } else {
-                    settings_height = prescale_settings_height;
                     fontsize = ImGui::GetFontSize();
                 }
             };
+            LOGW("sh: %.2f", settings_height);
             ImGuiStyle& style = ImGui::GetStyle();
 
             float settings_width = portraitScreenWidth - 2 * style.WindowPadding.x; //in landscape mode, this value is specifically the settings width when the settings are not collapsed.
