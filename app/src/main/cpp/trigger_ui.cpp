@@ -6,8 +6,9 @@
 #include "imgui_internal.h"
 #include "trigger_ui.h"
 
-void triggerUI::draw(bool* enable_helper, int n_ctrls)
+void triggerUI::draw(inputsUI* inputs_ui)
 {
+    bool enable_helper[2] = {inputs_ui->scope_enable[0] || inputs_ui->mm, inputs_ui->scope_enable[1]};
     for (int ch:{1,2})
     {
         if(!enable_helper[ch-1]) {

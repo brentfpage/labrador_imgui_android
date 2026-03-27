@@ -4,6 +4,7 @@
 #include "custom_imgui.h"
 #include "imgui_internal.h"
 #include "logic_decode_ui.h"
+#include "inputs_ui.h"
 
 float logicDecodeUI::get_console_height(float avail_y)
 {
@@ -111,15 +112,14 @@ bool logicDecodeUI::decoding_on()
     return both_ch_uart_settings[0].decode_on || both_ch_uart_settings[1].decode_on || protocol_sel == Protocol::I2C;
 }
 
-void logicDecodeUI::draw(bool* ctrls, int n_ctrls)
+void logicDecodeUI::draw(inputsUI* inputs_ui)
 {
     bool logic_enable[2];
-    bool scopelogic_mode = ctrls[2];
-    if(scopelogic_mode) {
+    if(inputs_ui->scopelogic_mode()) {
         logic_enable[0] = false;
         logic_enable[1] = true;
     } else {
-        memcpy(logic_enable, ctrls, 2 * sizeof(bool));
+        memcpy(logic_enable, inputs_ui->logic_enable, 2 * sizeof(bool));
     }
     ch_console_height[0] = console_height - ch_console_height[1];
     bool uart_changed = false;

@@ -5,6 +5,7 @@
 #include <chrono>
 #include "imgui_internal.h"
 #include "sig_gen_ui.h"
+#include "inputs_ui.h"
 
 
 void sigGenUI::amp_or_min_slider_and_button(const char* slider_label, const char* button_label, float *amp_or_min, float *amp_or_min_delayed, float *min_or_amp, float *min_or_amp_delayed) {
@@ -27,9 +28,9 @@ void sigGenUI::amp_or_min_slider_and_button(const char* slider_label, const char
     button_common(button_label, slider_label, ImVec2(ImGui::GetContentRegionAvail().x + style.CellPadding.x,0.f), style);
 }
 
-void sigGenUI::draw(bool* ctrls, int n_ctrls)
+void sigGenUI::draw(inputsUI* inputs_ui)
 {
-    bool ch2_disabled = ctrls[0];
+    bool ch2_disabled = inputs_ui->logic_on();
     ImGuiStyle& style = ImGui::GetStyle();
     if(ch2_disabled) {
         both_ch_data[1] = ch_data();

@@ -6,7 +6,7 @@
 #include "imgui_internal.h"
 #include "psu_ui.h"
 
-void psuUI::draw(bool* ctrls, int n_ctrls)
+void psuUI::draw(inputsUI* inputs_ui)
 {
     ImGuiStyle& style = ImGui::GetStyle();
     ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + style.FramePadding);

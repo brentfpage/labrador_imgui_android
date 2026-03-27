@@ -62,7 +62,7 @@ class logicDecodeUI : public Widget
 public:
     logicDecodeUI() : Widget(2) {};
     bool decoding_on();
-    void draw(bool* ctrls = nullptr, int n_ctrls = 0) override;
+    void draw(inputsUI* inputs_ui = nullptr) override;
     void draw_console(float window_content_width);//const char * from_librador_1, const char * from_librador_2 = nullptr);
     float get_console_height(float avail_y);
     int get_height() override;

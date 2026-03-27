@@ -31,7 +31,7 @@ class sigGenUI : public Widget
     int ch_sel = 1;
 public:
     sigGenUI() : Widget(6) {};
-    void draw(bool* ctrls = nullptr, int n_ctrls = 0) override;
+    void draw(inputsUI* inputs_ui = nullptr) override;
     void usb_send_data(int ch);
     int get_height() override;
 };

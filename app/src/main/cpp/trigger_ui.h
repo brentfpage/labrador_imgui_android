@@ -3,6 +3,7 @@
 
 #include "o1buffer.h"
 #include "widget.h"
+#include "inputs_ui.h"
 class triggerUI : public Widget
 {
     int ch_sel = 1;
@@ -10,7 +11,7 @@ class triggerUI : public Widget
     o1buffer::trigger_settings* curr_ch_trigger_settings = &both_ch_trigger_settings[ch_sel-1];
 public:
     triggerUI() : Widget(6) {};
-    void draw(bool* ctrls = nullptr, int n_ctrls = 0) override;
+    void draw(inputsUI* inputs_ui = nullptr) override;
     int get_height() override;
 };
 #endif

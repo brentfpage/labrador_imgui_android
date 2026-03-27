@@ -391,8 +391,7 @@ int main(int, char**)
                     ImGui::BeginChild("col1",ImVec2(settings_width*0.34 - style.ItemSpacing.x/2, settings_height),0, ImGuiWindowFlags_NoScrollbar);
                     {
                         inputs_ui.draw();
-                        bool enable_chAB_trigger[2] = {inputs_ui.scope_enable[0] || inputs_ui.mm, inputs_ui.scope_enable[1]};
-                        trigger_ui.draw(enable_chAB_trigger, 2);
+                        trigger_ui.draw(&inputs_ui);
                     }
                     ImGui::EndChild();
 
@@ -401,11 +400,9 @@ int main(int, char**)
                     ImGui::BeginChild("col2",ImVec2(col2_width, settings_height),0, ImGuiWindowFlags_NoScrollbar);
                     {
                         virtual_transform_ui.draw();
-                        bool sgui_ctrl[1] = {inputs_ui.logic_on()};
-                        sig_gen_ui.draw(sgui_ctrl, 1);
+                        sig_gen_ui.draw(&inputs_ui);
                         psu_ui.draw();
-                        bool ldui_ctrl[3] = {inputs_ui.logic_enable[0], inputs_ui.logic_enable[1], inputs_ui.scopelogic_mode()};
-                        logic_decode_ui.draw(ldui_ctrl, 3);
+                        logic_decode_ui.draw(&inputs_ui);
                     }
                     ImGui::EndChild();
                     settingsWindowTopRight = ImGui::GetWindowPos() + ImVec2(settings_width, 0.f);
