@@ -7,7 +7,7 @@ class inputsUI : public Widget
     bool scope750 = false;
     bool changed = false;
 public:
-    inputsUI() : Widget(6, Widget::Width::one_third) {};
+    inputsUI() : Widget(Widget::Width::one_third) {};
     void update_device_mode();
     bool logic_enable[2] = {0,0};
     bool scope_enable[2] = {true,false};

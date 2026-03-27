@@ -95,7 +95,7 @@ int main(int, char**)
     SDL_GetDisplayBounds(SDL_GetPrimaryDisplay(), &bounds);
 
     float pixel_6a_main_scale = 2.625;
-    float pixel_6a_aspect_ratio = 0.49; // excludes navigation, status bars
+    float pixel_6a_profile_aspect_ratio = 0.49; // relevant to profile b/c it excludes navigation, status bars
     SDL_WindowFlags window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
     SDL_Window* window = SDL_CreateWindow("main window", (int)bounds.w, (int)bounds.h, window_flags);
     if (window == nullptr)
@@ -163,30 +163,6 @@ int main(int, char**)
     style.FontSizeBase = 19.0f * pixel_6a_main_scale / main_scale;
     ImFont* defaultFont = io.Fonts->AddFontDefault();
 
-    float fontsize = style.FontSizeBase * style.FontScaleDpi;
-
-    // scale
-//     int prescale_settings_height = std::max(widget_col_heights[0], widget_col_heights[1]);
-//     float prescale_fontsize = ImGui::GetFontSize();
-//     if(io.DisplaySize.y < io.DisplaySize.x) {
-//         if(prescale_settings_height >= settings_height_max) {
-//             float padding = prescale_settings_height - prescale_fontsize * n_text_lines;
-//             fontsize = (settings_height_max - padding) / n_text_lines;
-//             settings_height = settings_height_max;
-//         } else {
-//             settings_height = prescale_settings_height;
-//             fontsize = ImGui::GetFontSize();
-//         }
-//     } else {
-//         settings_height = prescale_settings_height;
-//         if(aspect_ratio < pixel_6a_aspect_ratio) {
-//             fontsize = ImGui::GetFontSize() * aspect_ratio / pixel_6a_aspect_ratio; // avoid squashing in the x direction
-//         } else {
-//             fontsize = ImGui::GetFontSize();
-//         }
-//     };
-
-
 
     // for accessing android app resources
     JNIEnv *env = (JNIEnv *) SDL_GetAndroidJNIEnv();
@@ -200,7 +176,7 @@ int main(int, char**)
     ImFontConfig config;
     config.MergeMode = true;
     config.GlyphOffset = { 0.f, 3.f };
-    config.FontDataOwnedByAtlas = false; // prevents imperciptible crash when the app is closed
+    config.FontDataOwnedByAtlas = false; // prevents imperceptible crash when the app is closed
 //     https://stackoverflow.com/a/13317651/3474552
     const char* filename = "font/waveform-glyphs3.ttf";
     AAsset* asset = AAssetManager_open(mgr, filename, AASSET_MODE_STREAMING);
@@ -241,6 +217,8 @@ int main(int, char**)
     logicDecodeUI logic_decode_ui = logicDecodeUI();
     plotUI plot_ui = plotUI();
 
+
+
     // Main loop
     bool done = false;
     bool iso_thread_active;
@@ -278,11 +256,33 @@ int main(int, char**)
             continue;
         }
 
+        ImGuiContext& g = *GImGui;
+        g.Style = ImGuiStyle(); // reset style
+        style = ImGui::GetStyle(); // the style just created
+        style.ScaleAllSizes(main_scale);
+
+        int statusBarHeight = (int) env->CallIntMethod(MainActivityObject,getStatusBarHeightID);
+        int navigationBarHeight = (int) env->CallIntMethod(MainActivityObject,getNavigationBarHeightID);
+
+        static bool collapse_settings = false;
+        // scaling
+// should compute these scalings only once, but there's no way to get the navigation/status bar heights in landscape mode when in portrait mode
+        bool landscape = io.DisplaySize.y < io.DisplaySize.x ? true : false;
+        float settings_height_max;
+        float scaling;
+        if(landscape) {
+            int prescale_settings_height = inputs_ui.get_height() + trigger_ui.get_height(); // want to be able to fit these two widgets in one column
+            settings_height_max = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
+            scaling = prescale_settings_height > settings_height_max ? (settings_height_max / prescale_settings_height) * .999 : 1.f;
+        } else {
+            float aspect_ratio = static_cast<double>(io.DisplaySize.x)/(io.DisplaySize.y - statusBarHeight - navigationBarHeight);
+            scaling = pixel_6a_profile_aspect_ratio > aspect_ratio ? (aspect_ratio / pixel_6a_profile_aspect_ratio) * .999 : 1.f;
+        };
+
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
-//         ImPlot::ShowDemoWindow();
 
 // important to have this iso_thread_active check after the new frame starts.  Otherwise, (board connected -> user puts phone to sleep -> user unplugs board -> user wakes phone) leads to a crash.  The crash arises from the librador_get_(analog/digital)_data block below thinking iso_thread_active=true when it's not.
         iso_thread_active = librador_iso_thread_is_active();
@@ -299,219 +299,194 @@ int main(int, char**)
         }
 
         ImGuiIO& io = ImGui::GetIO();
-        // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-        if (show_demo_window)
-            ImGui::ShowDemoWindow(&show_demo_window);
 
+        plot_ui.recompute_x_bounds(inputs_ui.changed_since_last(), inputs_ui.mode);
 
-
-        if (show_mainwindow) {
-            plot_ui.recompute_x_bounds(inputs_ui.changed_since_last(), inputs_ui.mode);
-
-            int statusBarHeight = (int) env->CallIntMethod(MainActivityObject,getStatusBarHeightID);
-            int navigationBarHeight = (int) env->CallIntMethod(MainActivityObject,getNavigationBarHeightID);
-
-            float settings_height_max;
-            bool landscape = io.DisplaySize.y < io.DisplaySize.x ? true : false;
-            if(landscape) {
-                settings_height_max = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
-            }
-            float settings_height = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
-            static bool collapse_settings = false;
-
-            enum Widgets {Inputs,Trigger,VirtTrans,SigGen,LogDec};
-            const int n_widgets = 6;
-            static bool widgets_enable[n_widgets] = {true, true, true, true, true, true};
-            const char * widget_names[n_widgets] = {"Inputs","Trigger","Virtual Transforms", "Signal Generator", "PSU", "Logic Decoding"};
-            Widget *widgets[n_widgets] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui};
-            int n_1_3 = 0;
-            int n_enabled = 0;
-            float widget_height_sum = 0.f;
-            float widget_2_3_height_sum = 0.f;
-            int which_enabled[n_widgets];
-            for(int i=0; i< n_widgets; i++) {
-                if(widgets_enable[i]) {
-                    widget_height_sum += widgets[i]->get_height();
-                    which_enabled[n_enabled] = i;
-                    n_enabled++;
-                    if(widgets[i]->width == Widget::Width::one_third) {
-                        n_1_3++;
-                    } else {
-                        widget_2_3_height_sum += widgets[i]->get_height();
-                    }
-                }
-            }
-
-            static int widget_col[n_widgets];
-            float widget_col_heights[2] = {0.f, 0.f};
-            int widget_col_n_lines[2] = {0, 0};
-
-            static int widget_row[n_widgets] = {0,0,1,1,1,1};
-
-            const int widget_col_or_row_standard[n_widgets] = {0,0,1,1,1,1};
-
-            bool go_by_rows = ((landscape && (n_1_3 > 0)) || (!landscape && (n_1_3 == 2))) &&
-                (widget_2_3_height_sum < settings_height_max/2.);
-
-            if(!go_by_rows) {
-                if(landscape && (widget_height_sum < settings_height_max)) {
-                    memset(widget_col, 0, sizeof(int) * n_widgets);
+        enum Widgets {Inputs,Trigger,VirtTrans,SigGen,LogDec};
+        const int n_widgets = 6;
+        static bool widgets_enable[n_widgets] = {true, true, true, true, true, true};
+        const char * widget_names[n_widgets] = {"Inputs","Trigger","Virtual Transforms", "Signal Generator", "PSU", "Logic Decoding"};
+        Widget *widgets[n_widgets] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui};
+        int n_1_3 = 0;
+        int n_enabled = 0;
+        float widget_height_sum = 0.f;
+        float widget_2_3_height_sum = 0.f;
+        int which_enabled[n_widgets];
+        for(int i=0; i < n_widgets; i++) {
+            if(widgets_enable[i]) {
+                widget_height_sum += widgets[i]->get_height();
+                which_enabled[n_enabled] = i;
+                n_enabled++;
+                if(widgets[i]->width == Widget::Width::one_third) {
+                    n_1_3++;
                 } else {
-                    memcpy(widget_col, widget_col_or_row_standard, sizeof(int) * n_widgets);
-                    for(int i=0; i< n_widgets; i++) {
-                        if(widgets_enable[i]) {
-                            widget_col_heights[widget_col[i]] += widgets[i]->get_height();
-                            widget_col_n_lines[widget_col[i]] += widgets[i]->n_lines;
-                        }
-                    }
+                    widget_2_3_height_sum += widgets[i]->get_height();
                 }
             }
+        }
 
-            float fontsize;
-            ImGui::SetNextWindowPos(ImVec2(0.f,statusBarHeight));
-            ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x,io.DisplaySize.y - statusBarHeight - navigationBarHeight));
-            float aspect_ratio = static_cast<double>(io.DisplaySize.x)/(io.DisplaySize.y - statusBarHeight - navigationBarHeight);
+        static int widget_col[n_widgets];
+        float widget_col_heights[2] = {0.f, 0.f};
 
-            int n_text_lines = std::max(widget_col_n_lines[0], widget_col_n_lines[1]);
-            ImGuiStyle& style = ImGui::GetStyle();
+        static int widget_row[n_widgets] = {0,0,1,1,1,1};
 
+        const int widget_col_or_row_standard[n_widgets] = {0,0,1,1,1,1};
 
-            ImGui::Begin("MainWindow",
-                         &show_mainwindow,
-                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);   
+        bool go_by_rows = ((landscape && (n_1_3 > 0)) || (!landscape && (n_1_3 == 2))) &&
+            (widget_2_3_height_sum < settings_height_max/2.);
 
-            float data_width;
-            float data_height;
-            float settings_width = portraitScreenWidth - 2 * style.WindowPadding.x; //in landscape mode, this value is specifically the settings width when the settings are not collapsed.
-            if(landscape) {
-                data_height = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
-                if(collapse_settings) {
-                    data_width = ImGui::GetContentRegionAvail().x - std::max(ImGui::GetFontSize(), ImGui::CalcTextSize(" < ").x) - 2 * style.FramePadding.x - style.ItemSpacing.x;
-                } else {
-                    data_width = ImGui::GetContentRegionAvail().x - settings_width - style.ItemSpacing.x;
-                }
+        if(!go_by_rows) {
+            if(landscape && (widget_height_sum < settings_height_max)) {
+                memset(widget_col, 0, sizeof(int) * n_widgets);
             } else {
-                data_width = settings_width;
-                if(collapse_settings) {
-                    data_height = ImGui::GetContentRegionAvail().y - ImGui::GetFontSize() - 2 * style.FramePadding.y - style.ItemSpacing.y;
-                } else {
-                    data_height = ImGui::GetContentRegionAvail().y - settings_height  - style.ItemSpacing.y;
+                memcpy(widget_col, widget_col_or_row_standard, sizeof(int) * n_widgets);
+                for(int i=0; i< n_widgets; i++) {
+                    if(widgets_enable[i]) {
+                        widget_col_heights[widget_col[i]] += widgets[i]->get_height();
+                    }
                 }
             }
+        }
 
-            ImGui::BeginChild("data",ImVec2(data_width, data_height));
+        ImGui::SetNextWindowPos(ImVec2(0.f,statusBarHeight));
+        ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x,io.DisplaySize.y - statusBarHeight - navigationBarHeight));
+
+        ImGuiStyle& style = ImGui::GetStyle();
+
+
+        ImGui::Begin("MainWindow",
+                     &show_mainwindow,
+                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);   
+
+        float data_width;
+        float data_height;
+        float settings_width = portraitScreenWidth - 2 * style.WindowPadding.x; //in landscape mode, this value is specifically the settings width when the settings are not collapsed.
+        if(landscape) {
+            data_height = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
+            if(collapse_settings) {
+                data_width = ImGui::GetContentRegionAvail().x - std::max(ImGui::GetFontSize(), ImGui::CalcTextSize(" < ").x) - 2 * style.FramePadding.x - style.ItemSpacing.x;
+            } else {
+                data_width = ImGui::GetContentRegionAvail().x - settings_width - style.ItemSpacing.x;
+            }
+        } else {
+            data_width = settings_width;
+            if(collapse_settings) {
+                data_height = ImGui::GetContentRegionAvail().y - ImGui::GetFontSize() - 2 * style.FramePadding.y - style.ItemSpacing.y;
+            } else {
+                data_height = ImGui::GetContentRegionAvail().y - settings_height  - style.ItemSpacing.y;
+            }
+        }
+
+        ImGui::BeginChild("data",ImVec2(data_width, data_height));
+        {
+            float plot_height;
+            if(logic_decode_ui.decoding_on()) {
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,0));
+                plot_height = ImGui::GetContentRegionAvail().y - logic_decode_ui.get_console_height(ImGui::GetContentRegionAvail().y);
+            } else {
+                plot_height = ImGui::GetContentRegionAvail().y;
+            }
+            plot_ui.draw(iso_thread_active, inputs_ui.mode, inputs_ui.ch_enabled(1), inputs_ui.ch_enabled(2), data_width, plot_height);
+
+            if(logic_decode_ui.decoding_on()) {
+                logic_decode_ui.draw_console(data_width);
+                ImGui::PopStyleVar();
+            }
+        }
+        ImGui::EndChild();
+        if(landscape) {
+            ImGui::SameLine();
+        }
+        ImGuiID col2_id;
+        ImVec2 settingsWindowTopRight;
+        if(!collapse_settings) {
+            ImGui::BeginChild("settings",ImVec2(settings_width, settings_height),0,ImGuiWindowFlags_NoScrollbar);
             {
-                float plot_height;
-                if(logic_decode_ui.decoding_on()) {
-                    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,0));
-                    plot_height = ImGui::GetContentRegionAvail().y - logic_decode_ui.get_console_height(ImGui::GetContentRegionAvail().y);
-                } else {
-                    plot_height = ImGui::GetContentRegionAvail().y;
-                }
-                plot_ui.draw(iso_thread_active, inputs_ui.mode, inputs_ui.ch_enabled(1), inputs_ui.ch_enabled(2), data_width, plot_height);
-
-                if(logic_decode_ui.decoding_on()) {
-                    logic_decode_ui.draw_console(data_width);
-                    ImGui::PopStyleVar();
-                }
-            }
-            ImGui::EndChild();
-            if(landscape) {
-                ImGui::SameLine();
-            }
-            ImGuiID col2_id;
-            ImVec2 settingsWindowTopRight;
-            ImGui::PushFont(NULL, style.FontSizeBase * fontsize/ImGui::GetFontSize());
-            if(!collapse_settings) {
-                ImGui::BeginChild("settings",ImVec2(settings_width, settings_height),0,ImGuiWindowFlags_NoScrollbar);
+                ImGui::BeginChild("col1",ImVec2(settings_width*0.34 - style.ItemSpacing.x/2, settings_height),0, ImGuiWindowFlags_NoScrollbar);
                 {
-                    ImGui::BeginChild("col1",ImVec2(settings_width*0.34 - style.ItemSpacing.x/2, settings_height),0, ImGuiWindowFlags_NoScrollbar);
-                    {
-                        for(int i=0; i<n_widgets; i++) {
-                            if (widgets_enable[i] && (widget_col[i] == 0)) {
-                                widgets[i]->draw(&inputs_ui);
-                            }
+                    for(int i=0; i<n_widgets; i++) {
+                        if (widgets_enable[i] && (widget_col[i] == 0)) {
+                            widgets[i]->draw(&inputs_ui);
                         }
-                        ImGui::Dummy(ImVec2(0.f, 0.f));
                     }
-                    ImGui::EndChild();
-
-                    ImGui::SameLine();
-                    float col2_width = settings_width*0.66 - style.ItemSpacing.x/2;
-                    ImGui::BeginChild("col2",ImVec2(col2_width, settings_height),0, ImGuiWindowFlags_NoScrollbar);
-                    {
-                        for(int i=0; i<n_widgets; i++) {
-                            if (widgets_enable[i] && (widget_col[i] == 1)) {
-                                widgets[i]->draw(&inputs_ui);
-                            }
-                        }
-                        ImGui::Dummy(ImVec2(0.f, 0.f));
-                    }
-                    ImGui::EndChild();
-                    settingsWindowTopRight = ImGui::GetWindowPos() + ImVec2(settings_width, 0.f);
+                    ImGui::Dummy(ImVec2(0.f, 0.f));
                 }
                 ImGui::EndChild();
-            }
 
-            char label[36];
+                ImGui::SameLine();
+                float col2_width = settings_width*0.66 - style.ItemSpacing.x/2;
+                ImGui::BeginChild("col2",ImVec2(col2_width, settings_height),0, ImGuiWindowFlags_NoScrollbar);
+                {
+                    for(int i=0; i<n_widgets; i++) {
+                        if (widgets_enable[i] && (widget_col[i] == 1)) {
+                            widgets[i]->draw(&inputs_ui);
+                        }
+                    }
+                    ImGui::Dummy(ImVec2(0.f, 0.f));
+                }
+                ImGui::EndChild();
+                settingsWindowTopRight = ImGui::GetWindowPos() + ImVec2(settings_width, 0.f);
+            }
+            ImGui::EndChild();
+        }
+
+        char label[36];
 
 //             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(style.FramePadding.x/2., 0.f));
-            style = ImGui::GetStyle();
-            bool open_widget_sel = false;
-            ImGuiID collapse_id = ImGui::GetID("collapse");
-            if(collapse_settings) {
-                if(landscape) {
-                    strcpy(label, " < ");
-                } else {
-                    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(" ^ ").x - 2 * style.FramePadding.x,0.f));
-                    strcpy(label, " ^ ");
+        style = ImGui::GetStyle();
+        bool open_widget_sel = false;
+        ImGuiID collapse_id = ImGui::GetID("collapse");
+        if(collapse_settings) {
+            if(landscape) {
+                strcpy(label, " < ");
+            } else {
+                ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(" ^ ").x - 2 * style.FramePadding.x,0.f));
+                strcpy(label, " ^ ");
+            }
+            ImGui::PushOverrideID(collapse_id);
+            if(ImGui::Button(label)) {
+                collapse_settings = !collapse_settings;
+            }
+            ImGui::PopID();
+        } else {
+            if(landscape) {
+                strcpy(label, " > ");
+            } else {
+                strcpy(label, " v ");
+            }
+            ImGui::BeginChild("settings");
+            ImGui::BeginChild("col2");
+            {
+                ImGui::SetCursorScreenPos(settingsWindowTopRight - ImVec2(ImGui::CalcTextSize("\xee\xa4\x83 v ").x   + 4 * style.FramePadding.x + style.ItemSpacing.x, 0.));
+                if(ImGui::Button("\xee\xa4\x83##start_widget_sel")) {
+                    open_widget_sel = true;
                 }
                 ImGui::PushOverrideID(collapse_id);
+                ImGui::SameLine();
                 if(ImGui::Button(label)) {
                     collapse_settings = !collapse_settings;
                 }
                 ImGui::PopID();
-            } else {
-                if(landscape) {
-                    strcpy(label, " > ");
-                } else {
-                    strcpy(label, " v ");
-                }
-                ImGui::BeginChild("settings");
-                ImGui::BeginChild("col2");
-                {
-                    ImGui::SetCursorScreenPos(settingsWindowTopRight - ImVec2(ImGui::CalcTextSize("\xee\xa4\x83 v ").x   + 4 * style.FramePadding.x + style.ItemSpacing.x, 0.));
-                    if(ImGui::Button("\xee\xa4\x83##start_widget_sel")) {
-                        open_widget_sel = true;
-                    }
-                    ImGui::PushOverrideID(collapse_id);
-                    ImGui::SameLine();
-                    if(ImGui::Button(label)) {
-                        collapse_settings = !collapse_settings;
-                    }
-                    ImGui::PopID();
-                }
-                ImGui::EndChild();
-                ImGui::EndChild();
             }
-//             ImGui::PopStyleVar();
-            ImGui::PopFont();
-
-
-            if(open_widget_sel) {
-                ImGui::OpenPopup("config_settings");
-            }
-            if(ImGui::BeginPopup("config_settings")) {
-                ImGui::Text("Select widgets");
-                ImGui::Separator();
-                for (int i=0; i< sizeof(widgets_enable); i++) {
-                    ImGui::Checkbox(widget_names[i], &widgets_enable[i]);
-                }
-                ImGui::EndPopup();
-            }
-
-            ImGui::End();
+            ImGui::EndChild();
+            ImGui::EndChild();
         }
+//             ImGui::PopStyleVar();
+
+
+        if(open_widget_sel) {
+            ImGui::OpenPopup("config_settings");
+        }
+        if(ImGui::BeginPopup("config_settings")) {
+            ImGui::Text("Select widgets");
+            ImGui::Separator();
+            for (int i=0; i< sizeof(widgets_enable); i++) {
+                ImGui::Checkbox(widget_names[i], &widgets_enable[i]);
+            }
+            ImGui::EndPopup();
+        }
+
+        ImGui::End();
 
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
         if (show_simple_window)
