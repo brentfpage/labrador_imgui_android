@@ -161,6 +161,30 @@ int main(int, char**)
 
     float fontsize = style.FontSizeBase * style.FontScaleDpi;
 
+    int prescale_settings_height = std::max(widget_col_heights[0], widget_col_heights[1]);
+    float prescale_fontsize = ImGui::GetFontSize();
+    float settings_width;
+    if(io.DisplaySize.y < io.DisplaySize.x) {
+        if(prescale_settings_height >= settings_height_max) {
+            float padding = prescale_settings_height - prescale_fontsize * n_text_lines;
+            fontsize = (settings_height_max - padding) / n_text_lines;
+            settings_height = settings_height_max;
+        } else {
+            settings_height = prescale_settings_height;
+            fontsize = ImGui::GetFontSize();
+        }
+    } else {
+        settings_height = prescale_settings_height;
+        if(aspect_ratio < pixel_6a_aspect_ratio) {
+            fontsize = ImGui::GetFontSize() * aspect_ratio / pixel_6a_aspect_ratio; // avoid squashing in the x direction
+        } else {
+            fontsize = ImGui::GetFontSize();
+        }
+        settings_width = portraitScreenWidth - 2 * style.WindowPadding.x; //in landscape mode, this value is specifically the settings width when the settings are not collapsed.
+    };
+
+
+
     // for accessing android app resources
     JNIEnv *env = (JNIEnv *) SDL_GetAndroidJNIEnv();
     jobject MainActivityObject = (jobject) SDL_GetAndroidActivity();
@@ -346,27 +370,6 @@ int main(int, char**)
             float aspect_ratio = static_cast<double>(io.DisplaySize.x)/(io.DisplaySize.y - statusBarHeight - navigationBarHeight);
 
             int n_text_lines = std::max(widget_col_n_lines[0], widget_col_n_lines[1]);
-            int prescale_settings_height = std::max(widget_col_heights[0], widget_col_heights[1]);
-            float prescale_fontsize = ImGui::GetFontSize();
-            float settings_width;
-            if(io.DisplaySize.y < io.DisplaySize.x) {
-                if(prescale_settings_height >= settings_height_max) {
-                    float padding = prescale_settings_height - prescale_fontsize * n_text_lines;
-                    fontsize = (settings_height_max - padding) / n_text_lines;
-                    settings_height = settings_height_max;
-                } else {
-                    settings_height = prescale_settings_height;
-                    fontsize = ImGui::GetFontSize();
-                }
-            } else {
-                settings_height = prescale_settings_height;
-                if(aspect_ratio < pixel_6a_aspect_ratio) {
-                    fontsize = ImGui::GetFontSize() * aspect_ratio / pixel_6a_aspect_ratio; // avoid squashing in the x direction
-                } else {
-                    fontsize = ImGui::GetFontSize();
-                }
-                settings_width = portraitScreenWidth - 2 * style.WindowPadding.x; //in landscape mode, this value is specifically the settings width when the settings are not collapsed.
-            };
             ImGuiStyle& style = ImGui::GetStyle();
 
 
