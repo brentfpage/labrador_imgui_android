@@ -390,8 +390,11 @@ int main(int, char**)
                 {
                     ImGui::BeginChild("col1",ImVec2(settings_width*0.34 - style.ItemSpacing.x/2, settings_height),0, ImGuiWindowFlags_NoScrollbar);
                     {
-                        inputs_ui.draw();
-                        trigger_ui.draw(&inputs_ui);
+                        for(int i=0; i<n_widgets; i++) {
+                            if (widgets_enable[i] && (widget_col[i] == 0)) {
+                                widgets[i]->draw(&inputs_ui);
+                            }
+                        }
                     }
                     ImGui::EndChild();
 
@@ -399,10 +402,15 @@ int main(int, char**)
                     float col2_width = settings_width*0.66 - style.ItemSpacing.x/2;
                     ImGui::BeginChild("col2",ImVec2(col2_width, settings_height),0, ImGuiWindowFlags_NoScrollbar);
                     {
-                        virtual_transform_ui.draw();
-                        sig_gen_ui.draw(&inputs_ui);
-                        psu_ui.draw();
-                        logic_decode_ui.draw(&inputs_ui);
+                        for(int i=0; i<n_widgets; i++) {
+                            if (widgets_enable[i] && (widget_col[i] == 1)) {
+                                widgets[i]->draw(&inputs_ui);
+                            }
+                        }
+//                         virtual_transform_ui.draw();
+//                         sig_gen_ui.draw(&inputs_ui);
+//                         psu_ui.draw();
+//                         logic_decode_ui.draw(&inputs_ui);
                     }
                     ImGui::EndChild();
                     settingsWindowTopRight = ImGui::GetWindowPos() + ImVec2(settings_width, 0.f);
