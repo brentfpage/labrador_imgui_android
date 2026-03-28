@@ -359,29 +359,18 @@ int main(int, char**)
         float settings_width;
         if(landscape) {
             data_height = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
-            settings_width = 0.f;
-            if(go_by_rows) {
-                if(widget_2_3_height_sum > 0.f) {
-                    settings_width = DisplaySize.y * 2./3; // .y is not a bug
-                } else {
-                    settings_width = n_1_3 * DisplaySize.y * 1./3; // .y is not a bug
-                }
-            } else {
-                settings_width = DisplaySize.y * ((n_1_3 > 0) * 1./3 + (widget_2_3_height_sum > 0.f) * 2./3);
-            }
             if(collapse_settings) {
                 data_width = ImGui::GetContentRegionAvail().x - std::max(ImGui::GetFontSize(), ImGui::CalcTextSize(" < ").x) - 2 * style.FramePadding.x - style.ItemSpacing.x;
             } else {
-                data_width = ImGui::GetContentRegionAvail().x - settings_width - style.ItemSpacing.x;
+                data_width = ImGui::GetContentRegionAvail().x - style.ItemSpacing.x;
             }
         } else {
-            settings_width = data_width = portraitScreenWidth - 2 * style.WindowPadding.x;
-            settings_height = std::max(widget_col_heights[0], widget_col_heights[1]);
-
+            settings_width = portraitScreenWidth - 2 * style.WindowPadding.x;
+            data_width = settings_width;
             if(collapse_settings) {
                 data_height = ImGui::GetContentRegionAvail().y - ImGui::GetFontSize() - 2 * style.FramePadding.y - style.ItemSpacing.y;
             } else {
-                data_height = ImGui::GetContentRegionAvail().y - settings_height  - style.ItemSpacing.y;
+                data_height = ImGui::GetContentRegionAvail().y - style.ItemSpacing.y;
             }
         }
 
@@ -409,57 +398,47 @@ int main(int, char**)
         ImVec2 settingsWindowTopRight;
         ImGui::PushFont(NULL, style.FontSizeBase * scaling);
         if(!collapse_settings) {
-            ImGui::BeginChild("settings",ImVec2(settings_width, settings_height),0,ImGuiWindowFlags_NoScrollbar | (landscape ? ImGuiChildFlags_ResizeX : ImGuiChildFlags_ResizeY) );
-            {
-                if(go_by_rows) {
-                    for(int row : {0,1}) {
-                        for(int i=0; i<n_widgets; i++) {
-                            if (widgets_enable[i] && (widget_col_or_row_standard[i] == row)) {
-                                widgets[i]->draw(&inputs_ui);
-                                ImGui::SameLine();
-                            }
-                        }
-                        ImGui::NewLine(); // overrides previous sameline
-                    }
-                } else {
-                    bool two_cols = (widget_col_heights[0] > 0.f) && (widget_col_heights[1] > 0.f);
-                    float col_widths = {
-                    for(int col : {1,2}) {
-                        if(widget_col_heights[0] > 0)
-                            ImGui::BeginChild("col1",ImVec2(settings_width*0.34 - style.ItemSpacing.x/2 * two_cols, settings_height),0, ImGuiWindowFlags_NoScrollbar);
-                            {
-                                for(int i=0; i<n_widgets; i++) {
-                                    if (widgets_enable[i] && (widget_col[i] == 0)) {
-                                        widgets[i]->draw(&inputs_ui);
-                                    }
-                                }
-                                ImGui::Dummy(ImVec2(0.f, 0.f));
-                            }
-                            ImGui::EndChild();
-                    }
-
-                    ImGui::SameLine();
-                    float col2_width = settings_width*0.66 - style.ItemSpacing.x/2;
-                    ImGui::BeginChild("col2",ImVec2(col2_width, settings_height),0, ImGuiWindowFlags_NoScrollbar);
-                    {
-                        for(int i=0; i<n_widgets; i++) {
-                            if (widgets_enable[i] && (widget_col[i] == 1)) {
-                                widgets[i]->draw(&inputs_ui);
-                            }
-                        }
-                        ImGui::Dummy(ImVec2(0.f, 0.f));
-                    }
-                    ImGui::EndChild();
-                }
-                settingsWindowTopRight = ImGui::GetWindowPos() + ImVec2(settings_width, 0.f);
+            if(landscape) {
+                ImGui::BeginChild("settings",ImVec2(0.f, ImGui::GetContentRegionAvail().y),0,ImGuiWindowFlags_NoScrollbar | ImGuiChildFlags_AutoResizeX);
+            } else {
+                ImGui::BeginChild("settings",ImVec2(ImGui::GetContentRegionAvail().x, 0.f),0,ImGuiWindowFlags_NoScrollbar |  ImGuiChildFlags_AutoResizeY );
             }
-            ImGui::EndChild();
+            if(go_by_rows) {
+                for(int row : {0,1}) {
+                    for(int i=0; i<n_widgets; i++) {
+                        if (widgets_enable[i] && (widget_col_or_row_standard[i] == row)) {
+                            widgets[i]->draw(&inputs_ui);
+                            ImGui::SameLine();
+                        }
+                    }
+                    ImGui::NewLine(); // overrides previous sameline
+                }
+            } else {
+                for(int col : {0,1}) {
+                    if(widget_col_heights[col] > 0)
+                    {
+                        ImGui::BeginGroup()
+                        {
+                            for(int i=0; i<n_widgets; i++) {
+                                if (widgets_enable[i] && (widget_col[i] == col)) {
+                                    widgets[i]->draw(&inputs_ui);
+                                }
+                            }
+                            ImGui::Dummy(ImVec2(0.f, 0.f));
+                        }
+                        ImGui::EndGroup();
+                        ImGui::SameLine();
+                    }
+                }
+                ImGui::NextLine();
+            }
+            settingsWindowTopRight = ImGui::GetWindowPos() + ImVec2(ImGui::GetWindowSize().x, 0.f);
         }
+        ImGui::EndChild();
         ImGui::PopFont();
 
         char label[36];
 
-//             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(style.FramePadding.x/2., 0.f));
         style = ImGui::GetStyle();
         bool open_widget_sel = false;
         ImGuiID collapse_id = ImGui::GetID("collapse");
@@ -500,7 +479,6 @@ int main(int, char**)
             if(!go_by_rows)
                 ImGui::EndChild();
         }
-//             ImGui::PopStyleVar();
 
 
         if(open_widget_sel) {
