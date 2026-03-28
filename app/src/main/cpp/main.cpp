@@ -248,13 +248,13 @@ int main(int, char**)
             continue;
         }
 
-        ImGuiContext& g = *GImGui;
-        g.Style = ImGuiStyle(); // reset style
-        style = ImGui::GetStyle(); // the style just created
-        style.ScaleAllSizes(main_scale);
-        style.FontScaleDpi = main_scale;        // Set initial font scale. (in docking branch: using io.ConfigDpiScaleFonts=true automatically overrides this for every window depending on the current monitor)
-        style.ItemSpacing = ImVec2(style.ItemSpacing.x, style.ItemSpacing.y/2.);
-        style.WindowPadding = ImVec2(style.WindowPadding.x/2,style.WindowPadding.y/2);
+//         ImGuiContext& g = *GImGui;
+//         g.Style = ImGuiStyle(); // reset style
+//         style = ImGui::GetStyle(); // the style just created
+//         style.ScaleAllSizes(main_scale);
+//         style.FontScaleDpi = main_scale;        // Set initial font scale. (in docking branch: using io.ConfigDpiScaleFonts=true automatically overrides this for every window depending on the current monitor)
+//         style.ItemSpacing = ImVec2(style.ItemSpacing.x, style.ItemSpacing.y/2.);
+//         style.WindowPadding = ImVec2(style.WindowPadding.x/2,style.WindowPadding.y/2);
 
         int statusBarHeight = (int) env->CallIntMethod(MainActivityObject,getStatusBarHeightID);
         int navigationBarHeight = (int) env->CallIntMethod(MainActivityObject,getNavigationBarHeightID);
@@ -272,7 +272,6 @@ int main(int, char**)
         } else {
             float aspect_ratio = static_cast<double>(io.DisplaySize.x)/(io.DisplaySize.y - statusBarHeight - navigationBarHeight);
             scaling = pixel_6a_profile_aspect_ratio > aspect_ratio ? (aspect_ratio / pixel_6a_profile_aspect_ratio) * .999 : 1.f;
-            scaling = 1.f;
         };
 
         // Start the Dear ImGui frame
