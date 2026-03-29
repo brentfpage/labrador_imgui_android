@@ -18,8 +18,8 @@ class virtualTransformUI : public Widget
     ch_settings both_ch_settings[2];
     ch_settings* curr_ch_settings = both_ch_settings;
 public:
-    virtualTransformUI() : Widget(Widget::Width::two_thirds) {};
-    void draw(inputsUI* inputs_ui = nullptr) override;
+    virtualTransformUI() : Widget(Widget::Width::duplex, 2.59, 4) {};
+    void draw(float width, inputsUI* inputs_ui = nullptr) override;
     int get_height() override;
 };
 #endif // VIRTUALTRANSFORMUI_H

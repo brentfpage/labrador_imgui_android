@@ -7,7 +7,7 @@
 #include "virtual_transform_ui.h"
 
 
-void virtualTransformUI::draw(inputsUI* inputs_ui)
+void virtualTransformUI::draw(float width, inputsUI* inputs_ui)
 {
     ImGuiStyle& style = ImGui::GetStyle();
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, 0.f));
@@ -19,7 +19,7 @@ void virtualTransformUI::draw(inputsUI* inputs_ui)
 //                     *(checkbox_bool[j] + (i+1)%2) = *(checkbox_bool[j] + i);
     ImGui::Text("Virtual Transforms");
     ImGui::BeginGroup();
-    if(ImGui::BeginTable("helper1",2, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_SizingFixedSame | ImGuiTableFlags_NoHostExtendX, ImVec2(0., 0.))) {
+    if(ImGui::BeginTable("helper1",2, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_SizingFixedSame | ImGuiTableFlags_NoHostExtendX, ImVec2(width, 0.))) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::RadioButton("CH A", &ch_sel, 1);
@@ -29,8 +29,7 @@ void virtualTransformUI::draw(inputsUI* inputs_ui)
     }
 
     const float offset_button_width = style.FramePadding.x*2 + ImGui::CalcTextSize("Offset").x;
-//     ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x - offset_button_width - style.ItemInnerSpacing.x);
-    if(ImGui::BeginTable("helper2",2, ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_RowBg , ImVec2(ImGui::GetContentRegionAvail().x, 0.))) {
+    if(ImGui::BeginTable("helper2",2, ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_RowBg , ImVec2(width, 0.))) {
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.75f);
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.25f);
         ImGui::TableNextRow();
@@ -42,7 +41,7 @@ void virtualTransformUI::draw(inputsUI* inputs_ui)
         button_common("Offset", "##offset", ImVec2(0.f,0.f), style);
         ImGui::EndTable();
     }
-    if(ImGui::BeginTable("helper3", 3, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH)) {
+    if(ImGui::BeginTable("helper3", 3, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH, ImVec2(width, 0.f))) {
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.55f);
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.225);
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.225);

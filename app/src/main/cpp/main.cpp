@@ -94,6 +94,8 @@ int main(int, char**)
     SDL_GetDisplayBounds(SDL_GetPrimaryDisplay(), &bounds);
 
     float pixel_6a_main_scale = 2.625;
+    float pixel_6a_screen_width = 1080.f;
+    float pixel_6a_single_width = 1038.f/3;
     float pixel_6a_profile_aspect_ratio = 0.49; // relevant to profile b/c it excludes navigation, status bars
     SDL_WindowFlags window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
     SDL_Window* window = SDL_CreateWindow("main window", (int)bounds.w, (int)bounds.h, window_flags);
@@ -134,6 +136,7 @@ int main(int, char**)
     ImGuiStyle& style = ImGui::GetStyle();
     style.ScaleAllSizes(main_scale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
     style.FontScaleDpi = main_scale;        // Set initial font scale. (in docking branch: using io.ConfigDpiScaleFonts=true automatically overrides this for every window depending on the current monitor)
+    style.FontSizeBase = 18.5f;
     style.ItemSpacing = ImVec2(style.ItemSpacing.x, style.ItemSpacing.y/2.);
     style.WindowPadding = ImVec2(style.WindowPadding.x/2,style.WindowPadding.y/2);
 
@@ -248,36 +251,45 @@ int main(int, char**)
             continue;
         }
 
-//         ImGuiContext& g = *GImGui;
-//         g.Style = ImGuiStyle(); // reset style
-//         style = ImGui::GetStyle(); // the style just created
-//         style.ScaleAllSizes(main_scale);
-//         style.FontScaleDpi = main_scale;        // Set initial font scale. (in docking branch: using io.ConfigDpiScaleFonts=true automatically overrides this for every window depending on the current monitor)
-//         style.ItemSpacing = ImVec2(style.ItemSpacing.x, style.ItemSpacing.y/2.);
-//         style.WindowPadding = ImVec2(style.WindowPadding.x/2,style.WindowPadding.y/2);
-
         int statusBarHeight = (int) env->CallIntMethod(MainActivityObject,getStatusBarHeightID);
         int navigationBarHeight = (int) env->CallIntMethod(MainActivityObject,getNavigationBarHeightID);
 
         static bool collapse_settings = false;
-        // scaling
-// should compute these scalings only once, but there's no way to get the navigation/status bar heights in landscape mode when in portrait mode
-        bool landscape = io.DisplaySize.y < io.DisplaySize.x ? true : false;
-        float settings_height_max;
-        float scaling;
-        if(landscape) {
-            int prescale_settings_height = inputs_ui.get_height() + trigger_ui.get_height(); // want to be able to fit these two widgets in one column
-            settings_height_max = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
-            scaling = prescale_settings_height > settings_height_max ? (settings_height_max / prescale_settings_height) * .999 : 1.f;
-        } else {
-            float aspect_ratio = static_cast<double>(io.DisplaySize.x)/(io.DisplaySize.y - statusBarHeight - navigationBarHeight);
-            scaling = pixel_6a_profile_aspect_ratio > aspect_ratio ? (aspect_ratio / pixel_6a_profile_aspect_ratio) * .999 : 1.f;
-        };
 
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
+
+// should compute these scalings only once, but there's no way to get the navigation/status bar heights in landscape mode when in portrait mode
+        bool landscape = io.DisplaySize.y < io.DisplaySize.x ? true : false;
+        float settings_height_max;
+        float font_scaling = 1.f;
+        float single_width_pixels;
+        if(landscape) { 
+            int prescale_settings_height = inputs_ui.get_height() + trigger_ui.get_height(); // want to be able to fit these two widgets in one column
+            int text_height = (inputs_ui.n_lines + trigger_ui.n_lines) * ImGui::GetFontSize(); 
+            int padding = prescale_settings_height - text_height; 
+            settings_height_max = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
+            if(prescale_settings_height > settings_height_max) {
+                int avail_for_text = settings_height_max - padding;
+                font_scaling = static_cast<float>(avail_for_text)/text_height; // only scale the font size b/c most of the other built-in lengths are <10 pixels so are only responsive to scalings more extreme than +- 10%
+            }
+        } else {
+            float device_independent_x_padding = 2. * ImGuiStyle().WindowPadding.x + ImGuiStyle().ItemSpacing.x;
+            float screen_width_ratio = static_cast<double>(io.DisplaySize.x / main_scale - device_independent_x_padding)/(pixel_6a_screen_width / pixel_6a_main_scale - device_independent_x_padding);
+            LOGW("swr %.2f", screen_width_ratio);
+            single_width_pixels = screen_width_ratio * pixel_6a_single_width;
+            font_scaling = screen_width_ratio;
+        };
+        LOGW("lui height: %d", inputs_ui.get_height());
+        LOGW("tui height: %d", trigger_ui.get_height());
+        LOGW("vtui height: %d", virtual_transform_ui.get_height());
+        LOGW("sg height: %d", sig_gen_ui.get_height());
+        LOGW("psu height: %d", psu_ui.get_height());
+        LOGW("ld height: %d", logic_decode_ui.get_height());
+        LOGW("width: %.1f", io.DisplaySize.x);
+        LOGW("fontsize: %.1f", ImGui::GetFontSize());
 
 // important to have this iso_thread_active check after the new frame starts.  Otherwise, (board connected -> user puts phone to sleep -> user unplugs board -> user wakes phone) leads to a crash.  The crash arises from the librador_get_(analog/digital)_data block below thinking iso_thread_active=true when it's not.
         iso_thread_active = librador_iso_thread_is_active();
@@ -312,7 +324,7 @@ int main(int, char**)
                 widget_height_sum += widgets[i]->get_height();
                 which_enabled[n_enabled] = i;
                 n_enabled++;
-                if(widgets[i]->width == Widget::Width::one_third) {
+                if(widgets[i]->width == Widget::Width::single) {
                     n_1_3++;
                 } else {
                     widget_2_3_height_sum += widgets[i]->get_height();
@@ -339,7 +351,7 @@ int main(int, char**)
                 memcpy(widget_col, widget_col_or_row_standard, sizeof(int) * n_widgets);
                 for(int i=0; i< n_widgets; i++) {
                     if(widgets_enable[i]) {
-                        widget_col_heights[widget_col[i]] += widgets[i]->get_height();
+                        widget_col_heights[widget_col[i]] += widgets[i]->get_height() + style.ItemSpacing.y;
                     }
                 }
             }
@@ -352,7 +364,7 @@ int main(int, char**)
 
         ImGui::Begin("MainWindow",
                      &show_mainwindow,
-                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);   
+                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar);   
 
         float data_width;
         float data_height;
@@ -377,7 +389,7 @@ int main(int, char**)
             }
         }
 
-        ImGui::BeginChild("data",ImVec2(data_width, data_height));
+        ImGui::BeginChild("data",ImVec2(data_width, 0.f));
         {
             float plot_height;
             if(logic_decode_ui.decoding_on()) {
@@ -399,19 +411,18 @@ int main(int, char**)
         }
         ImGuiID col2_id;
         ImVec2 settingsWindowTopRight;
-        ImGui::PushFont(NULL, style.FontSizeBase * scaling);
-//         style.ScaleAllSizes(scaling);
+        ImGui::PushFont(NULL, style.FontSizeBase * font_scaling);
         if(!collapse_settings) {
             if(landscape) {
                 ImGui::BeginChild("settings",ImVec2(0.f, ImGui::GetContentRegionAvail().y),0,ImGuiWindowFlags_NoScrollbar | ImGuiChildFlags_AutoResizeX);
             } else {
-                ImGui::BeginChild("settings",ImVec2(ImGui::GetContentRegionAvail().x, settings_height),0,ImGuiWindowFlags_NoScrollbar |  ImGuiChildFlags_AutoResizeY );
+                ImGui::BeginChild("settings",ImVec2(ImGui::GetContentRegionAvail().x, 0.f), ImGuiChildFlags_AutoResizeY);
             }
             if(go_by_rows) {
                 for(int row : {0,1}) {
                     for(int i=0; i<n_widgets; i++) {
                         if (widgets_enable[i] && (widget_col_or_row_standard[i] == row)) {
-                            widgets[i]->draw(&inputs_ui);
+                            widgets[i]->draw((static_cast<int>(widgets[i]->width) + 1) * single_width_pixels, &inputs_ui);
                             ImGui::SameLine();
                         }
                     }
@@ -428,15 +439,15 @@ int main(int, char**)
                         if(landscape) {
 
                         } else {
-                            ImGui::BeginChild(buf, ImVec2((col+1)/3. * crax - style.ItemSpacing.x/2. , -1));
+                            ImGui::BeginGroup();
                         }
                         for(int i=0; i<n_widgets; i++) {
                             if (widgets_enable[i] && (widget_col[i] == col)) {
-                                widgets[i]->draw(&inputs_ui);
+                                widgets[i]->draw((static_cast<int>(widgets[i]->width) + 1) * pixel_6a_single_width,  &inputs_ui);
                             }
                         }
-                        ImGui::Dummy(ImVec2(0.f, 0.f));
-                        ImGui::EndChild();
+//                         ImGui::Dummy(ImVec2(0.f, 0.f));
+                        ImGui::EndGroup();
                         ImGui::SameLine();
                     }
                 }

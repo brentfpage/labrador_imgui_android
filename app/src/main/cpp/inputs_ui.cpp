@@ -27,7 +27,7 @@ void draw_rules(ImVec2 p0, double row_height, double header_row_height, double c
     draw_list->AddLine(row1_col2_pos, row3_col2_pos, IM_COL32(120, 120, 160, 255));
 }
 
-void inputsUI::draw(inputsUI* inputs_ui)
+void inputsUI::draw(float width, inputsUI* inputs_ui)
 {
     ImVec2 start_pos = ImGui::GetCursorScreenPos();
     ImGui::Text("Inputs");
@@ -38,7 +38,7 @@ void inputsUI::draw(inputsUI* inputs_ui)
     float header_row_height = ImGui::GetFontSize() + style.CellPadding.y*2;
     float row_height = (ImGui::GetFontSize() + (style.FramePadding.y + style.CellPadding.y)*2);
     float col_width;
-    if (ImGui::BeginTable("scope_mode", 3, ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_RowBg , ImVec2(ImGui::GetContentRegionAvail().x,0.f)))
+    if (ImGui::BeginTable("scope_mode", 3, ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_RowBg , ImVec2(width,0.f)))
     {
         ImGui::TableNextRow();
         int i = 0;

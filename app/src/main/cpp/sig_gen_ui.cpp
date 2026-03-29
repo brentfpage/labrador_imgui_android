@@ -28,7 +28,7 @@ void sigGenUI::amp_or_min_slider_and_button(const char* slider_label, const char
     button_common(button_label, slider_label, ImVec2(ImGui::GetContentRegionAvail().x + style.CellPadding.x,0.f), style);
 }
 
-void sigGenUI::draw(inputsUI* inputs_ui)
+void sigGenUI::draw(float width, inputsUI* inputs_ui)
 {
     bool ch2_disabled = inputs_ui->logic_on();
     ImGuiStyle& style = ImGui::GetStyle();
@@ -41,7 +41,7 @@ void sigGenUI::draw(inputsUI* inputs_ui)
     ImVec2 p0;
     ImVec2 p1;
 
-    if (ImGui::BeginTable("sg_table", 2, ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_RowBg , ImVec2(ImGui::GetContentRegionAvail().x,0.f)))
+    if (ImGui::BeginTable("sg_table", 2, ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_RowBg , ImVec2(width,0.f)))
     {
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.75f);
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.25f);

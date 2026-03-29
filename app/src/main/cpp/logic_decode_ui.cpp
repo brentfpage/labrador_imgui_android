@@ -112,7 +112,7 @@ bool logicDecodeUI::decoding_on()
     return both_ch_uart_settings[0].decode_on || both_ch_uart_settings[1].decode_on || protocol_sel == Protocol::I2C;
 }
 
-void logicDecodeUI::draw(inputsUI* inputs_ui)
+void logicDecodeUI::draw(float width, inputsUI* inputs_ui)
 {
     bool logic_enable[2];
     if(inputs_ui->scopelogic_mode()) {
@@ -140,7 +140,7 @@ void logicDecodeUI::draw(inputsUI* inputs_ui)
     bool open_ch_serial_settings = false;
     char chAB[2] = {'A', 'B'};
 
-    if (ImGui::BeginTable("logic_settings_table", 2, ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH , ImVec2(ImGui::GetContentRegionAvail().x, 0.f)) )
+    if (ImGui::BeginTable("logic_settings_table", 2, ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH , ImVec2(width, 0.f)) )
     {
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.75f);
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.25f);

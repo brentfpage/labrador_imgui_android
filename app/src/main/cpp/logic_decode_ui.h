@@ -60,9 +60,9 @@ class logicDecodeUI : public Widget
     bool uart_ch_console_at_bottom[2] = {true, true};
     bool i2c_console_at_bottom = true;
 public:
-    logicDecodeUI() : Widget(Widget::Width::two_thirds) {};
+    logicDecodeUI() : Widget(Widget::Width::duplex, 5.45, 2) {};
     bool decoding_on();
-    void draw(inputsUI* inputs_ui = nullptr) override;
+    void draw(float width, inputsUI* inputs_ui = nullptr) override;
     void draw_console(float window_content_width);//const char * from_librador_1, const char * from_librador_2 = nullptr);
     float get_console_height(float avail_y);
     int get_height() override;
