@@ -1,13 +1,13 @@
 #ifndef INPUTSUI_H
 #define INPUTSUI_H
 
-#include "widget.h"
-class inputsUI : public Widget
+#include "ui_part.h"
+class inputsUI : public UI_part
 {
     bool scope750 = false;
     bool changed = false;
 public:
-    inputsUI() : Widget(Widget::Width::single, 6) {};
+    inputsUI() : UI_part(UI_part::Width::single, 6) {};
     void update_device_mode();
     bool logic_enable[2] = {0,0};
     bool scope_enable[2] = {true,false};

@@ -55,8 +55,12 @@ void virtualTransformUI::draw(float width, inputsUI* inputs_ui)
         ImGui::EndTable();
     }
     ImGui::EndGroup();
+
     curr_ch_settings = &both_ch_settings[ch_sel-1];
+    ImVec2 p0 = ImGui::GetItemRectMin() - style.CellPadding;
+    ImVec2 p1 = ImGui::GetItemRectMax() + style.CellPadding;
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    draw_list->AddRect(p0, p1, IM_COL32(90, 90, 120, 255),0,0,2);
     librador_set_virtual_transform_settings(ch_sel, 
             (o1buffer::virtual_transform_settings) 
             {.offset=curr_ch_settings->offset, .gain=gains[curr_ch_settings->gain_sel], .is_ac=curr_ch_settings->is_ac, .is_paused=curr_ch_settings->is_paused}); 

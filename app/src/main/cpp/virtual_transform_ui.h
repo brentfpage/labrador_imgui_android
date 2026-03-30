@@ -1,8 +1,8 @@
 #ifndef VIRTUALTRANSFORMUI_H
 #define VIRTUALTRANSFORMUI_H
 
-#include "widget.h"
-class virtualTransformUI : public Widget
+#include "ui_part.h"
+class virtualTransformUI : public UI_part
 {
     static const int num_gain_options = 3;
     const int gains[num_gain_options] = {1, 5, 10};
@@ -18,7 +18,7 @@ class virtualTransformUI : public Widget
     ch_settings both_ch_settings[2];
     ch_settings* curr_ch_settings = both_ch_settings;
 public:
-    virtualTransformUI() : Widget(Widget::Width::duplex, 4) {};
+    virtualTransformUI() : UI_part(UI_part::Width::duplex, 4) {};
     void draw(float width, inputsUI* inputs_ui = nullptr) override;
     int get_height() override;
 };

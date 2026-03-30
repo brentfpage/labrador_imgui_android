@@ -324,7 +324,6 @@ int main(int, char**)
                 }
             }
         }
-        ui_part
 
         static int ui_part_cols[n_ui_parts];
         float ui_part_col_heights[2] = {0.f, 0.f};
@@ -520,7 +519,7 @@ int main(int, char**)
             ImGui::OpenPopup("config_settings");
         }
         if(ImGui::BeginPopup("config_settings")) {
-            ImGui::Text("Select ui_parts");
+            ImGui::Text("Select widgets");
             ImGui::Separator();
             for (int i=0; i< sizeof(ui_parts_enable); i++) {
                 ImGui::Checkbox(ui_part_names[i], &ui_parts_enable[i]);
