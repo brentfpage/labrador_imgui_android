@@ -96,7 +96,8 @@ int main(int, char**)
     float pixel_6a_main_scale = 2.625;
     float pixel_6a_screen_width = 1080.f;
     float pixel_6a_single_width = 1038.f/3;
-    float pixel_6a_profile_aspect_ratio = 0.49; // relevant to profile b/c it excludes navigation, status bars
+    float pixel_6a_setting_panel_aspect = 1.13; // width to height
+//     float pixel_6a_profile_aspect_ratio = 0.49; // relevant to profile b/c it excludes navigation, status bars
     SDL_WindowFlags window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
     SDL_Window* window = SDL_CreateWindow("main window", (int)bounds.w, (int)bounds.h, window_flags);
     if (window == nullptr)
@@ -262,34 +263,38 @@ int main(int, char**)
         ImGui::NewFrame();
 
 // should compute these scalings only once, but there's no way to get the navigation/status bar heights in landscape mode when in portrait mode
-        bool landscape = io.DisplaySize.y < io.DisplaySize.x ? true : false;
+        bool landscape = io.DisplaySize.y < io.DisplaySize.x;
         float settings_height_max;
         float font_scaling = 1.f;
         float single_width_pixels;
+        float settings_width;
+        // scale the font size so that the ui fits in width-wise (portrait mode) or height-wise (landscape mode). only scale the font size b/c most of the other built-in lengths are 0-10 pixels so are only responsive to scalings more extreme than +- 10%
         if(landscape) { 
-            int prescale_settings_height = inputs_ui.get_height() + trigger_ui.get_height(); // want to be able to fit these two widgets in one column
+            int prescale_settings_height = inputs_ui.get_height() + trigger_ui.get_height() + style.ItemSpacing.y; // want to be able to fit these two widgets in one column
             int text_height = (inputs_ui.n_lines + trigger_ui.n_lines) * ImGui::GetFontSize(); 
             int padding = prescale_settings_height - text_height; 
             settings_height_max = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
-            if(prescale_settings_height > settings_height_max) {
-                int avail_for_text = settings_height_max - padding;
-                font_scaling = static_cast<float>(avail_for_text)/text_height; // only scale the font size b/c most of the other built-in lengths are <10 pixels so are only responsive to scalings more extreme than +- 10%
-            }
+            int avail_for_text = settings_height_max - padding;
+            font_scaling = static_cast<float>(avail_for_text)/text_height; 
+            single_width_pixels = settings_height_max * pixel_6a_setting_panel_aspect / 3.f;
         } else {
             float device_independent_x_padding = 2. * ImGuiStyle().WindowPadding.x + ImGuiStyle().ItemSpacing.x;
-            float screen_width_ratio = static_cast<double>(io.DisplaySize.x / main_scale - device_independent_x_padding)/(pixel_6a_screen_width / pixel_6a_main_scale - device_independent_x_padding);
-            LOGW("swr %.2f", screen_width_ratio);
-            single_width_pixels = screen_width_ratio * pixel_6a_single_width;
+            // all lengths on a given device are scaled by main_scale, so can't compare pixels to pixels directly across devices.
+            float screen_width_ratio = static_cast<double>(portraitScreenWidth / main_scale - device_independent_x_padding)/(pixel_6a_screen_width / pixel_6a_main_scale - device_independent_x_padding);
             font_scaling = screen_width_ratio;
+            single_width_pixels = (portraitScreenWidth - style.ItemSpacing.x - 2 * style.WindowPadding.x)/3.;
+            ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
+            settings_height_max = inputs_ui.get_height() + trigger_ui.get_height() + style.ItemSpacing.y; 
+            ImGui::PopFont();
         };
-        LOGW("lui height: %d", inputs_ui.get_height());
-        LOGW("tui height: %d", trigger_ui.get_height());
-        LOGW("vtui height: %d", virtual_transform_ui.get_height());
-        LOGW("sg height: %d", sig_gen_ui.get_height());
-        LOGW("psu height: %d", psu_ui.get_height());
-        LOGW("ld height: %d", logic_decode_ui.get_height());
-        LOGW("width: %.1f", io.DisplaySize.x);
-        LOGW("fontsize: %.1f", ImGui::GetFontSize());
+//         LOGW("lui height: %d", inputs_ui.get_height());
+//         LOGW("tui height: %d", trigger_ui.get_height());
+//         LOGW("vtui height: %d", virtual_transform_ui.get_height());
+//         LOGW("sg height: %d", sig_gen_ui.get_height());
+//         LOGW("psu height: %d", psu_ui.get_height());
+//         LOGW("ld height: %d", logic_decode_ui.get_height());
+//         LOGW("width: %.1f", io.DisplaySize.x);
+//         LOGW("fontsize: %.1f", ImGui::GetFontSize());
 
 // important to have this iso_thread_active check after the new frame starts.  Otherwise, (board connected -> user puts phone to sleep -> user unplugs board -> user wakes phone) leads to a crash.  The crash arises from the librador_get_(analog/digital)_data block below thinking iso_thread_active=true when it's not.
         iso_thread_active = librador_iso_thread_is_active();
@@ -334,15 +339,24 @@ int main(int, char**)
 
         static int widget_col[n_widgets];
         float widget_col_heights[2] = {0.f, 0.f};
+        float widget_row_heights[2] = {0.f, 0.f};
 
-        static int widget_row[n_widgets] = {0,0,1,1,1,1};
+        const int widget_row[n_widgets] = {0,0,1,1,1,1};
 
         const int widget_col_or_row_standard[n_widgets] = {0,0,1,1,1,1};
         bool go_by_rows = ((!landscape && (n_1_3 == 2)) && (widget_2_3_height_sum < settings_height_max/2.)) || \
-            ((landscape && (n_1_3 > 0)) && (0 < widget_2_3_height_sum < settings_height_max/2.));
+            ((landscape && (n_1_3 > 0)) && ((0 < widget_2_3_height_sum) && (widget_2_3_height_sum < settings_height_max/2.)));
 
-        // config which widgets go in which columns
-        if(!go_by_rows) {
+        if(go_by_rows) {
+            for(int i=0; i< n_widgets; i++) {
+                if(widgets_enable[i]) {
+                    if(widget_row[i]==0)
+                        widget_row_heights[widget_row[i]] = fmax(widget_row_heights[widget_row[i]], widgets[i]->get_height() + style.ItemSpacing.y);
+                    else
+                        widget_row_heights[widget_row[i]] += widgets[i]->get_height() + style.ItemSpacing.y;
+                }
+            }
+        } else {
             if(landscape && (widget_height_sum < settings_height_max)) {
                 memset(widget_col, 0, sizeof(int) * n_widgets);
                 widget_col_heights[0] = widget_height_sum;
@@ -369,18 +383,43 @@ int main(int, char**)
         float data_width;
         float data_height;
         float settings_height;
-        float settings_width;
         if(landscape) {
             data_height = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
             if(collapse_settings) {
                 data_width = ImGui::GetContentRegionAvail().x - std::max(ImGui::GetFontSize(), ImGui::CalcTextSize(" < ").x) - 2 * style.FramePadding.x - style.ItemSpacing.x;
             } else {
-                data_width = ImGui::GetContentRegionAvail().x - style.ItemSpacing.x;
+                if(go_by_rows) {
+                    if (widget_2_3_height_sum > 0.f) {
+                        settings_width = 2 * single_width_pixels + (n_1_3 == 2) * style.ItemSpacing.x;
+                    } else if (n_1_3 > 0) {
+                        settings_width = single_width_pixels + (n_1_3 == 2) * (single_width_pixels + style.ItemSpacing.x);
+                    } else {
+                        settings_width = ImGui::CalcTextSize(" < ").x + 2 * style.FramePadding.x + style.ItemSpacing.x;
+                    }
+                } else {
+                    float col1_width = 0.f;
+                    float col2_width = 0.f;
+                    for(int i = 0; i < n_widgets; i++) {
+                        if(widgets_enable[i] && (widget_col[i]==0)) {
+                            col1_width = fmax(col1_width, (static_cast<int>(widgets[i]->width) + 1) * single_width_pixels);
+                        }
+                        if(widgets_enable[i] && (widget_col[i]==1)) {
+                            col2_width = fmax(col1_width, (static_cast<int>(widgets[i]->width) + 1) * single_width_pixels);
+                        }
+                        settings_width = col1_width + col2_width + ((col1_width>0)&&(col2_width>0)) * style.ItemSpacing.x;
+                    }
+
+                }
+                data_width = ImGui::GetContentRegionAvail().x - style.ItemSpacing.x - settings_width;
             }
         } else {
             settings_width = portraitScreenWidth - 2 * style.WindowPadding.x;
             data_width = settings_width;
-            settings_height = std::max(widget_col_heights[0], widget_col_heights[1]);
+            if(go_by_rows) {
+                settings_height = widget_row_heights[0] + widget_row_heights[1];
+            } else {
+                settings_height = fmax(fmax(widget_col_heights[0], widget_col_heights[1]), ImGui::GetFontSize() + 2 * style.FramePadding.y + style.ItemSpacing.y);
+            }
 
             if(collapse_settings) {
                 data_height = ImGui::GetContentRegionAvail().y - ImGui::GetFontSize() - 2 * style.FramePadding.y - style.ItemSpacing.y;
@@ -389,7 +428,7 @@ int main(int, char**)
             }
         }
 
-        ImGui::BeginChild("data",ImVec2(data_width, 0.f));
+        ImGui::BeginChild("data",ImVec2(data_width, data_height));
         {
             float plot_height;
             if(logic_decode_ui.decoding_on()) {
@@ -411,42 +450,34 @@ int main(int, char**)
         }
         ImGuiID col2_id;
         ImVec2 settingsWindowTopRight;
-        ImGui::PushFont(NULL, style.FontSizeBase * font_scaling);
+        ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
         if(!collapse_settings) {
-            if(landscape) {
-                ImGui::BeginChild("settings",ImVec2(0.f, ImGui::GetContentRegionAvail().y),0,ImGuiWindowFlags_NoScrollbar | ImGuiChildFlags_AutoResizeX);
-            } else {
-                ImGui::BeginChild("settings",ImVec2(ImGui::GetContentRegionAvail().x, 0.f), ImGuiChildFlags_AutoResizeY);
-            }
+            ImGui::BeginChild("settings",ImVec2(0.f, 0.f),0 );
             if(go_by_rows) {
                 for(int row : {0,1}) {
                     for(int i=0; i<n_widgets; i++) {
-                        if (widgets_enable[i] && (widget_col_or_row_standard[i] == row)) {
+                        if (widgets_enable[i] && (widget_row[i] == row)) {
                             widgets[i]->draw((static_cast<int>(widgets[i]->width) + 1) * single_width_pixels, &inputs_ui);
-                            ImGui::SameLine();
+                            // items in row 0 are stacked side-by-side; those in row 1 are stacked vertically
+                            if(row==0) {
+                                ImGui::SameLine();
+                            }
                         }
                     }
-                    ImGui::NewLine(); // overrides previous sameline
+                    if(row==0)
+                        ImGui::NewLine(); // overrides previous sameline
                 }
             } else {
                 float crax = ImGui::GetContentRegionAvail().x;
                 for(int col : {0,1}) {
                     if(widget_col_heights[col] > 0)
                     {
-                        char buf[10];
-                        sprintf(buf, "col%d", col);
-
-                        if(landscape) {
-
-                        } else {
-                            ImGui::BeginGroup();
-                        }
+                        ImGui::BeginGroup();
                         for(int i=0; i<n_widgets; i++) {
                             if (widgets_enable[i] && (widget_col[i] == col)) {
-                                widgets[i]->draw((static_cast<int>(widgets[i]->width) + 1) * pixel_6a_single_width,  &inputs_ui);
+                                widgets[i]->draw((static_cast<int>(widgets[i]->width) + 1) * single_width_pixels,  &inputs_ui);
                             }
                         }
-//                         ImGui::Dummy(ImVec2(0.f, 0.f));
                         ImGui::EndGroup();
                         ImGui::SameLine();
                     }
@@ -454,8 +485,8 @@ int main(int, char**)
                 ImGui::NewLine();
             }
             settingsWindowTopRight = ImGui::GetWindowPos() + ImVec2(ImGui::GetWindowSize().x, 0.f);
+            ImGui::EndChild();
         }
-        ImGui::EndChild();
         ImGui::PopFont();
 
         char label[36];
@@ -482,23 +513,17 @@ int main(int, char**)
                 strcpy(label, " v ");
             }
             ImGui::BeginChild("settings");
-            if(!go_by_rows)
-                ImGui::BeginChild("col2");
-            {
-                ImGui::SetCursorScreenPos(settingsWindowTopRight - ImVec2(ImGui::CalcTextSize("\xee\xa4\x83 v ").x   + 4 * style.FramePadding.x + style.ItemSpacing.x, 0.));
-                if(ImGui::Button("\xee\xa4\x83##start_widget_sel")) {
-                    open_widget_sel = true;
-                }
-                ImGui::PushOverrideID(collapse_id);
-                ImGui::SameLine();
-                if(ImGui::Button(label)) {
-                    collapse_settings = !collapse_settings;
-                }
-                ImGui::PopID();
+            ImGui::SetCursorScreenPos(settingsWindowTopRight - ImVec2(ImGui::CalcTextSize("\xee\xa4\x83 v ").x   + 4 * style.FramePadding.x + style.ItemSpacing.x, 0.));
+            if(ImGui::Button("\xee\xa4\x83##start_widget_sel")) {
+                open_widget_sel = true;
             }
+            ImGui::PushOverrideID(collapse_id);
+            ImGui::SameLine();
+            if(ImGui::Button(label)) {
+                collapse_settings = !collapse_settings;
+            }
+            ImGui::PopID();
             ImGui::EndChild();
-            if(!go_by_rows)
-                ImGui::EndChild();
         }
 
 

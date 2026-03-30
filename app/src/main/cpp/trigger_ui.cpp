@@ -8,6 +8,7 @@
 
 void triggerUI::draw(float width, inputsUI* inputs_ui)
 {
+    ImGui::BeginGroup();
     bool enable_helper[2] = {inputs_ui->scope_enable[0] || inputs_ui->mm, inputs_ui->scope_enable[1]};
     for (int ch:{1,2})
     {
@@ -77,6 +78,7 @@ void triggerUI::draw(float width, inputsUI* inputs_ui)
             ImVec2(slider_top_right.x - slider_left , slider_bottom - slider_top_right.y),
             &curr_ch_trigger_settings->trigger_level, -20.f, 20.f, "%.1f V", ImGuiSliderFlags_ClampOnInput, value_text_button_pos + style.FramePadding, value_text_button_size);
     ImGui::EndDisabled();
+    ImGui::EndGroup();
 
     if(curr_ch_trigger_settings->trigger_type != o1buffer::TriggerType::Disabled)
     {

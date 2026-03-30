@@ -29,6 +29,7 @@ void draw_rules(ImVec2 p0, double row_height, double header_row_height, double c
 
 void inputsUI::draw(float width, inputsUI* inputs_ui)
 {
+    ImGui::BeginGroup();
     ImVec2 start_pos = ImGui::GetCursorScreenPos();
     ImGui::Text("Inputs");
     bool mode_update = false;
@@ -137,7 +138,10 @@ void inputsUI::draw(float width, inputsUI* inputs_ui)
     ImGui::Text("\xee\xa4\x82");
     ImGui::PopFont();
     ImGui::PopStyleVar();
-    ImGui::SetCursorScreenPos(saved_pos);
+//     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,{0.f,0.f});
+//     ImGui::Dummy({0.f, saved_pos.y - ImGui::GetCursorScreenPos().y});
+//     ImGui::PopStyleVar();
+    ImGui::EndGroup();
 
     if (mode_update)
         update_device_mode();
