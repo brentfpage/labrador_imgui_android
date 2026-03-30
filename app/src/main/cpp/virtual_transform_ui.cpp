@@ -41,7 +41,7 @@ void virtualTransformUI::draw(float width_pixels, bool* enable, inputsUI* inputs
         button_common("Offset", "##offset", ImVec2(0.f,0.f), style);
         ImGui::EndTable();
     }
-    if(ImGui::BeginTable("helper3", 3, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH, ImVec2(width, 0.f))) {
+    if(ImGui::BeginTable("helper3", 3, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH, ImVec2(width_pixels, 0.f))) {
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.55f);
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.225);
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.225);
