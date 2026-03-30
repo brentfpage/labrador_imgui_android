@@ -312,18 +312,16 @@ int main(int, char**)
         static bool widgets_enable[n_widgets] = {true, true, true, true, true, true};
         const char * widget_names[n_widgets] = {"Inputs","Trigger","Virtual Transforms", "Signal Generator", "PSU", "Logic Decoding"};
         Widget *widgets[n_widgets] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui};
-        int n_1_3 = 0;
-        int n_enabled = 0;
+        int n_single_width_widgets = 0;
         float widget_height_sum = 0.f;
-        float widget_2_3_height_sum = 0.f;
+        float duplex_widget_height_sum = 0.f;
         for(int i=0; i < n_widgets; i++) {
             if(widgets_enable[i]) {
                 widget_height_sum += widgets[i]->get_height();
-                n_enabled++;
                 if(widgets[i]->width == Widget::Width::single) {
-                    n_1_3++;
+                    n_single_width_widgets++;
                 } else {
-                    widget_2_3_height_sum += widgets[i]->get_height();
+                    duplex_widget_height_sum += widgets[i]->get_height();
                 }
             }
         }
@@ -335,8 +333,8 @@ int main(int, char**)
         const int widget_grp[n_widgets] = {0,0,1,1,1,1};
 
         const int widget_col_or_row_standard[n_widgets] = {0,0,1,1,1,1};
-        bool row_col_tiling = (!landscape && (n_1_3 == 2) && (widget_2_3_height_sum < settings_height_max/2.)) || \
-            (landscape && (n_1_3 > 0) && (0 < widget_2_3_height_sum) && (widget_2_3_height_sum < settings_height_max/2.));
+        bool row_col_tiling = (!landscape && (n_single_width_widgets == 2) && (duplex_widget_height_sum < settings_height_max/2.)) || \
+            (landscape && (n_single_width_widgets > 0) && (0 < duplex_widget_height_sum) && (duplex_widget_height_sum < settings_height_max/2.));
         float col1_width = 0.f;
         float col2_width = 0.f;
 
@@ -358,8 +356,6 @@ int main(int, char**)
                     col2_width = fmax(col1_width, (static_cast<int>(widgets[i]->width) + 1) * single_width_pixels);
                 }
             }
-
-
             if(landscape && (widget_height_sum < settings_height_max)) {
                 memset(widget_col, 0, sizeof(int) * n_widgets);
                 widget_col_heights[0] = widget_height_sum;
@@ -390,18 +386,17 @@ int main(int, char**)
             data_height = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
             if(collapse_settings) {
                 data_width = ImGui::GetContentRegionAvail().x - std::max(ImGui::GetFontSize(), ImGui::CalcTextSize(" < ").x) - 2 * style.FramePadding.x - style.ItemSpacing.x;
-                settings_width = col1_width + col2_width + ((col1_width>0)&&(col2_width>0)) * style.ItemSpacing.x;
             } else {
                 if(row_col_tiling) {
-                    if (widget_2_3_height_sum > 0.f) {
-                        settings_width = 2 * single_width_pixels + (n_1_3 == 2) * style.ItemSpacing.x;
-                    } else if (n_1_3 > 0) {
-                        settings_width = single_width_pixels + (n_1_3 == 2) * (single_width_pixels + style.ItemSpacing.x);
+                    if (duplex_widget_height_sum > 0.f) {
+                        settings_width = 2 * single_width_pixels + (n_single_width_widgets == 2) * style.ItemSpacing.x;
+                    } else if (n_single_width_widgets > 0) {
+                            settings_width = single_width_pixels + (n_single_width_widgets == 2) * (single_width_pixels + style.ItemSpacing.x);
                     } else {
                         settings_width = ImGui::CalcTextSize(" < ").x + 2 * style.FramePadding.x + style.ItemSpacing.x;
                     }
                 } else {
-
+                    settings_width = col1_width + col2_width + ((col1_width>0)&&(col2_width>0)) * style.ItemSpacing.x;
                 }
                 data_width = ImGui::GetContentRegionAvail().x - style.ItemSpacing.x - settings_width;
             }
