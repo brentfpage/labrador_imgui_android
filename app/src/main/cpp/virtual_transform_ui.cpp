@@ -7,7 +7,7 @@
 #include "virtual_transform_ui.h"
 
 
-void virtualTransformUI::draw(float width, inputsUI* inputs_ui)
+void virtualTransformUI::draw(float width_pixels, bool* enable, inputsUI* inputs_ui)
 {
     ImGuiStyle& style = ImGui::GetStyle();
 
@@ -16,10 +16,10 @@ void virtualTransformUI::draw(float width, inputsUI* inputs_ui)
     }
 //                 if(xy && j==2) // sync ch1 and ch2 pause states in xy mode
 //                     *(checkbox_bool[j] + (i+1)%2) = *(checkbox_bool[j] + i);
-    ImGui::Text("Virtual Transforms");
+    standard_header(width_pixels, enable);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, 0.f));
     ImGui::BeginGroup();
-    if(ImGui::BeginTable("helper1",2, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_SizingFixedSame | ImGuiTableFlags_NoHostExtendX, ImVec2(width, 0.))) {
+    if(ImGui::BeginTable("helper1",2, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_SizingFixedSame | ImGuiTableFlags_NoHostExtendX, ImVec2(width_pixels, 0.))) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::RadioButton("CH A", &ch_sel, 1);
@@ -29,7 +29,7 @@ void virtualTransformUI::draw(float width, inputsUI* inputs_ui)
     }
 
     const float offset_button_width = style.FramePadding.x*2 + ImGui::CalcTextSize("Offset").x;
-    if(ImGui::BeginTable("helper2",2, ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_RowBg , ImVec2(width, 0.))) {
+    if(ImGui::BeginTable("helper2",2, ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_RowBg , ImVec2(width_pixels, 0.))) {
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.75f);
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.25f);
         ImGui::TableNextRow();

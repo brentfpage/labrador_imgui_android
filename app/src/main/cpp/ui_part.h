@@ -7,10 +7,12 @@ class UI_part
     public:
         virtual ~UI_part() {};
         enum Width {single, duplex};
-        UI_part(Width width, int n_lines) : width(width), n_lines(n_lines) {};
+        UI_part(const char* name, Width width, int n_lines) : name(name), width(width), n_lines(n_lines) {};
         virtual int get_height() = 0;
-        virtual void draw(float width, inputsUI* inputs_ui = nullptr) = 0;
+        virtual void draw(float width_pixels, bool* enable, inputsUI* inputs_ui = nullptr) = 0;
+        void standard_header(float width_pixels, bool* enable);
         const Width width;
         const int n_lines;
+        const char* name;
 };
 #endif

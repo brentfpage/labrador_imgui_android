@@ -30,6 +30,7 @@ add_library(
         logic_decode_ui.cpp
         plot_ui.cpp
         selector_ui.cpp
+        ui_part.cpp
         deps/imgui/imgui.cpp
         deps/imgui/imgui_demo.cpp
         deps/imgui/imgui_draw.cpp

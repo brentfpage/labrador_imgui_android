@@ -6,7 +6,7 @@
 #include "imgui_internal.h"
 #include "trigger_ui.h"
 
-void triggerUI::draw(float width, inputsUI* inputs_ui)
+void triggerUI::draw(float width_pixels, bool* enable, inputsUI* inputs_ui)
 {
     bool enable_helper[2] = {inputs_ui->scope_enable[0] || inputs_ui->mm, inputs_ui->scope_enable[1]};
     for (int ch:{1,2})
@@ -17,12 +17,12 @@ void triggerUI::draw(float width, inputsUI* inputs_ui)
     }
     ImGuiStyle& style = ImGui::GetStyle();
     ImGui::BeginGroup();
-    ImGui::Text("Trigger");
+    standard_header(width_pixels, enable);
     ImGui::BeginGroup(); // for bounding rect
     // get_height() line 1 end
 
     ImGui::BeginGroup(); // for bounding rect
-        int free_space = width - ImGui::CalcTextSize("ChAChB").x - 2 * CHECKBOX_SIZE - 2 * style.ItemInnerSpacing.x - style.FramePadding.x * 2;
+        int free_space = width_pixels - ImGui::CalcTextSize("ChAChB").x - 2 * CHECKBOX_SIZE - 2 * style.ItemInnerSpacing.x - style.FramePadding.x * 2;
         ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + style.FramePadding);
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(free_space,0.f));
         ImGui::RadioButton("ChA", &ch_sel, 1); ImGui::SameLine();

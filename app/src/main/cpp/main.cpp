@@ -308,7 +308,7 @@ int main(int, char**)
 
         plot_ui.recompute_x_bounds(inputs_ui.changed_since_last(), inputs_ui.mode);
 
-        const int n_ui_parts = 7;
+        const int n_ui_parts = selector_ui.n_ui_parts;
         UI_part *ui_parts[n_ui_parts] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui, &selector_ui};
         int n_single_width_ui_parts = 0;
         float ui_part_height_sum = 0.f;
@@ -439,7 +439,7 @@ int main(int, char**)
                 for(int grp : {0,1}) {
                     for(int i=0; i<n_ui_parts; i++) {
                         if (selector_ui.ui_parts_enable[i] && (ui_part_grps[i] == grp)) {
-                            ui_parts[i]->draw((static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels, &inputs_ui);
+                            ui_parts[i]->draw((static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels, &selector_ui.ui_parts_enable[i], &inputs_ui);
                             // items in group 0 are stacked side-by-side; those in group 1 are stacked vertically
                             if(grp==0) {
                                 ImGui::SameLine();
@@ -457,7 +457,7 @@ int main(int, char**)
                         ImGui::BeginGroup();
                         for(int i=0; i<n_ui_parts; i++) {
                             if (selector_ui.ui_parts_enable[i] && (ui_part_cols[i] == col)) {
-                                ui_parts[i]->draw((static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels,  &inputs_ui);
+                                ui_parts[i]->draw((static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels, &selector_ui.ui_parts_enable[i],  &inputs_ui);
                             }
                         }
                         ImGui::EndGroup();
@@ -474,7 +474,7 @@ int main(int, char**)
         char label[36];
 
         style = ImGui::GetStyle();
-        bool open_ui_part_sel = false;
+        static bool open_ui_part_sel = false;
         ImGuiID collapse_id = ImGui::GetID("collapse");
         if(collapse_settings) {
             if(landscape) {

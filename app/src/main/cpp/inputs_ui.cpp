@@ -27,19 +27,20 @@ void draw_rules(ImVec2 p0, double row_height, double header_row_height, double c
     draw_list->AddLine(row1_col2_pos, row3_col2_pos, IM_COL32(120, 120, 160, 255));
 }
 
-void inputsUI::draw(float width, inputsUI* inputs_ui)
+void inputsUI::draw(float width_pixels, bool* enable, inputsUI* inputs_ui)
 {
+    ImGuiStyle& style = ImGui::GetStyle();
     ImGui::BeginGroup();
     ImVec2 start_pos = ImGui::GetCursorScreenPos();
-    ImGui::Text("Inputs");
+    standard_header(width_pixels, enable);
+
     bool mode_update = false;
-    ImGuiStyle& style = ImGui::GetStyle();
     ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(style.CellPadding.x, style.CellPadding.y * 2));// if this line is active, make sure that the line that resets CellPadding at the end of this function is active as well
     style = ImGui::GetStyle();
     float header_row_height = ImGui::GetFontSize() + style.CellPadding.y*2;
     float row_height = (ImGui::GetFontSize() + (style.FramePadding.y + style.CellPadding.y)*2);
     float col_width;
-    if (ImGui::BeginTable("scope_mode", 3, ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_RowBg , ImVec2(width,0.f)))
+    if (ImGui::BeginTable("scope_mode", 3, ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_RowBg , ImVec2(width_pixels,0.f)))
     {
         ImGui::TableNextRow();
         int i = 0;
