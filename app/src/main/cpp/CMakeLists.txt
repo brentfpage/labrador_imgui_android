@@ -29,6 +29,7 @@ add_library(
         psu_ui.cpp
         logic_decode_ui.cpp
         plot_ui.cpp
+        selector_ui.cpp
         deps/imgui/imgui.cpp
         deps/imgui/imgui_demo.cpp
         deps/imgui/imgui_draw.cpp

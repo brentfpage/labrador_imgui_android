@@ -15,6 +15,7 @@
 #include "sig_gen_ui.h"
 #include "inputs_ui.h"
 #include "trigger_ui.h"
+#include "selector_ui.h"
 #include "virtual_transform_ui.h"
 #include "psu_ui.h"
 #include "logic_decode_ui.h"
@@ -212,6 +213,7 @@ int main(int, char**)
     sigGenUI sig_gen_ui = sigGenUI();
     psuUI psu_ui = psuUI();
     logicDecodeUI logic_decode_ui = logicDecodeUI();
+    selectorUI selector_ui = selectorUI();
     plotUI plot_ui = plotUI();
 
     // Main loop
@@ -306,10 +308,8 @@ int main(int, char**)
 
         plot_ui.recompute_x_bounds(inputs_ui.changed_since_last(), inputs_ui.mode);
 
-        const int n_ui_parts = 6;
-        static bool ui_parts_enable[n_ui_parts] = {true, true, true, true, true, false};
-        const char * ui_part_names[n_ui_parts] = {"Inputs","Trigger","Virtual Transforms", "Signal Generator", "PSU", "Logic Decoding"};
-        UI_part *ui_parts[n_ui_parts] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui};
+        const int n_ui_parts = 7;
+        UI_part *ui_parts[n_ui_parts] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui, &selector_ui};
         int n_single_width_ui_parts = 0;
         float ui_part_height_sum = 0.f;
         float duplex_ui_part_height_sum = 0.f;
@@ -508,17 +508,9 @@ int main(int, char**)
             ImGui::EndChild();
         }
 
-
         if(open_ui_part_sel) {
             ImGui::OpenPopup("config_settings");
-        }
-        if(ImGui::BeginPopup("config_settings")) {
-            ImGui::Text("Select widgets");
-            ImGui::Separator();
-            for (int i=0; i< sizeof(ui_parts_enable); i++) {
-                ImGui::Checkbox(ui_part_names[i], &ui_parts_enable[i]);
-            }
-            ImGui::EndPopup();
+            selector_ui->draw_popup();
         }
 
         ImGui::End();
