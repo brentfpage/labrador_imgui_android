@@ -11,7 +11,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "implot.h"
 #include "imgui.h"
-#include "widget.h"
+#include "ui_part.h"
 #include "sig_gen_ui.h"
 #include "inputs_ui.h"
 #include "trigger_ui.h"
@@ -283,23 +283,23 @@ int main(int, char**)
         bool landscape = io.DisplaySize.y < io.DisplaySize.x;
         float settings_height_max;
         float font_scaling = 1.f;
-        float single_width_pixels;
+        float ui_part_single_width_pixels;
         float settings_width;
         // scale the font size so that the ui fits in width-wise in portrait mode and height-wise in landscape mode. only scale the font size b/c most of the other built-in lengths are 0-10 pixels so are only responsive to scalings more extreme than +- 10%
         if(landscape) { 
-            int prescale_settings_height = inputs_ui.get_height() + trigger_ui.get_height() + style.ItemSpacing.y; // want to be able to fit these two widgets in one column
+            int prescale_settings_height = inputs_ui.get_height() + trigger_ui.get_height() + style.ItemSpacing.y; // want to be able to fit these two ui_parts in one column
             int text_height = (inputs_ui.n_lines + trigger_ui.n_lines) * ImGui::GetFontSize(); 
             int padding = prescale_settings_height - text_height; 
             settings_height_max = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
             int avail_for_text = settings_height_max - padding;
             font_scaling = static_cast<float>(avail_for_text)/text_height; 
-            single_width_pixels = settings_height_max * pixel_6a_setting_panel_aspect / 3.f;
+            ui_part_single_width_pixels = settings_height_max * pixel_6a_setting_panel_aspect / 3.f;
         } else {
             float device_independent_x_padding = 2. * ImGuiStyle().WindowPadding.x + ImGuiStyle().ItemSpacing.x;
             // all lengths on a given device are scaled by main_scale, so can't compare pixels to pixels directly across devices.
             float screen_width_ratio = static_cast<double>(portraitScreenWidth / main_scale - device_independent_x_padding)/(pixel_6a_screen_width / pixel_6a_main_scale - device_independent_x_padding);
             font_scaling = screen_width_ratio / 1.05; // 1.05: fudge factor to account for padding
-            single_width_pixels = (portraitScreenWidth - style.ItemSpacing.x - 2 * style.WindowPadding.x)/3.;
+            ui_part_single_width_pixels = (portraitScreenWidth - style.ItemSpacing.x - 2 * style.WindowPadding.x)/3.;
             ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
             settings_height_max = inputs_ui.get_height() + trigger_ui.get_height() + style.ItemSpacing.y; 
             ImGui::PopFont();
@@ -307,64 +307,66 @@ int main(int, char**)
 
         plot_ui.recompute_x_bounds(inputs_ui.changed_since_last(), inputs_ui.mode);
 
-        enum Widgets {Inputs,Trigger,VirtTrans,SigGen,LogDec};
-        const int n_widgets = 6;
-        static bool widgets_enable[n_widgets] = {true, true, true, true, true, true};
-        const char * widget_names[n_widgets] = {"Inputs","Trigger","Virtual Transforms", "Signal Generator", "PSU", "Logic Decoding"};
-        Widget *widgets[n_widgets] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui};
-        int n_single_width_widgets = 0;
-        float widget_height_sum = 0.f;
-        float duplex_widget_height_sum = 0.f;
-        for(int i=0; i < n_widgets; i++) {
-            if(widgets_enable[i]) {
-                widget_height_sum += widgets[i]->get_height();
-                if(widgets[i]->width == Widget::Width::single) {
-                    n_single_width_widgets++;
+        const int n_ui_parts = 6;
+        static bool ui_parts_enable[n_ui_parts] = {true, true, true, true, true, true};
+        const char * ui_part_names[n_ui_parts] = {"Inputs","Trigger","Virtual Transforms", "Signal Generator", "PSU", "Logic Decoding"};
+        UI_part *ui_parts[n_ui_parts] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui};
+        int n_single_width_ui_parts = 0;
+        float ui_part_height_sum = 0.f;
+        float duplex_ui_part_height_sum = 0.f;
+        for(int i=0; i < n_ui_parts; i++) {
+            if(ui_parts_enable[i]) {
+                ui_part_height_sum += ui_parts[i]->get_height();
+                if(ui_parts[i]->width == UI_part::Width::single) {
+                    n_single_width_ui_parts++;
                 } else {
-                    duplex_widget_height_sum += widgets[i]->get_height();
+                    duplex_ui_part_height_sum += ui_parts[i]->get_height();
                 }
             }
         }
+        ui_part
 
-        static int widget_col[n_widgets];
-        float widget_col_heights[2] = {0.f, 0.f};
-        float widget_grp_heights[2] = {0.f, 0.f};
+        static int ui_part_cols[n_ui_parts];
+        float ui_part_col_heights[2] = {0.f, 0.f};
+        float ui_part_grp_heights[2] = {0.f, 0.f};
 
-        const int widget_grp[n_widgets] = {0,0,1,1,1,1};
+        const int ui_part_grps[n_ui_parts] = {0,0,1,1,1,1};
 
-        const int widget_col_or_row_standard[n_widgets] = {0,0,1,1,1,1};
-        bool row_col_tiling = (!landscape && (n_single_width_widgets == 2) && (duplex_widget_height_sum < settings_height_max/2.)) || \
-            (landscape && (n_single_width_widgets > 0) && (0 < duplex_widget_height_sum) && (duplex_widget_height_sum < settings_height_max/2.));
+        const int ui_part_cols_standard[n_ui_parts] = {0,0,1,1,1,1};
+        bool row_col_tiling = (!landscape && (n_single_width_ui_parts == 2) && (duplex_ui_part_height_sum < settings_height_max/2.)) || \
+            (landscape && (n_single_width_ui_parts > 0) && (0 < duplex_ui_part_height_sum) && (duplex_ui_part_height_sum < settings_height_max/2.));
         float col1_width = 0.f;
         float col2_width = 0.f;
 
         if(row_col_tiling) {
-            for(int i=0; i< n_widgets; i++) {
-                if(widgets_enable[i]) {
-                    if(widget_grp[i]==0)
-                        widget_grp_heights[widget_grp[i]] = fmax(widget_grp_heights[widget_grp[i]], widgets[i]->get_height() + style.ItemSpacing.y);
+            for(int i=0; i< n_ui_parts; i++) {
+                if(ui_parts_enable[i]) {
+                    if(ui_part_grps[i]==0)
+                        ui_part_grp_heights[ui_part_grps[i]] = fmax(ui_part_grp_heights[ui_part_grps[i]], ui_parts[i]->get_height() + style.ItemSpacing.y);
                     else
-                        widget_grp_heights[widget_grp[i]] += widgets[i]->get_height() + style.ItemSpacing.y;
+                        ui_part_grp_heights[ui_part_grps[i]] += ui_parts[i]->get_height() + style.ItemSpacing.y;
                 }
             }
         } else {
-            for(int i = 0; i < n_widgets; i++) {
-                if(widgets_enable[i] && (widget_col[i]==0)) {
-                    col1_width = fmax(col1_width, (static_cast<int>(widgets[i]->width) + 1) * single_width_pixels);
-                }
-                if(widgets_enable[i] && (widget_col[i]==1)) {
-                    col2_width = fmax(col1_width, (static_cast<int>(widgets[i]->width) + 1) * single_width_pixels);
-                }
-            }
-            if(landscape && (widget_height_sum < settings_height_max)) {
-                memset(widget_col, 0, sizeof(int) * n_widgets);
-                widget_col_heights[0] = widget_height_sum;
-                widget_col_heights[1] = 0.f;
+            col1_width = (n_single_width_ui_parts > 0) ? ui_part_single_width_pixels : 0;
+            col2_width = (duplex_ui_part_height_sum > 0) ? 2 * ui_part_single_width_pixels : 0;
+//             for(int i = 0; i < n_ui_parts; i++) {
+//                 if(ui_parts_enable[i] && (ui_part_cols[i]==0)) {
+//                     col1_width = fmax(col1_width, (static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels);
+//                 }
+//                 if(ui_parts_enable[i] && (ui_part_cols[i]==1)) {
+//                     col2_width = fmax(col1_width, (static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels);
+//                 }
+//             }
+            if(landscape && (ui_part_height_sum < settings_height_max)) {
+                memset(ui_part_cols, 0, sizeof(int) * n_ui_parts);
+                ui_part_col_heights[0] = ui_part_height_sum;
+                ui_part_col_heights[1] = 0.f;
             } else {
-                memcpy(widget_col, widget_col_or_row_standard, sizeof(int) * n_widgets);
-                for(int i=0; i< n_widgets; i++) {
-                    if(widgets_enable[i]) {
-                        widget_col_heights[widget_col[i]] += widgets[i]->get_height() + style.ItemSpacing.y;
+                memcpy(ui_part_cols, ui_part_cols_standard, sizeof(int) * n_ui_parts);
+                for(int i=0; i< n_ui_parts; i++) {
+                    if(ui_parts_enable[i]) {
+                        ui_part_col_heights[ui_part_cols[i]] += ui_parts[i]->get_height() + style.ItemSpacing.y;
                     }
                 }
             }
@@ -388,10 +390,10 @@ int main(int, char**)
                 data_width = ImGui::GetContentRegionAvail().x - std::max(ImGui::GetFontSize(), ImGui::CalcTextSize(" < ").x) - 2 * style.FramePadding.x - style.ItemSpacing.x;
             } else {
                 if(row_col_tiling) {
-                    if (duplex_widget_height_sum > 0.f) {
-                        settings_width = 2 * single_width_pixels + (n_single_width_widgets == 2) * style.ItemSpacing.x;
-                    } else if (n_single_width_widgets > 0) {
-                            settings_width = single_width_pixels + (n_single_width_widgets == 2) * (single_width_pixels + style.ItemSpacing.x);
+                    if (duplex_ui_part_height_sum > 0.f) {
+                        settings_width = 2 * ui_part_single_width_pixels + (n_single_width_ui_parts == 2) * style.ItemSpacing.x;
+                    } else if (n_single_width_ui_parts > 0) {
+                        settings_width = ui_part_single_width_pixels + (n_single_width_ui_parts == 2) * (ui_part_single_width_pixels + style.ItemSpacing.x);
                     } else {
                         settings_width = ImGui::CalcTextSize(" < ").x + 2 * style.FramePadding.x + style.ItemSpacing.x;
                     }
@@ -404,9 +406,9 @@ int main(int, char**)
             settings_width = portraitScreenWidth - 2 * style.WindowPadding.x;
             data_width = settings_width;
             if(row_col_tiling) {
-                settings_height = widget_grp_heights[0] + widget_grp_heights[1];
+                settings_height = ui_part_grp_heights[0] + ui_part_grp_heights[1];
             } else {
-                settings_height = fmax(fmax(widget_col_heights[0], widget_col_heights[1]), ImGui::GetFontSize() + 2 * style.FramePadding.y + style.ItemSpacing.y);
+                settings_height = fmax(fmax(ui_part_col_heights[0], ui_part_col_heights[1]), ImGui::GetFontSize() + 2 * style.FramePadding.y + style.ItemSpacing.y);
             }
 
             if(collapse_settings) {
@@ -443,9 +445,9 @@ int main(int, char**)
             ImGui::BeginChild("settings",ImVec2(0.f, 0.f),0 );
             if(row_col_tiling) {
                 for(int grp : {0,1}) {
-                    for(int i=0; i<n_widgets; i++) {
-                        if (widgets_enable[i] && (widget_grp[i] == grp)) {
-                            widgets[i]->draw((static_cast<int>(widgets[i]->width) + 1) * single_width_pixels, &inputs_ui);
+                    for(int i=0; i<n_ui_parts; i++) {
+                        if (ui_parts_enable[i] && (ui_part_grps[i] == grp)) {
+                            ui_parts[i]->draw((static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels, &inputs_ui);
                             // items in group 0 are stacked side-by-side; those in group 1 are stacked vertically
                             if(grp==0) {
                                 ImGui::SameLine();
@@ -456,14 +458,13 @@ int main(int, char**)
                         ImGui::NewLine(); // overrides previous sameline
                 }
             } else {
-                float crax = ImGui::GetContentRegionAvail().x;
                 for(int col : {0,1}) {
-                    if(widget_col_heights[col] > 0)
+                    if(ui_part_col_heights[col] > 0)
                     {
                         ImGui::BeginGroup();
-                        for(int i=0; i<n_widgets; i++) {
-                            if (widgets_enable[i] && (widget_col[i] == col)) {
-                                widgets[i]->draw((static_cast<int>(widgets[i]->width) + 1) * single_width_pixels,  &inputs_ui);
+                        for(int i=0; i<n_ui_parts; i++) {
+                            if (ui_parts_enable[i] && (ui_part_cols[i] == col)) {
+                                ui_parts[i]->draw((static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels,  &inputs_ui);
                             }
                         }
                         ImGui::EndGroup();
@@ -480,7 +481,7 @@ int main(int, char**)
         char label[36];
 
         style = ImGui::GetStyle();
-        bool open_widget_sel = false;
+        bool open_ui_part_sel = false;
         ImGuiID collapse_id = ImGui::GetID("collapse");
         if(collapse_settings) {
             if(landscape) {
@@ -502,8 +503,8 @@ int main(int, char**)
             }
             ImGui::BeginChild("settings");
             ImGui::SetCursorScreenPos(settingsWindowTopRight - ImVec2(ImGui::CalcTextSize("\xee\xa4\x83 v ").x   + 4 * style.FramePadding.x + style.ItemSpacing.x, 0.));
-            if(ImGui::Button("\xee\xa4\x83##start_widget_sel")) {
-                open_widget_sel = true;
+            if(ImGui::Button("\xee\xa4\x83##start_ui_part_sel")) {
+                open_ui_part_sel = true;
             }
             ImGui::PushOverrideID(collapse_id);
             ImGui::SameLine();
@@ -515,14 +516,14 @@ int main(int, char**)
         }
 
 
-        if(open_widget_sel) {
+        if(open_ui_part_sel) {
             ImGui::OpenPopup("config_settings");
         }
         if(ImGui::BeginPopup("config_settings")) {
-            ImGui::Text("Select widgets");
+            ImGui::Text("Select ui_parts");
             ImGui::Separator();
-            for (int i=0; i< sizeof(widgets_enable); i++) {
-                ImGui::Checkbox(widget_names[i], &widgets_enable[i]);
+            for (int i=0; i< sizeof(ui_parts_enable); i++) {
+                ImGui::Checkbox(ui_part_names[i], &ui_parts_enable[i]);
             }
             ImGui::EndPopup();
         }
