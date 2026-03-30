@@ -9,7 +9,7 @@ class psuUI : public Widget
     std::chrono::steady_clock::time_point last_usb_send;
     bool need_usb_send = false;
 public:
-    psuUI() : Widget(Widget::Width::duplex, 9.02, 1) {};
+    psuUI() : Widget(Widget::Width::duplex, 1) {};
     void usb_send_data();
     void draw(float width, inputsUI* inputs_ui = nullptr) override;
     int get_height() override;

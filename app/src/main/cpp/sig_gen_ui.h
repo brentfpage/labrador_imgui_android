@@ -30,7 +30,7 @@ class sigGenUI : public Widget
     bool need_usb_send;
     int ch_sel = 1;
 public:
-    sigGenUI() : Widget(Widget::Width::duplex, 1.65, 6) {};
+    sigGenUI() : Widget(Widget::Width::duplex, 6) {};
     void draw(float width, inputsUI* inputs_ui = nullptr) override;
     void usb_send_data(int ch);
     int get_height() override;
