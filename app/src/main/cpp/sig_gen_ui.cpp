@@ -100,7 +100,6 @@ void sigGenUI::draw(float width, inputsUI* inputs_ui)
 
         ImGui::EndTable();
     }
-    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.f, -style.ItemSpacing.y));
     if(need_usb_send) {
         std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
         if(std::chrono::duration_cast<std::chrono::milliseconds>(now - last_usb_send) > between_usb_sends_min) {

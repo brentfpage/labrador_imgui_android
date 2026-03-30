@@ -138,7 +138,6 @@ int main(int, char**)
     style.ScaleAllSizes(main_scale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
     style.FontScaleDpi = main_scale;        // Set initial font scale. (in docking branch: using io.ConfigDpiScaleFonts=true automatically overrides this for every window depending on the current monitor)
     style.FontSizeBase = 18.5f;
-    style.ItemSpacing = ImVec2(style.ItemSpacing.x, style.ItemSpacing.y/2.);
     style.WindowPadding = ImVec2(style.WindowPadding.x/2,style.WindowPadding.y/2);
 
     // Setup Platform/Renderer backends
@@ -298,7 +297,7 @@ int main(int, char**)
             float device_independent_x_padding = 2. * ImGuiStyle().WindowPadding.x + ImGuiStyle().ItemSpacing.x;
             // all lengths on a given device are scaled by main_scale, so can't compare pixels to pixels directly across devices.
             float screen_width_ratio = static_cast<double>(portraitScreenWidth / main_scale - device_independent_x_padding)/(pixel_6a_screen_width / pixel_6a_main_scale - device_independent_x_padding);
-            font_scaling = screen_width_ratio / 1.05; // 1.05: fudge factor to account for padding
+            font_scaling = screen_width_ratio / 1.02; //1.02: fudge factor to account for padding that's not scaled
             ui_part_single_width_pixels = (portraitScreenWidth - style.ItemSpacing.x - 2 * style.WindowPadding.x)/3.;
             ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
             settings_height_max = inputs_ui.get_height() + trigger_ui.get_height() + style.ItemSpacing.y; 
@@ -308,12 +307,13 @@ int main(int, char**)
         plot_ui.recompute_x_bounds(inputs_ui.changed_since_last(), inputs_ui.mode);
 
         const int n_ui_parts = 6;
-        static bool ui_parts_enable[n_ui_parts] = {true, true, true, true, true, true};
+        static bool ui_parts_enable[n_ui_parts] = {true, true, true, true, true, false};
         const char * ui_part_names[n_ui_parts] = {"Inputs","Trigger","Virtual Transforms", "Signal Generator", "PSU", "Logic Decoding"};
         UI_part *ui_parts[n_ui_parts] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui};
         int n_single_width_ui_parts = 0;
         float ui_part_height_sum = 0.f;
         float duplex_ui_part_height_sum = 0.f;
+        ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
         for(int i=0; i < n_ui_parts; i++) {
             if(ui_parts_enable[i]) {
                 ui_part_height_sum += ui_parts[i]->get_height();
@@ -349,14 +349,6 @@ int main(int, char**)
         } else {
             col1_width = (n_single_width_ui_parts > 0) ? ui_part_single_width_pixels : 0;
             col2_width = (duplex_ui_part_height_sum > 0) ? 2 * ui_part_single_width_pixels : 0;
-//             for(int i = 0; i < n_ui_parts; i++) {
-//                 if(ui_parts_enable[i] && (ui_part_cols[i]==0)) {
-//                     col1_width = fmax(col1_width, (static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels);
-//                 }
-//                 if(ui_parts_enable[i] && (ui_part_cols[i]==1)) {
-//                     col2_width = fmax(col1_width, (static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels);
-//                 }
-//             }
             if(landscape && (ui_part_height_sum < settings_height_max)) {
                 memset(ui_part_cols, 0, sizeof(int) * n_ui_parts);
                 ui_part_col_heights[0] = ui_part_height_sum;
@@ -417,6 +409,7 @@ int main(int, char**)
             }
         }
 
+        ImGui::PopFont();
         ImGui::BeginChild("data",ImVec2(data_width, data_height));
         {
             float plot_height;
@@ -460,6 +453,7 @@ int main(int, char**)
                 for(int col : {0,1}) {
                     if(ui_part_col_heights[col] > 0)
                     {
+                        LOGW("upch: %.2f", ui_part_col_heights[col]);
                         ImGui::BeginGroup();
                         for(int i=0; i<n_ui_parts; i++) {
                             if (ui_parts_enable[i] && (ui_part_cols[i] == col)) {

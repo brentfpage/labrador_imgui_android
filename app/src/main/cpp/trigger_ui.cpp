@@ -8,7 +8,6 @@
 
 void triggerUI::draw(float width, inputsUI* inputs_ui)
 {
-    ImGui::BeginGroup();
     bool enable_helper[2] = {inputs_ui->scope_enable[0] || inputs_ui->mm, inputs_ui->scope_enable[1]};
     for (int ch:{1,2})
     {
@@ -17,10 +16,12 @@ void triggerUI::draw(float width, inputsUI* inputs_ui)
         }
     }
     ImGuiStyle& style = ImGui::GetStyle();
+    ImGui::BeginGroup();
     ImGui::Text("Trigger");
+    ImGui::BeginGroup(); // for bounding rect
     // get_height() line 1 end
 
-    ImGui::BeginGroup();
+    ImGui::BeginGroup(); // for bounding rect
         int free_space = width - ImGui::CalcTextSize("ChAChB").x - 2 * CHECKBOX_SIZE - 2 * style.ItemInnerSpacing.x - style.FramePadding.x * 2;
         ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + style.FramePadding);
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(free_space,0.f));
@@ -68,7 +69,8 @@ void triggerUI::draw(float width, inputsUI* inputs_ui)
     ImGui::SetCursorScreenPos(value_text_button_pos);
     // get_height() line 4 end
     button_common("##trigger_button", "##trigger_slider", value_text_button_size , style);
-    float slider_bottom = ImGui::GetCursorScreenPos().y - style.ItemSpacing.y;
+    ImVec2 saved_pos2 = ImGui::GetCursorScreenPos();
+    float slider_bottom = saved_pos2.y - style.ItemSpacing.y;
 
     // get_height() line 5 end
 
@@ -78,6 +80,13 @@ void triggerUI::draw(float width, inputsUI* inputs_ui)
             ImVec2(slider_top_right.x - slider_left , slider_bottom - slider_top_right.y),
             &curr_ch_trigger_settings->trigger_level, -20.f, 20.f, "%.1f V", ImGuiSliderFlags_ClampOnInput, value_text_button_pos + style.FramePadding, value_text_button_size);
     ImGui::EndDisabled();
+    ImGui::SetCursorScreenPos({ImGui::GetCursorScreenPos().x, slider_bottom});
+    ImGui::Dummy({0.f,0.f}); // prevents issue with this draw() command affecting the vertical alignment of whatever ui element comes after it
+    ImGui::EndGroup();
+    p0 = ImGui::GetItemRectMin();
+    p1 = ImGui::GetItemRectMax();
+    draw_list = ImGui::GetWindowDrawList();
+    draw_list->AddRect(p0, p1, IM_COL32(90, 90, 120, 255));
     ImGui::EndGroup();
 
     if(curr_ch_trigger_settings->trigger_type != o1buffer::TriggerType::Disabled)

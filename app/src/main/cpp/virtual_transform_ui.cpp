@@ -10,7 +10,6 @@
 void virtualTransformUI::draw(float width, inputsUI* inputs_ui)
 {
     ImGuiStyle& style = ImGui::GetStyle();
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, 0.f));
 
     for (int ch : {1,2}) {
         both_ch_settings[ch-1].is_paused = librador_get_paused(ch); // could have been set to true by a singleshot trigger
@@ -18,6 +17,7 @@ void virtualTransformUI::draw(float width, inputsUI* inputs_ui)
 //                 if(xy && j==2) // sync ch1 and ch2 pause states in xy mode
 //                     *(checkbox_bool[j] + (i+1)%2) = *(checkbox_bool[j] + i);
     ImGui::Text("Virtual Transforms");
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, 0.f));
     ImGui::BeginGroup();
     if(ImGui::BeginTable("helper1",2, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_SizingFixedSame | ImGuiTableFlags_NoHostExtendX, ImVec2(width, 0.))) {
         ImGui::TableNextRow();
@@ -54,26 +54,24 @@ void virtualTransformUI::draw(float width, inputsUI* inputs_ui)
         ImGui::Checkbox("||", &curr_ch_settings->is_paused);
         ImGui::EndTable();
     }
+    ImGui::PopStyleVar(); //iteminnerspacing
     ImGui::EndGroup();
 
     curr_ch_settings = &both_ch_settings[ch_sel-1];
-    ImVec2 p0 = ImGui::GetItemRectMin() - style.CellPadding;
-    ImVec2 p1 = ImGui::GetItemRectMax() + style.CellPadding;
+    ImVec2 p0 = ImGui::GetItemRectMin();
+    ImVec2 p1 = ImGui::GetItemRectMax();
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     draw_list->AddRect(p0, p1, IM_COL32(90, 90, 120, 255),0,0,2);
     librador_set_virtual_transform_settings(ch_sel, 
             (o1buffer::virtual_transform_settings) 
             {.offset=curr_ch_settings->offset, .gain=gains[curr_ch_settings->gain_sel], .is_ac=curr_ch_settings->is_ac, .is_paused=curr_ch_settings->is_paused}); 
-    ImGui::PopStyleVar(); //itemspacing
 }
 
 int virtualTransformUI::get_height()
 {
     ImGuiStyle& style = ImGui::GetStyle();
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, 0.f));
     int calc_height = style.ItemSpacing.y + ImGui::GetFontSize() + \
                       CHECKBOX_SIZE + 2 * style.CellPadding.y + \
                       2 * (ImGui::GetFontSize() + 2 * style.FramePadding.y + 2 * style.CellPadding.y);
-    ImGui::PopStyleVar();
     return calc_height;
 }
