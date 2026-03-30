@@ -3,6 +3,7 @@
 #include "selector_ui.h"
 void selectorUI::draw(float width_pixels, inputsUI* inputs_ui)
 {
+    ImGuiStyle& style = ImGui::GetStyle();
     ImGui::BeginGroup();
     bool need_pop = false;
     for(int i=0; i < (n_ui_parts-1); i++) {
@@ -10,7 +11,7 @@ void selectorUI::draw(float width_pixels, inputsUI* inputs_ui)
         if(width == UI_part::Width::duplex) {
             if(((i%2)==0) && (i<(n_ui_parts-2))) {
                 int free_space = width_pixels - ImGui::CalcTextSize(ui_part_short_names[i]).x - ImGui::CalcTextSize(ui_part_short_names[i+1]).x - 2 * CHECKBOX_SIZE - 2 * style.ItemInnerSpacing.x - style.FramePadding.x * 2;
-                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,{free_space});
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(free_space,0.f));
                 need_pop = true;
                 ImGui::SameLine();
             } else if (need_pop) {
@@ -32,4 +33,10 @@ void selectorUI::draw_popup()
         }
         ImGui::EndPopup();
     }
+}
+
+int selectorUI::get_height()
+{
+    ImGuiStyle& style = ImGui::GetStyle();
+    return (style.ItemSpacing.y + ImGui::GetFontSize()) * n_lines;
 }

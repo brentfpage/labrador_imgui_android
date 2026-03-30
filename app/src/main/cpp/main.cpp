@@ -315,7 +315,7 @@ int main(int, char**)
         float duplex_ui_part_height_sum = 0.f;
         ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
         for(int i=0; i < n_ui_parts; i++) {
-            if(ui_parts_enable[i]) {
+            if(selector_ui.ui_parts_enable[i]) {
                 ui_part_height_sum += ui_parts[i]->get_height();
                 if(ui_parts[i]->width == UI_part::Width::single) {
                     n_single_width_ui_parts++;
@@ -339,7 +339,7 @@ int main(int, char**)
 
         if(row_col_tiling) {
             for(int i=0; i< n_ui_parts; i++) {
-                if(ui_parts_enable[i]) {
+                if(selector_ui.ui_parts_enable[i]) {
                     if(ui_part_grps[i]==0)
                         ui_part_grp_heights[ui_part_grps[i]] = fmax(ui_part_grp_heights[ui_part_grps[i]], ui_parts[i]->get_height() + style.ItemSpacing.y);
                     else
@@ -356,7 +356,7 @@ int main(int, char**)
             } else {
                 memcpy(ui_part_cols, ui_part_cols_standard, sizeof(int) * n_ui_parts);
                 for(int i=0; i< n_ui_parts; i++) {
-                    if(ui_parts_enable[i]) {
+                    if(selector_ui.ui_parts_enable[i]) {
                         ui_part_col_heights[ui_part_cols[i]] += ui_parts[i]->get_height() + style.ItemSpacing.y;
                     }
                 }
@@ -438,7 +438,7 @@ int main(int, char**)
             if(row_col_tiling) {
                 for(int grp : {0,1}) {
                     for(int i=0; i<n_ui_parts; i++) {
-                        if (ui_parts_enable[i] && (ui_part_grps[i] == grp)) {
+                        if (selector_ui.ui_parts_enable[i] && (ui_part_grps[i] == grp)) {
                             ui_parts[i]->draw((static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels, &inputs_ui);
                             // items in group 0 are stacked side-by-side; those in group 1 are stacked vertically
                             if(grp==0) {
@@ -456,7 +456,7 @@ int main(int, char**)
                         LOGW("upch: %.2f", ui_part_col_heights[col]);
                         ImGui::BeginGroup();
                         for(int i=0; i<n_ui_parts; i++) {
-                            if (ui_parts_enable[i] && (ui_part_cols[i] == col)) {
+                            if (selector_ui.ui_parts_enable[i] && (ui_part_cols[i] == col)) {
                                 ui_parts[i]->draw((static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels,  &inputs_ui);
                             }
                         }
@@ -510,7 +510,7 @@ int main(int, char**)
 
         if(open_ui_part_sel) {
             ImGui::OpenPopup("config_settings");
-            selector_ui->draw_popup();
+            selector_ui.draw_popup();
         }
 
         ImGui::End();
