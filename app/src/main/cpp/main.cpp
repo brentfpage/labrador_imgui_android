@@ -522,12 +522,8 @@ int main(int, char**)
                 strcpy(label, " v ");
             }
             ImGui::BeginChild("settings");
-            ImGui::SetCursorScreenPos(settingsWindowTopRight - ImVec2(ImGui::CalcTextSize("\xee\xa4\x83 v ").x   + 4 * style.FramePadding.x + style.ItemSpacing.x, 0.));
-            if(ImGui::Button("\xee\xa4\x83##start_ui_part_sel")) {
-                open_ui_part_sel = true;
-            }
+            ImGui::SetCursorScreenPos(settingsWindowTopRight - ImVec2(ImGui::CalcTextSize(" v ").x + 4 * style.FramePadding.x + style.ItemSpacing.x, 0.));
             ImGui::PushOverrideID(collapse_id);
-            ImGui::SameLine();
             if(ImGui::Button(label)) {
                 collapse_settings = !collapse_settings;
             }
