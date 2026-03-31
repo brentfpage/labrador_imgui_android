@@ -307,9 +307,10 @@ int main(int, char**)
 
         plot_ui.recompute_x_bounds(inputs_ui.changed_since_last(), inputs_ui.mode);
 
-        const int n_ui_parts = 6;
-        UI_part* ui_parts[n_ui_parts] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui};
-        selectorUI selector_ui = selectorUI(ui_parts, n_ui_parts);
+        selectorUI selector_ui = selectorUI();
+        const int n_ui_parts = 7;
+        UI_part* ui_parts[n_ui_parts] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui, &selector_ui};
+        selector_ui.init_step_2(ui_parts, n_ui_parts);
 
         int n_single_width_ui_parts = 0;
         float ui_part_height_sum = 0.f;
