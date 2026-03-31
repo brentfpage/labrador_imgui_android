@@ -19,7 +19,7 @@ class virtualTransformUI : public UI_part
     ch_settings* curr_ch_settings = both_ch_settings;
 public:
     virtualTransformUI() : UI_part("Virtual Transforms", UI_part::Width::duplex, 4) {};
-    void draw(float width, bool* enable, inputsUI* inputs_ui = nullptr) override;
+    void draw(float width, inputsUI* inputs_ui = nullptr) override;
     int get_height() override;
 };
 #endif // VIRTUALTRANSFORMUI_H

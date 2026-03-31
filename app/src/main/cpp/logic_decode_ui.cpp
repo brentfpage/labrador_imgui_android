@@ -112,7 +112,7 @@ bool logicDecodeUI::decoding_on()
     return both_ch_uart_settings[0].decode_on || both_ch_uart_settings[1].decode_on || protocol_sel == Protocol::I2C;
 }
 
-void logicDecodeUI::draw(float width_pixels, bool* enable, inputsUI* inputs_ui)
+void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
 {
     bool logic_enable[2];
     if(inputs_ui->scopelogic_mode()) {
@@ -129,7 +129,7 @@ void logicDecodeUI::draw(float width_pixels, bool* enable, inputsUI* inputs_ui)
 
     ImGuiStyle& style = ImGui::GetStyle();
 
-    standard_header(width_pixels, enable);
+    standard_header(width_pixels);
     ImGui::BeginDisabled(!(logic_enable[0] || logic_enable[1])); //covers nearly entire fn.
 
     bool allowed[2] = {uart_allowed, i2c_allowed};

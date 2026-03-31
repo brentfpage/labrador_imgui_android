@@ -29,7 +29,7 @@ void sigGenUI::amp_or_min_slider_and_button(const char* slider_label, const char
     button_common(button_label, slider_label, ImVec2(ImGui::GetContentRegionAvail().x + style.CellPadding.x,0.f), style);
 }
 
-void sigGenUI::draw(float width_pixels, bool* enable, inputsUI* inputs_ui)
+void sigGenUI::draw(float width_pixels, inputsUI* inputs_ui)
 {
     bool ch2_disabled = inputs_ui->logic_on();
     ImGuiStyle& style = ImGui::GetStyle();
@@ -37,7 +37,7 @@ void sigGenUI::draw(float width_pixels, bool* enable, inputsUI* inputs_ui)
         both_ch_data[1] = ch_data();
     }
 
-    standard_header(width_pixels, enable);
+    standard_header(width_pixels);
 
     ImDrawList* draw_list;
     ImVec2 p0;

@@ -6,7 +6,7 @@
 #include "imgui_internal.h"
 #include "trigger_ui.h"
 
-void triggerUI::draw(float width_pixels, bool* enable, inputsUI* inputs_ui)
+void triggerUI::draw(float width_pixels, inputsUI* inputs_ui)
 {
     bool enable_helper[2] = {inputs_ui->scope_enable[0] || inputs_ui->mm, inputs_ui->scope_enable[1]};
     for (int ch:{1,2})
@@ -17,7 +17,7 @@ void triggerUI::draw(float width_pixels, bool* enable, inputsUI* inputs_ui)
     }
     ImGuiStyle& style = ImGui::GetStyle();
     ImGui::BeginGroup();
-    standard_header(width_pixels, enable);
+    standard_header(width_pixels);
     ImGui::BeginGroup(); // for bounding rect
     // get_height() line 1 end
 

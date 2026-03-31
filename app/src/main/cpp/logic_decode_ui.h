@@ -62,7 +62,7 @@ class logicDecodeUI : public UI_part
 public:
     logicDecodeUI() : UI_part("Logic Decoder", UI_part::Width::duplex, 2) {};
     bool decoding_on();
-    void draw(float width, bool* enable, inputsUI* inputs_ui = nullptr) override;
+    void draw(float width, inputsUI* inputs_ui = nullptr) override;
     void draw_console(float window_content_width);//const char * from_librador_1, const char * from_librador_2 = nullptr);
     float get_console_height(float avail_y);
     int get_height() override;

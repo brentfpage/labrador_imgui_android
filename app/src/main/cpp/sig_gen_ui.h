@@ -31,7 +31,7 @@ class sigGenUI : public UI_part
     int ch_sel = 1;
 public:
     sigGenUI() : UI_part("Signal Generator", UI_part::Width::duplex, 6) {};
-    void draw(float width, bool* enable, inputsUI* inputs_ui = nullptr) override;
+    void draw(float width, inputsUI* inputs_ui = nullptr) override;
     void usb_send_data(int ch);
     int get_height() override;
 };

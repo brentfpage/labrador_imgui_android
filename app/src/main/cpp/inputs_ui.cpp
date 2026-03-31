@@ -27,12 +27,12 @@ void draw_rules(ImVec2 p0, double row_height, double header_row_height, double c
     draw_list->AddLine(row1_col2_pos, row3_col2_pos, IM_COL32(120, 120, 160, 255));
 }
 
-void inputsUI::draw(float width_pixels, bool* enable, inputsUI* inputs_ui)
+void inputsUI::draw(float width_pixels, inputsUI* inputs_ui)
 {
     ImGuiStyle& style = ImGui::GetStyle();
     ImGui::BeginGroup();
     ImVec2 start_pos = ImGui::GetCursorScreenPos();
-    standard_header(width_pixels, enable);
+    standard_header(width_pixels);
 
     bool mode_update = false;
     ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(style.CellPadding.x, style.CellPadding.y * 2));// if this line is active, make sure that the line that resets CellPadding at the end of this function is active as well

@@ -213,7 +213,6 @@ int main(int, char**)
     sigGenUI sig_gen_ui = sigGenUI();
     psuUI psu_ui = psuUI();
     logicDecodeUI logic_decode_ui = logicDecodeUI();
-    selectorUI selector_ui = selectorUI();
     plotUI plot_ui = plotUI();
 
     // Main loop
@@ -308,14 +307,16 @@ int main(int, char**)
 
         plot_ui.recompute_x_bounds(inputs_ui.changed_since_last(), inputs_ui.mode);
 
-        const int n_ui_parts = selector_ui.n_ui_parts;
-        UI_part *ui_parts[n_ui_parts] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui, &selector_ui};
+        const int n_ui_parts = 6;
+        UI_part* ui_parts[n_ui_parts] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui};
+        selectorUI selector_ui = selectorUI(ui_parts, n_ui_parts);
+
         int n_single_width_ui_parts = 0;
         float ui_part_height_sum = 0.f;
         float duplex_ui_part_height_sum = 0.f;
         ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
         for(int i=0; i < n_ui_parts; i++) {
-            if(selector_ui.ui_parts_enable[i]) {
+            if(ui_parts[i]->enable) {
                 ui_part_height_sum += ui_parts[i]->get_height();
                 if(ui_parts[i]->width == UI_part::Width::single) {
                     n_single_width_ui_parts++;
@@ -339,7 +340,7 @@ int main(int, char**)
 
         if(row_col_tiling) {
             for(int i=0; i< n_ui_parts; i++) {
-                if(selector_ui.ui_parts_enable[i]) {
+                if(ui_parts[i]->enable) {
                     if(ui_part_grps[i]==0)
                         ui_part_grp_heights[ui_part_grps[i]] = fmax(ui_part_grp_heights[ui_part_grps[i]], ui_parts[i]->get_height() + style.ItemSpacing.y);
                     else
@@ -356,7 +357,7 @@ int main(int, char**)
             } else {
                 memcpy(ui_part_cols, ui_part_cols_standard, sizeof(int) * n_ui_parts);
                 for(int i=0; i< n_ui_parts; i++) {
-                    if(selector_ui.ui_parts_enable[i]) {
+                    if(ui_parts[i]->enable) {
                         ui_part_col_heights[ui_part_cols[i]] += ui_parts[i]->get_height() + style.ItemSpacing.y;
                     }
                 }
@@ -438,8 +439,8 @@ int main(int, char**)
             if(row_col_tiling) {
                 for(int grp : {0,1}) {
                     for(int i=0; i<n_ui_parts; i++) {
-                        if (selector_ui.ui_parts_enable[i] && (ui_part_grps[i] == grp)) {
-                            ui_parts[i]->draw((static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels, &selector_ui.ui_parts_enable[i], &inputs_ui);
+                        if (ui_parts[i]->enable && (ui_part_grps[i] == grp)) {
+                            ui_parts[i]->draw((static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels, &inputs_ui);
                             // items in group 0 are stacked side-by-side; those in group 1 are stacked vertically
                             if(grp==0) {
                                 ImGui::SameLine();
@@ -456,8 +457,8 @@ int main(int, char**)
                         LOGW("upch: %.2f", ui_part_col_heights[col]);
                         ImGui::BeginGroup();
                         for(int i=0; i<n_ui_parts; i++) {
-                            if (selector_ui.ui_parts_enable[i] && (ui_part_cols[i] == col)) {
-                                ui_parts[i]->draw((static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels, &selector_ui.ui_parts_enable[i],  &inputs_ui);
+                            if (ui_parts[i]->enable && (ui_part_cols[i] == col)) {
+                                ui_parts[i]->draw((static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels, &inputs_ui);
                             }
                         }
                         ImGui::EndGroup();

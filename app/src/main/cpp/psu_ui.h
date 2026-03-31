@@ -11,7 +11,7 @@ class psuUI : public UI_part
 public:
     psuUI() : UI_part("PSU", UI_part::Width::duplex, 1) {};
     void usb_send_data();
-    void draw(float width, bool* enable, inputsUI* inputs_ui = nullptr) override;
+    void draw(float width, inputsUI* inputs_ui = nullptr) override;
     int get_height() override;
 };
 #endif // PSUUI_H

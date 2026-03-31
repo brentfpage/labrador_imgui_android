@@ -11,7 +11,7 @@ public:
     void update_device_mode();
     bool logic_enable[2] = {0,0};
     bool scope_enable[2] = {true,false};
-    void draw(float width, bool* enable, inputsUI* inputs_ui = nullptr) override;
+    void draw(float width, inputsUI* inputs_ui = nullptr) override;
     bool changed_since_last();
     bool ch_enabled(int ch);
     enum Mode {Ch1Scope,ScopeLogic,ScopeScope,Ch1Logic,LogicLogic,None,Scope750,Multimeter};

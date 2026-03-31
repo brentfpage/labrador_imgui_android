@@ -7,7 +7,7 @@
 #include "virtual_transform_ui.h"
 
 
-void virtualTransformUI::draw(float width_pixels, bool* enable, inputsUI* inputs_ui)
+void virtualTransformUI::draw(float width_pixels, inputsUI* inputs_ui)
 {
     ImGuiStyle& style = ImGui::GetStyle();
 
@@ -16,7 +16,7 @@ void virtualTransformUI::draw(float width_pixels, bool* enable, inputsUI* inputs
     }
 //                 if(xy && j==2) // sync ch1 and ch2 pause states in xy mode
 //                     *(checkbox_bool[j] + (i+1)%2) = *(checkbox_bool[j] + i);
-    standard_header(width_pixels, enable);
+    standard_header(width_pixels);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, 0.f));
     ImGui::BeginGroup();
     if(ImGui::BeginTable("helper1",2, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_SizingFixedSame | ImGuiTableFlags_NoHostExtendX, ImVec2(width_pixels, 0.))) {

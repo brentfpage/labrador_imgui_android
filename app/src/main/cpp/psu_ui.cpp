@@ -6,7 +6,7 @@
 #include "imgui_internal.h"
 #include "psu_ui.h"
 
-void psuUI::draw(float width, bool* enable, inputsUI* inputs_ui)
+void psuUI::draw(float width, inputsUI* inputs_ui)
 {
     ImGuiStyle& style = ImGui::GetStyle();
 
@@ -18,8 +18,8 @@ void psuUI::draw(float width, bool* enable, inputsUI* inputs_ui)
     ImGui::PushItemWidth(width - psu_button_width - x_padding - 1 - close_button_width);  // -1 to give space for bounding rect
     ImGui::BeginGroup();
     button_common("PSU", "##psu_slider", ImVec2(psu_button_width,0.f), style);
-    ImGui::SameLine();
     ImGui::PopStyleVar();
+    ImGui::SameLine();
     if(ImGui::custom_SliderFloat("##psu_slider", "V", &psu, 4.5f, 12.0f, "%.1f V", ImGuiSliderFlags_ClampOnInput) || ImGui::IsItemDeactivatedAfterEdit()) {
         need_usb_send = true;
     }
@@ -32,7 +32,7 @@ void psuUI::draw(float width, bool* enable, inputsUI* inputs_ui)
 
     ImGui::SameLine();
     if(ImGui::CloseButton(ImGui::GetID("psu_close"), ImGui::GetCursorScreenPos() + ImVec2(0.f, style.CellPadding.y))) {
-        *enable = false;
+        enable = false;
     }
     ImGui::Dummy({0.f,0.f});
 
