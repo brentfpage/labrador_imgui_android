@@ -16,8 +16,13 @@ void triggerUI::draw(float width_pixels, inputsUI* inputs_ui)
         }
     }
     ImGuiStyle& style = ImGui::GetStyle();
-    ImGui::BeginGroup();
+    ImGui::BeginGroup(); 
     standard_header(width_pixels);
+    if(!is_expanded)
+    {
+        ImGui::EndGroup();
+        return;
+    }
     ImGui::BeginGroup(); // for bounding rect
     // get_height() line 1 end
 
@@ -87,7 +92,6 @@ void triggerUI::draw(float width_pixels, inputsUI* inputs_ui)
     p1 = ImGui::GetItemRectMax();
     draw_list = ImGui::GetWindowDrawList();
     draw_list->AddRect(p0, p1, IM_COL32(90, 90, 120, 255));
-    ImGui::EndGroup();
 
     if(curr_ch_trigger_settings->trigger_type != o1buffer::TriggerType::Disabled)
     {
@@ -96,6 +100,7 @@ void triggerUI::draw(float width_pixels, inputsUI* inputs_ui)
     }
 
     librador_set_trigger_settings(ch_sel, both_ch_trigger_settings[ch_sel-1]);
+    ImGui::EndGroup();
 }
 
 int triggerUI::get_height() 

@@ -38,6 +38,8 @@ void sigGenUI::draw(float width_pixels, inputsUI* inputs_ui)
     }
 
     standard_header(width_pixels);
+    if(!is_expanded)
+        return;
 
     ImDrawList* draw_list;
     ImVec2 p0;

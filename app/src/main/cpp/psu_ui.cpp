@@ -32,7 +32,8 @@ void psuUI::draw(float width, inputsUI* inputs_ui)
 
     ImGui::SameLine();
     if(ImGui::CloseButton(ImGui::GetID("psu_close"), ImGui::GetCursorScreenPos() + ImVec2(0.f, style.CellPadding.y))) {
-        enable = false;
+        is_expanded = false;
+        is_visible = false;
     }
     ImGui::Dummy({0.f,0.f});
 

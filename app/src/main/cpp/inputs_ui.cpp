@@ -31,8 +31,13 @@ void inputsUI::draw(float width_pixels, inputsUI* inputs_ui)
 {
     ImGuiStyle& style = ImGui::GetStyle();
     ImGui::BeginGroup();
-    ImVec2 start_pos = ImGui::GetCursorScreenPos();
     standard_header(width_pixels);
+    if(!is_expanded)
+    {
+        ImGui::EndGroup();
+        return;
+    }
+    ImVec2 start_pos = ImGui::GetCursorScreenPos();
 
     bool mode_update = false;
     ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(style.CellPadding.x, style.CellPadding.y * 2));// if this line is active, make sure that the line that resets CellPadding at the end of this function is active as well
@@ -143,6 +148,10 @@ void inputsUI::draw(float width_pixels, inputsUI* inputs_ui)
 //     ImGui::Dummy({0.f, saved_pos.y - ImGui::GetCursorScreenPos().y});
 //     ImGui::PopStyleVar();
     ImGui::EndGroup();
+    p0 = ImGui::GetItemRectMin();
+    ImVec2 p1 = ImGui::GetItemRectMax();
+    ImGui::SetCursorScreenPos(p0);
+    ImGui::Dummy(p1-p0);
 
     if (mode_update)
         update_device_mode();

@@ -307,22 +307,22 @@ int main(int, char**)
 
         plot_ui.recompute_x_bounds(inputs_ui.changed_since_last(), inputs_ui.mode);
 
-        selectorUI selector_ui = selectorUI();
-        const int n_ui_parts = 7;
-        UI_part* ui_parts[n_ui_parts] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui, &selector_ui};
-        selector_ui.init_step_2(ui_parts, n_ui_parts);
+        const int n_ui_parts = 6;
+        UI_part* ui_parts[n_ui_parts] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui};
+        selectorUI selector_ui = selectorUI(ui_parts, n_ui_parts);
 
         int n_single_width_ui_parts = 0;
         float ui_part_height_sum = 0.f;
         float duplex_ui_part_height_sum = 0.f;
         ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
         for(int i=0; i < n_ui_parts; i++) {
-            if(ui_parts[i]->enable) {
-                ui_part_height_sum += ui_parts[i]->get_height();
-                if(ui_parts[i]->width == UI_part::Width::single) {
+            if(ui_parts[i]->is_visible) {
+                float height = ui_parts[i]->is_expanded ? ui_parts[i]->get_height() : ui_parts[i]->get_collapsed_height();
+                ui_part_height_sum += height + style.ItemSpacing.y;
+                if(ui_parts[i]->is_expanded && (ui_parts[i]->width == UI_part::Width::single)) {
                     n_single_width_ui_parts++;
                 } else {
-                    duplex_ui_part_height_sum += ui_parts[i]->get_height();
+                    duplex_ui_part_height_sum += height + style.ItemSpacing.y;
                 }
             }
         }
@@ -341,11 +341,13 @@ int main(int, char**)
 
         if(row_col_tiling) {
             for(int i=0; i< n_ui_parts; i++) {
-                if(ui_parts[i]->enable) {
-                    if(ui_part_grps[i]==0)
-                        ui_part_grp_heights[ui_part_grps[i]] = fmax(ui_part_grp_heights[ui_part_grps[i]], ui_parts[i]->get_height() + style.ItemSpacing.y);
-                    else
-                        ui_part_grp_heights[ui_part_grps[i]] += ui_parts[i]->get_height() + style.ItemSpacing.y;
+                if(ui_parts[i]->is_visible) {
+                    float height = ui_parts[i]->is_expanded ? ui_parts[i]->get_height() : ui_parts[i]->get_collapsed_height();
+                    if(ui_part_grps[i]==0) {
+                        ui_part_grp_heights[ui_part_grps[i]] = fmax(ui_part_grp_heights[ui_part_grps[i]], height + style.ItemSpacing.y);
+                    } else {
+                        ui_part_grp_heights[ui_part_grps[i]] += height + style.ItemSpacing.y;
+                    }
                 }
             }
         } else {
@@ -358,8 +360,9 @@ int main(int, char**)
             } else {
                 memcpy(ui_part_cols, ui_part_cols_standard, sizeof(int) * n_ui_parts);
                 for(int i=0; i< n_ui_parts; i++) {
-                    if(ui_parts[i]->enable) {
-                        ui_part_col_heights[ui_part_cols[i]] += ui_parts[i]->get_height() + style.ItemSpacing.y;
+                    if(ui_parts[i]->is_visible) {
+                        float height = ui_parts[i]->is_expanded ? ui_parts[i]->get_height() : ui_parts[i]->get_collapsed_height();
+                        ui_part_col_heights[ui_part_cols[i]] += height + style.ItemSpacing.y;
                     }
                 }
             }
@@ -372,7 +375,7 @@ int main(int, char**)
 
         ImGui::Begin("MainWindow",
                      &show_mainwindow,
-                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar);   
+                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove);   
 
         float data_width;
         float data_height;
@@ -435,48 +438,70 @@ int main(int, char**)
         ImGuiID col2_id;
         ImVec2 settingsWindowTopRight;
         ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
+        static bool open_ui_part_sel = false;
         if(!collapse_settings) {
             ImGui::BeginChild("settings",ImVec2(0.f, 0.f),0 );
+            ImGuiContext& g = *GImGui;
             if(row_col_tiling) {
                 for(int grp : {0,1}) {
+                    ImGui::BeginGroup();
                     for(int i=0; i<n_ui_parts; i++) {
-                        if (ui_parts[i]->enable && (ui_part_grps[i] == grp)) {
+                        if (ui_parts[i]->is_visible && (ui_part_grps[i] == grp)) {
                             ui_parts[i]->draw((static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels, &inputs_ui);
                             // items in group 0 are stacked side-by-side; those in group 1 are stacked vertically
                             if(grp==0) {
-                                ImGui::SameLine();
+                                ImGui::SameLine(); // seems to be invalidated after endgroup, which is convenient here
                             }
                         }
                     }
-                    if(grp==0)
-                        ImGui::NewLine(); // overrides previous sameline
+                    ImGui::EndGroup();
+                    if(ImGui::GetContentRegionAvail().x > style.ItemSpacing.x) {
+                        ImGui::SameLine();
+                        ImGui::PushID(grp);
+                        if(ImGui::InvisibleButton("open select", {0.f,ui_part_grp_heights[grp] - style.ItemSpacing.y})) {
+                            open_ui_part_sel = true;
+                        }
+                        ImGui::PopID();
+                    }
                 }
             } else {
                 for(int col : {0,1}) {
                     if(ui_part_col_heights[col] > 0)
                     {
-                        LOGW("upch: %.2f", ui_part_col_heights[col]);
                         ImGui::BeginGroup();
                         for(int i=0; i<n_ui_parts; i++) {
-                            if (ui_parts[i]->enable && (ui_part_cols[i] == col)) {
+                            if (ui_parts[i]->is_visible && (ui_part_cols[i] == col)) {
                                 ui_parts[i]->draw((static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels, &inputs_ui);
                             }
+                        }
+                        if(ImGui::GetContentRegionAvail().y > style.ItemSpacing.y) {
+                            ImGui::PushID(col);
+                            if(ImGui::InvisibleButton("open select", {(col + 1) * ui_part_single_width_pixels,0.f})) {
+                                open_ui_part_sel = true;
+                            }
+                            ImGui::PopID();
                         }
                         ImGui::EndGroup();
                         ImGui::SameLine();
                     }
                 }
-                ImGui::NewLine();
+                if(ImGui::GetContentRegionAvail().x > style.ItemSpacing.x) {
+                    ImGui::PushID(3);
+                    if(ImGui::InvisibleButton("open select", {0.f,0.f})) {
+                        open_ui_part_sel = true;
+                    }
+                    ImGui::PopID();
+                }
             }
             settingsWindowTopRight = ImGui::GetWindowPos() + ImVec2(ImGui::GetWindowSize().x, 0.f);
             ImGui::EndChild();
+
         }
         ImGui::PopFont();
 
         char label[36];
 
         style = ImGui::GetStyle();
-        static bool open_ui_part_sel = false;
         ImGuiID collapse_id = ImGui::GetID("collapse");
         if(collapse_settings) {
             if(landscape) {
@@ -512,8 +537,9 @@ int main(int, char**)
 
         if(open_ui_part_sel) {
             ImGui::OpenPopup("config_settings");
-            selector_ui.draw_popup();
+            open_ui_part_sel = false;
         }
+        selector_ui.draw_popup();
 
         ImGui::End();
 

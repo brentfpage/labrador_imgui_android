@@ -114,6 +114,10 @@ bool logicDecodeUI::decoding_on()
 
 void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
 {
+    standard_header(width_pixels);
+    if(!is_expanded)
+        return;
+
     bool logic_enable[2];
     if(inputs_ui->scopelogic_mode()) {
         logic_enable[0] = false;
@@ -129,7 +133,6 @@ void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
 
     ImGuiStyle& style = ImGui::GetStyle();
 
-    standard_header(width_pixels);
     ImGui::BeginDisabled(!(logic_enable[0] || logic_enable[1])); //covers nearly entire fn.
 
     bool allowed[2] = {uart_allowed, i2c_allowed};

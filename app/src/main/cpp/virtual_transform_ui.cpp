@@ -17,6 +17,8 @@ void virtualTransformUI::draw(float width_pixels, inputsUI* inputs_ui)
 //                 if(xy && j==2) // sync ch1 and ch2 pause states in xy mode
 //                     *(checkbox_bool[j] + (i+1)%2) = *(checkbox_bool[j] + i);
     standard_header(width_pixels);
+    if(!is_expanded)
+        return;
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, 0.f));
     ImGui::BeginGroup();
     if(ImGui::BeginTable("helper1",2, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_SizingFixedSame | ImGuiTableFlags_NoHostExtendX, ImVec2(width_pixels, 0.))) {
