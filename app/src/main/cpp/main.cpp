@@ -448,14 +448,19 @@ int main(int, char**)
             }
             ImGui::SetCursorScreenPos(bp);
 
-
+#define INDENTUP ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(0.f,style.ItemSpacing.y)); // remove gaps between ui_part groups in order to avoid unwanted presses on the background that open the ui_part selector popup.  this itemspacing is added back in by the ui_parts within their BeginGroup()/EndGroup() wrappings.  ImGuiContext.DebugShowGroupRects is very handy for debugging the groups
             if(row_col_tiling) {
                 for(int grp : {0,1}) {
+                    INDENTUP
                     ImGui::BeginGroup();
+                    bool first = true;
                     for(int i=0; i<n_ui_parts; i++) {
                         if (ui_parts[i]->is_visible && (ui_part_grps[i] == grp)) {
-                            ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(0.f,style.ItemSpacing.y)); // to remove gaps between ui_part groups.  this itemspacing is added back in by the ui_parts within their BeginGroup()/EndGroup() wrappings
-                            ui_parts[i]->draw((static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels, &inputs_ui);
+                            if((grp==1)&&(!first)) {
+                                INDENTUP
+                            }
+                            first = false;
+                            ui_parts[i]->draw(ui_part_single_width_pixels + grp * (ui_part_single_width_pixels + style.ItemSpacing.x), &inputs_ui);
                             maybe_clicked_background &= !ImGui::IsItemHovered();
                             // items in group 0 are stacked side-by-side; those in group 1 are stacked vertically
                             if(grp==0) {
@@ -472,7 +477,7 @@ int main(int, char**)
                         ImGui::BeginGroup();
                         for(int i=0; i<n_ui_parts; i++) {
                             if (ui_parts[i]->is_visible && (ui_part_cols[i] == col)) {
-                                ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(0.f,style.ItemSpacing.y)); // to remove gaps between ui_part groups.  this itemspacing is added back in by the ui_parts within their BeginGroup()/EndGroup() wrappings
+                                INDENTUP
                                 ui_parts[i]->draw((static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels, &inputs_ui);
                                 maybe_clicked_background &= !ImGui::IsItemHovered();
                             }

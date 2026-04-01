@@ -10,7 +10,7 @@ void psuUI::draw(float width, inputsUI* inputs_ui)
 {
     ImGuiStyle& style = ImGui::GetStyle();
     ImGui::BeginGroup();
-    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.f,style.ItemSpacing.y)); // combined with lines in main.cpp, effectively folds itemspacing.y into the individual ui_part groups
+    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.f,style.ItemSpacing.y)); // combined with lines in main.cpp, effectively folds itemspacing.y into the group covering this ui_part.  
 
     const float psu_button_width = style.FramePadding.x*2 + ImGui::CalcTextSize(" PSU ").x;
     float close_button_width = ImGui::GetFontSize() + style.FramePadding.x;
@@ -22,25 +22,28 @@ void psuUI::draw(float width, inputsUI* inputs_ui)
     ImGui::PopStyleVar();
     const float x_padding = style.CellPadding.x * 2 + style.ItemSpacing.x;
     ImGui::PushItemWidth(width - psu_button_width - x_padding - 1 - close_button_width);  // -1 to give space for bounding rect
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {style.ItemSpacing.x,style.CellPadding.y});
     if(ImGui::custom_SliderFloat("##psu_slider", "V", &psu, 4.5f, 12.0f, "%.1f V", ImGuiSliderFlags_ClampOnInput) || ImGui::IsItemDeactivatedAfterEdit()) {
         need_usb_send = true;
     }
+    ImGui::SameLine();
+    ImVec2 close_button_loc = ImGui::GetCursorScreenPos() + ImVec2(0.f, style.ItemSpacing.y);
     ImGui::EndGroup();
+    ImGui::PopStyleVar();
 
     ImVec2 p0 = ImGui::GetItemRectMin() - style.CellPadding;
     ImVec2 p1 = ImGui::GetItemRectMax() + style.CellPadding;
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     draw_list->AddRect(p0, p1, IM_COL32(90, 90, 120, 255),0,0,2);
 
-    ImGui::SameLine();
-    if(ImGui::CloseButton(ImGui::GetID("psu_close"), ImGui::GetCursorScreenPos() + ImVec2(0.f, style.CellPadding.y))) {
+    if(ImGui::CloseButton(ImGui::GetID("psu_close"), close_button_loc)) {
         is_expanded = false;
         is_visible = false;
     }
 
+    ImGui::Dummy({0.f,0.f});
     ImGui::EndGroup();
-
-
+//     ImGui::PopStyleVar();
 
     if(need_usb_send) {
         std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
@@ -60,7 +63,7 @@ void psuUI::usb_send_data()
 int psuUI::get_height()
 {
     ImGuiStyle& style = ImGui::GetStyle();
-    return 4 * style.FramePadding.y + ImGui::GetFontSize();
+    return 2 * style.CellPadding.y + 2 * style.ItemSpacing.y + ImGui::GetFontSize();
 }
 
 
