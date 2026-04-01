@@ -317,7 +317,6 @@ int main(int, char**)
         float ui_part_height_sum = 0.f;
         int n_singlet_ui_parts_visible = 0;
         float singlet_ui_part_height_when_row_col_tiling = 0.f; 
-        float singlet_ui_part_height_when_2_col_tiling = 0.f;
         ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
         for(int i=0; i < n_ui_parts; i++) {
             if(ui_parts[i]->is_visible) {
@@ -411,9 +410,13 @@ int main(int, char**)
             }
         }
         ImGui::EndChild();
+#define INDENTUP ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(0.f,style.ItemSpacing.y)); // remove gaps between ui_part groups in order to avoid unwanted presses on the background that open the ui_part selector popup.  this ItemSpacing is added back in by the ui_parts within their BeginGroup()/EndGroup() wrappings.  ImGuiContext.DebugShowGroupRects is very handy for debugging the groups
         if(landscape) {
             ImGui::SameLine();
+        } else {
+            INDENTUP
         }
+
         ImGuiID col2_id;
         ImVec2 settingsWindowTopRight;
         ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
@@ -431,7 +434,6 @@ int main(int, char**)
             }
             ImGui::SetCursorScreenPos(bp);
 
-#define INDENTUP ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(0.f,style.ItemSpacing.y)); // remove gaps between ui_part groups in order to avoid unwanted presses on the background that open the ui_part selector popup.  this itemspacing is added back in by the ui_parts within their BeginGroup()/EndGroup() wrappings.  ImGuiContext.DebugShowGroupRects is very handy for debugging the groups
             if(row_col_tiling) {
                 for(int grp : {0,1}) {
                     INDENTUP
@@ -457,10 +459,14 @@ int main(int, char**)
                 for(int col : {0,1}) {
                     if(ui_part_col_heights[col] > 0)
                     {
+//                         ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(0.f,1)); // remove gaps between ui_part groups in order to avoid unwanted presses on the background that open the ui_part selector popup.  this ItemSpacing is added back in by the ui_parts within their BeginGroup()/EndGroup() wrappings.  ImGuiContext.DebugShowGroupRects is very handy for debugging the groups
                         ImGui::BeginGroup();
+                        bool first = true;
                         for(int i=0; i<n_ui_parts; i++) {
                             if (ui_parts[i]->is_visible && (static_cast<int>(ui_parts[i]->width) == col)) {
-                                INDENTUP
+                                if(!first)
+                                    INDENTUP
+                                first=false;
                                 ui_parts[i]->draw((static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels, &inputs_ui);
                                 maybe_clicked_background &= !ImGui::IsItemHovered();
                             }
