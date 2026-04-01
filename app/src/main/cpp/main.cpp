@@ -361,7 +361,7 @@ int main(int, char**)
         if(landscape) {
             data_height = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
             if(collapse_settings) {
-                data_width = ImGui::GetContentRegionAvail().x - std::max(ImGui::GetFontSize(), ImGui::CalcTextSize(" < ").x) - 2 * style.FramePadding.x - style.ItemSpacing.x;
+                data_width = ImGui::GetContentRegionAvail().x;
             } else {
                 if(row_col_tiling) {
                     if (ui_part_col_heights[1] > 0.f) {
@@ -386,7 +386,7 @@ int main(int, char**)
             }
 
             if(collapse_settings) {
-                data_height = ImGui::GetContentRegionAvail().y - ImGui::GetFontSize() - 2 * style.FramePadding.y - style.ItemSpacing.y;
+                data_height = ImGui::GetContentRegionAvail().y;
             } else {
                 data_height = ImGui::GetContentRegionAvail().y - settings_height;
             }
@@ -409,6 +409,8 @@ int main(int, char**)
                 ImGui::PopStyleVar();
             }
         }
+        ImVec2 dataWindowBottomLeft = ImGui::GetWindowPos() + ImVec2(0.f,ImGui::GetWindowSize().y);
+        ImVec2 dataWindowBottomRight = ImGui::GetWindowPos() + ImGui::GetWindowSize();
         ImGui::EndChild();
 #define INDENTUP ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(0.f,style.ItemSpacing.y)); // remove gaps between ui_part groups in order to avoid unwanted presses on the background that open the ui_part selector popup.  this ItemSpacing is added back in by the ui_parts within their BeginGroup()/EndGroup() wrappings.  ImGuiContext.DebugShowGroupRects is very handy for debugging the groups
         if(landscape) {
@@ -418,7 +420,6 @@ int main(int, char**)
         }
 
         ImGuiID col2_id;
-        ImVec2 settingsWindowTopLeft;
         ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
         bool maybe_clicked_background = false;
         bool screen_keyboard_shown = SDL_ScreenKeyboardShown(window);
@@ -477,7 +478,6 @@ int main(int, char**)
                 }
                 ImGui::NewLine();
             }
-            settingsWindowTopLeft = ImGui::GetWindowPos();
             ImGui::EndChild();
 
         }
@@ -490,33 +490,30 @@ int main(int, char**)
 
         style = ImGui::GetStyle();
         ImGuiID collapse_id = ImGui::GetID("collapse");
-        if(collapse_settings) {
-            if(landscape) {
+        ImVec2 collapse_button_pos;
+        if(landscape) {
+            if(collapse_settings) {
                 strcpy(label, " < ");
             } else {
-                ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(" ^ ").x - 2 * style.FramePadding.x,0.f));
-                strcpy(label, " ^ ");
-            }
-            ImGui::PushOverrideID(collapse_id);
-            if(ImGui::Button(label)) {
-                collapse_settings = !collapse_settings;
-            }
-            ImGui::PopID();
-        } else {
-            if(landscape) {
                 strcpy(label, " > ");
+            }
+            collapse_button_pos = dataWindowBottomRight - ImGui::CalcTextSize(" < ") - style.FramePadding * 2;
+        } else {
+            if(collapse_settings) {
+                strcpy(label, " ^ ");
             } else {
                 strcpy(label, " v ");
             }
-            ImGui::BeginChild("data");
-            ImGui::SetCursorScreenPos(settingsWindowTopLeft - ImVec2(0.f,ImGui::CalcTextSize(" v ").y + style.FramePadding.y * 2));
-            ImGui::PushOverrideID(collapse_id);
-            if(ImGui::Button(label)) {
-                collapse_settings = !collapse_settings;
-            }
-            ImGui::PopID();
-            ImGui::EndChild();
+            collapse_button_pos = dataWindowBottomLeft - ImVec2(0.f,ImGui::CalcTextSize(" ^ ").y + style.FramePadding.y * 2);
         }
+        ImGui::BeginChild("data");
+        ImGui::BeginChild("plot");
+        ImGui::SetCursorScreenPos(collapse_button_pos);
+        if(ImGui::custom_ButtonEx(label)) {
+            collapse_settings = !collapse_settings;
+        }
+        ImGui::EndChild();
+        ImGui::EndChild();
 
         // maybe_clicked_background -> clicked_background at this point
         if(maybe_clicked_background) {
