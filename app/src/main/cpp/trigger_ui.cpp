@@ -107,7 +107,7 @@ void triggerUI::draw(float width_pixels, inputsUI* inputs_ui)
 int triggerUI::get_height() 
 {
     ImGuiStyle& style = ImGui::GetStyle();
-    int calc_height = style.ItemSpacing.y + ImGui::GetFontSize() + \
+    int calc_height = 2 * style.ItemSpacing.y + ImGui::GetFontSize() + \
                          CHECKBOX_SIZE + 2 * style.FramePadding.y + \
                          2 * CHECKBOX_SIZE + 2 * style.FramePadding.y + style.ItemSpacing.y + \
                          ImGui::CalcTextSize("Single\n shot").y + style.FramePadding.y + style.ItemSpacing.y + 2 + \

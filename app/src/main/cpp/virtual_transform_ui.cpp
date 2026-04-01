@@ -77,7 +77,7 @@ void virtualTransformUI::draw(float width_pixels, inputsUI* inputs_ui)
 int virtualTransformUI::get_height()
 {
     ImGuiStyle& style = ImGui::GetStyle();
-    int calc_height = style.ItemSpacing.y + ImGui::GetFontSize() + \
+    int calc_height = 2 * style.ItemSpacing.y + ImGui::GetFontSize() + \
                       CHECKBOX_SIZE + 2 * style.CellPadding.y + \
                       2 * (ImGui::GetFontSize() + 2 * style.FramePadding.y + 2 * style.CellPadding.y);
     return calc_height;

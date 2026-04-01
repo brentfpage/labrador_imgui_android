@@ -63,7 +63,7 @@ void psuUI::usb_send_data()
 int psuUI::get_height()
 {
     ImGuiStyle& style = ImGui::GetStyle();
-    return 2 * style.CellPadding.y + 2 * style.ItemSpacing.y + ImGui::GetFontSize();
+    return 2 * style.CellPadding.y + 2 * style.FramePadding.y + style.ItemSpacing.y + ImGui::GetFontSize();
 }
 
 

@@ -252,7 +252,7 @@ void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
 int logicDecodeUI::get_height()
 {
     ImGuiStyle& style = ImGui::GetStyle();
-    int calc_height = style.ItemSpacing.y + ImGui::GetFontSize() + \
+    int calc_height = 2 * style.ItemSpacing.y + ImGui::GetFontSize() + \
                       2 * style.CellPadding.y + 2 * style.FramePadding.y + ImGui::GetFontSize();
     return calc_height;
 }

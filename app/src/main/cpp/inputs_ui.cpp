@@ -187,7 +187,7 @@ int inputsUI::get_height()
     ImGuiStyle& style = ImGui::GetStyle();
     ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(style.CellPadding.x, style.CellPadding.y * 2));// if this line is active, make sure that the line that resets CellPadding at the end of this function is active as well
     style = ImGui::GetStyle();
-    int height = style.ItemSpacing.y + ImGui::GetFontSize() + \
+    int height = 2 * style.ItemSpacing.y + ImGui::GetFontSize() + \
                  ImGui::GetFontSize() + style.CellPadding.y*2 + \
                  4 * (ImGui::GetFontSize() + (style.CellPadding.y + style.FramePadding.y)*2);
 

@@ -287,7 +287,7 @@ int main(int, char**)
         float settings_width;
         // scale the font size so that the ui fits in width-wise in portrait mode and height-wise in landscape mode. only scale the font size b/c most of the other built-in lengths are 0-10 pixels so are only responsive to scalings more extreme than +- 10%
         if(landscape) { 
-            int prescale_settings_height = inputs_ui.get_height() + trigger_ui.get_height() + style.ItemSpacing.y; // want to be able to fit these two ui_parts in one column
+            int prescale_settings_height = inputs_ui.get_height() + trigger_ui.get_height(); // want to be able to fit these two ui_parts in one column
             int text_height = (inputs_ui.n_lines + trigger_ui.n_lines) * ImGui::GetFontSize(); 
             int padding = prescale_settings_height - text_height; 
             settings_height_max = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
@@ -301,7 +301,7 @@ int main(int, char**)
             font_scaling = screen_width_ratio / 1.02; //1.02: fudge factor to account for padding that's not scaled
             ui_part_single_width_pixels = (portraitScreenWidth - style.ItemSpacing.x - 2 * style.WindowPadding.x)/3.;
             ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
-            settings_height_max = inputs_ui.get_height() + trigger_ui.get_height() + style.ItemSpacing.y; 
+            settings_height_max = inputs_ui.get_height() + trigger_ui.get_height(); 
             ImGui::PopFont();
         };
 
@@ -321,10 +321,10 @@ int main(int, char**)
         for(int i=0; i < n_ui_parts; i++) {
             if(ui_parts[i]->is_visible) {
                 float height = ui_parts[i]->is_expanded ? ui_parts[i]->get_height() : ui_parts[i]->get_collapsed_height();
-                ui_part_height_sum += height + style.ItemSpacing.y;
-                ui_part_col_heights[static_cast<int>(ui_parts[i]->width)] += height + style.ItemSpacing.y;
+                ui_part_height_sum += height;
+                ui_part_col_heights[static_cast<int>(ui_parts[i]->width)] += height;
                 if(ui_parts[i]->width == UI_part::Width::single) {
-                    singlet_ui_part_height_when_row_col_tiling = fmax(singlet_ui_part_height_when_row_col_tiling, height + style.ItemSpacing.y);
+                    singlet_ui_part_height_when_row_col_tiling = fmax(singlet_ui_part_height_when_row_col_tiling, height);
                     n_singlet_ui_parts_visible++;
                 }
             }
@@ -382,7 +382,7 @@ int main(int, char**)
             if(row_col_tiling) {
                 settings_height = singlet_ui_part_height_when_row_col_tiling + ui_part_col_heights[1];
             } else {
-                settings_height = fmax(fmax(ui_part_col_heights[0], ui_part_col_heights[1]), ImGui::GetFontSize() + 2 * style.FramePadding.y + style.ItemSpacing.y);
+                settings_height = fmax(fmax(ui_part_col_heights[0], ui_part_col_heights[1]), ImGui::GetFontSize() + 2 * style.FramePadding.y);
             }
 
             if(collapse_settings) {
@@ -460,7 +460,6 @@ int main(int, char**)
                 for(int col : {0,1}) {
                     if(ui_part_col_heights[col] > 0)
                     {
-//                         ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(0.f,1)); // remove gaps between ui_part groups in order to avoid unwanted presses on the background that open the ui_part selector popup.  this ItemSpacing is added back in by the ui_parts within their BeginGroup()/EndGroup() wrappings.  ImGuiContext.DebugShowGroupRects is very handy for debugging the groups
                         ImGui::BeginGroup();
                         bool first = true;
                         for(int i=0; i<n_ui_parts; i++) {
@@ -510,7 +509,7 @@ int main(int, char**)
                 strcpy(label, " v ");
             }
             ImGui::BeginChild("data");
-            ImGui::SetCursorScreenPos(settingsWindowTopRight - ImGui::CalcTextSize(" v ") - style.FramePadding * 2 - style.ItemSpacing);
+            ImGui::SetCursorScreenPos(settingsWindowTopRight - ImGui::CalcTextSize(" v ") - style.FramePadding * 2);
             ImGui::PushOverrideID(collapse_id);
             if(ImGui::Button(label)) {
                 collapse_settings = !collapse_settings;
