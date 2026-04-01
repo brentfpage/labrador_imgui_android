@@ -313,7 +313,6 @@ int main(int, char**)
 
         // col1 and grp1 contain singlet-width ui_parts, col2 and grp2 have duplex-width ui_parts
         float ui_part_col_heights[2] = {0.f, 0.f};
-        float ui_part_grp_heights[2] = {0.f, 0.f};
 
         float ui_part_height_sum = 0.f;
         int n_singlet_ui_parts_visible = 0;
@@ -332,9 +331,6 @@ int main(int, char**)
             }
         }
 
-
-        const int ui_part_grps[n_ui_parts] = {0,0,1,1,1,1};
-
         bool row_col_tiling = (!landscape && (n_singlet_ui_parts_visible == 2) && ((ui_part_col_heights[1] + singlet_ui_part_height_when_row_col_tiling) < fmax(ui_part_col_heights[0], ui_part_col_heights[1]))) || \
             (landscape && (n_singlet_ui_parts_visible > 0) && (0 < ui_part_col_heights[1]) && ((ui_part_col_heights[1] + singlet_ui_part_height_when_row_col_tiling) < settings_height_max));
         float col1_width = 0.f;
@@ -344,11 +340,6 @@ int main(int, char**)
             for(int i=0; i< n_ui_parts; i++) {
                 if(ui_parts[i]->is_visible) {
                     float height = ui_parts[i]->is_expanded ? ui_parts[i]->get_height() : ui_parts[i]->get_collapsed_height();
-                    if(ui_part_grps[i]==0) {
-                        ui_part_grp_heights[ui_part_grps[i]] = fmax(ui_part_grp_heights[ui_part_grps[i]], height + style.ItemSpacing.y);
-                    } else {
-                        ui_part_grp_heights[ui_part_grps[i]] += height + style.ItemSpacing.y;
-                    }
                 }
             }
         } else {
@@ -390,7 +381,7 @@ int main(int, char**)
             settings_width = portraitScreenWidth - 2 * style.WindowPadding.x;
             data_width = settings_width;
             if(row_col_tiling) {
-                settings_height = ui_part_grp_heights[0] + ui_part_grp_heights[1];
+                settings_height = singlet_ui_part_height_when_row_col_tiling + ui_part_col_heights[1];
             } else {
                 settings_height = fmax(fmax(ui_part_col_heights[0], ui_part_col_heights[1]), ImGui::GetFontSize() + 2 * style.FramePadding.y + style.ItemSpacing.y);
             }
@@ -447,7 +438,7 @@ int main(int, char**)
                     ImGui::BeginGroup();
                     bool first = true;
                     for(int i=0; i<n_ui_parts; i++) {
-                        if (ui_parts[i]->is_visible && (ui_part_grps[i] == grp)) {
+                        if (ui_parts[i]->is_visible && (static_cast<int>(ui_parts[i]->width) == grp)) {
                             if((grp==1)&&(!first)) {
                                 INDENTUP
                             }
