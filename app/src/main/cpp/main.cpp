@@ -311,9 +311,9 @@ int main(int, char**)
         UI_part* ui_parts[n_ui_parts] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui};
         selectorUI selector_ui = selectorUI(ui_parts, n_ui_parts);
 
-        int n_single_width_ui_parts_expanded = 0;
-        int n_single_width_ui_parts_visible = 0;
         float ui_part_height_sum = 0.f;
+        int n_singlet_ui_parts_visible = 0;
+        float singlet_ui_part_height = 0.f; // only the height when row_col_tiling
         float duplex_ui_part_height_sum = 0.f;
         ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
         for(int i=0; i < n_ui_parts; i++) {
@@ -321,8 +321,8 @@ int main(int, char**)
                 float height = ui_parts[i]->is_expanded ? ui_parts[i]->get_height() : ui_parts[i]->get_collapsed_height();
                 ui_part_height_sum += height + style.ItemSpacing.y;
                 if(ui_parts[i]->width == UI_part::Width::single) {
-                    n_single_width_ui_parts_expanded += ui_parts[i]->is_expanded;
-                    n_single_width_ui_parts_visible += ui_parts[i]->is_visible;
+                    singlet_ui_part_height = fmax(singlet_ui_part_height, height + style.ItemSpacing.y);
+                    n_singlet_ui_parts_visible++;
                 } else {
                     duplex_ui_part_height_sum += height + style.ItemSpacing.y;
                 }
@@ -336,8 +336,8 @@ int main(int, char**)
         const int ui_part_grps[n_ui_parts] = {0,0,1,1,1,1};
 
         const int ui_part_cols_standard[n_ui_parts] = {0,0,1,1,1,1};
-        bool row_col_tiling = (!landscape && (n_single_width_ui_parts_expanded == 2) && (duplex_ui_part_height_sum < settings_height_max/2.)) || \
-            (landscape && (n_single_width_ui_parts_visible > 0) && (0 < duplex_ui_part_height_sum) && (duplex_ui_part_height_sum < settings_height_max/2.));
+        bool row_col_tiling = (!landscape && (n_singlet_ui_parts_visible == 2) && ((duplex_ui_part_height_sum + singlet_ui_part_height) < settings_height_max)) || \
+            (landscape && (n_singlet_ui_parts_visible > 0) && (0 < duplex_ui_part_height_sum) && ((duplex_ui_part_height_sum + singlet_ui_part_height) < settings_height_max));
         float col1_width = 0.f;
         float col2_width = 0.f;
 
@@ -353,19 +353,13 @@ int main(int, char**)
                 }
             }
         } else {
-            col1_width = (n_single_width_ui_parts_visible > 0) ? ui_part_single_width_pixels : 0;
+            col1_width = (n_singlet_ui_parts_visible > 0) ? ui_part_single_width_pixels : 0;
             col2_width = (duplex_ui_part_height_sum > 0) ? 2 * ui_part_single_width_pixels : 0;
-            if(landscape && (ui_part_height_sum < settings_height_max)) {
-                memset(ui_part_cols, 0, sizeof(int) * n_ui_parts);
-                ui_part_col_heights[0] = ui_part_height_sum;
-                ui_part_col_heights[1] = 0.f;
-            } else {
-                memcpy(ui_part_cols, ui_part_cols_standard, sizeof(int) * n_ui_parts);
-                for(int i=0; i< n_ui_parts; i++) {
-                    if(ui_parts[i]->is_visible) {
-                        float height = ui_parts[i]->is_expanded ? ui_parts[i]->get_height() : ui_parts[i]->get_collapsed_height();
-                        ui_part_col_heights[ui_part_cols[i]] += height + style.ItemSpacing.y;
-                    }
+            memcpy(ui_part_cols, ui_part_cols_standard, sizeof(int) * n_ui_parts);
+            for(int i=0; i< n_ui_parts; i++) {
+                if(ui_parts[i]->is_visible) {
+                    float height = ui_parts[i]->is_expanded ? ui_parts[i]->get_height() : ui_parts[i]->get_collapsed_height();
+                    ui_part_col_heights[ui_part_cols[i]] += height + style.ItemSpacing.y;
                 }
             }
         }
@@ -389,9 +383,9 @@ int main(int, char**)
             } else {
                 if(row_col_tiling) {
                     if (duplex_ui_part_height_sum > 0.f) {
-                        settings_width = 2 * ui_part_single_width_pixels + (n_single_width_ui_parts_visible == 2) * style.ItemSpacing.x;
-                    } else if (n_single_width_ui_parts_visible > 0) {
-                        settings_width = ui_part_single_width_pixels + (n_single_width_ui_parts_visible == 2) * (ui_part_single_width_pixels + style.ItemSpacing.x);
+                        settings_width = 2 * ui_part_single_width_pixels + (n_singlet_ui_parts_visible == 2) * style.ItemSpacing.x;
+                    } else if (n_singlet_ui_parts_visible > 0) {
+                        settings_width = ui_part_single_width_pixels + (n_singlet_ui_parts_visible == 2) * (ui_part_single_width_pixels + style.ItemSpacing.x);
                     } else {
                         settings_width = ImGui::CalcTextSize(" < ").x + 2 * style.FramePadding.x + style.ItemSpacing.x;
                     }
@@ -446,7 +440,7 @@ int main(int, char**)
             ImGuiContext& g = *GImGui;
             ImVec2 bp = ImGui::GetCursorScreenPos();
             ImGui::SetNextItemAllowOverlap();
-            if(ImGui::InvisibleButton("errthang", {0.f, 0.f})) {
+            if(ImGui::InvisibleButton("open ui_part selector", {0.f, 0.f})) {
                 maybe_clicked_background = true;
             }
             ImGui::SetCursorScreenPos(bp);
