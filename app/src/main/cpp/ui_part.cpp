@@ -1,0 +1,47 @@
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include "imgui.h"
+#include "imgui_internal.h"
+#include "ui_part.h"
+void UI_part::standard_header(float width_pixels)
+{
+    ImGuiStyle& style = ImGui::GetStyle();
+
+    float close_button_width = ImGui::GetFontSize() + style.FramePadding.x;
+    ImVec2 start_pos = ImGui::GetCursorScreenPos();
+    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.f,style.ItemSpacing.y)); // combined with lines in main.cpp, effectively folds itemspacing.y into the individual ui_part groups
+    ImGui::Text("%s",name);
+    ImGui::SetCursorScreenPos(start_pos);
+    ImGui::PushID(name);
+//     TODO : make button larger, remove Dummy at the end
+    float invisible_button_width;
+    ImVec2 close_button_pos = start_pos + ImVec2(width_pixels - close_button_width,style.ItemSpacing.y);
+    if(is_expanded) {
+        invisible_button_width = width_pixels;
+    } else {
+        invisible_button_width = width_pixels - close_button_width;
+    }
+    float itemspacingy = style.ItemSpacing.y;
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,{style.ItemSpacing.x,0.f}); // fold ItemSpacing.y into the invisible button below
+    if(ImGui::InvisibleButton("toggle is_expanded", {invisible_button_width, ImGui::GetFontSize() + 2 * itemspacingy}))
+    {
+        is_expanded = !is_expanded;
+    }
+    ImGui::PopID();
+
+    char buf[64];
+    sprintf(buf, "%s_close", name);
+    if(!is_expanded)
+    {
+        if(ImGui::CloseButton(ImGui::GetID(buf), close_button_pos))
+        {
+        is_visible = false;
+        }
+    }
+    ImGui::PopStyleVar();
+}
+
+int UI_part::get_collapsed_height()
+{
+    ImGuiStyle& style = ImGui::GetStyle();
+    return ImGui::GetFontSize() + 2 * style.ItemSpacing.y;
+}
