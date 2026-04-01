@@ -28,15 +28,19 @@ void UI_part::standard_header(float width_pixels)
     }
     ImGui::PopID();
 
-    char buf[64];
-    sprintf(buf, "%s_close", name);
     if(!is_expanded)
     {
+        char buf[64];
+        sprintf(buf, "%s_close", name);
         if(ImGui::CloseButton(ImGui::GetID(buf), close_button_pos))
         {
         is_visible = false;
         }
-    }
+        ImGui::SameLine();
+        // mimic the spacing/cursor advancement that a standard Button(...) would generate
+        ImGui::SetCursorScreenPos(close_button_pos);
+        ImGui::Dummy({close_button_width,0.f});
+    } 
     ImGui::PopStyleVar();
 }
 
