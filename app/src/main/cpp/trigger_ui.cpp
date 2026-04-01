@@ -69,7 +69,8 @@ void triggerUI::draw(float width_pixels, inputsUI* inputs_ui)
     draw_list = ImGui::GetWindowDrawList();
     draw_list->AddRect(p0, p1, IM_COL32(90, 90, 120, 255));
 
-    ImVec2 value_text_button_size = ImGui::CalcTextSize("-20.0 V", NULL) + style.FramePadding + style.FramePadding;
+    ImVec2 value_text_size = ImGui::CalcTextSize("-20.0 V", NULL);
+    ImVec2 value_text_button_size = value_text_size + style.FramePadding + style.FramePadding;
     ImVec2 value_text_button_pos = p1 + ImVec2(-value_text_button_size.x, 0.f);
     ImGui::SetCursorScreenPos(value_text_button_pos);
     // get_height() line 4 end
@@ -83,7 +84,7 @@ void triggerUI::draw(float width_pixels, inputsUI* inputs_ui)
 
     ImGui::custom_VSliderFloat("##trigger_slider", "V",
             ImVec2(slider_top_right.x - slider_left , slider_bottom - slider_top_right.y),
-            &curr_ch_trigger_settings->trigger_level, -20.f, 20.f, "%.1f V", ImGuiSliderFlags_ClampOnInput, value_text_button_pos + style.FramePadding, value_text_button_size);
+            &curr_ch_trigger_settings->trigger_level, -20.f, 20.f, "%.1f V", ImGuiSliderFlags_ClampOnInput, value_text_button_pos + style.FramePadding, value_text_size);
     ImGui::EndDisabled();
     ImGui::SetCursorScreenPos({ImGui::GetCursorScreenPos().x, slider_bottom});
     ImGui::Dummy({0.f,0.f}); // prevents issue with this draw() command affecting the vertical alignment of whatever ui element comes after it
