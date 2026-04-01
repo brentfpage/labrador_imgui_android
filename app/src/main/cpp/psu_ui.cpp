@@ -11,16 +11,16 @@ void psuUI::draw(float width, inputsUI* inputs_ui)
     ImGuiStyle& style = ImGui::GetStyle();
     ImGui::BeginGroup();
 
-    const float psu_button_width = style.FramePadding.x*2 + ImGui::CalcTextSize("PSU").x;
-    float close_button_width = ImGui::GetFontSize() + style.FramePadding.x+ style.ItemSpacing.x;
+    const float psu_button_width = style.FramePadding.x*2 + ImGui::CalcTextSize(" PSU ").x;
+    float close_button_width = ImGui::GetFontSize() + style.FramePadding.x;
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(style.ItemInnerSpacing.x,style.ItemSpacing.y));
     ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + style.CellPadding);
+    ImGui::BeginGroup(); // for bounding rect
+    button_common(" PSU ", "##psu_slider", ImVec2(psu_button_width,0.f), style);
+    ImGui::SameLine();
+    ImGui::PopStyleVar();
     const float x_padding = style.CellPadding.x * 2 + style.ItemSpacing.x;
     ImGui::PushItemWidth(width - psu_button_width - x_padding - 1 - close_button_width);  // -1 to give space for bounding rect
-    ImGui::BeginGroup(); // for bounding rect
-    button_common("PSU", "##psu_slider", ImVec2(psu_button_width,0.f), style);
-    ImGui::PopStyleVar();
-    ImGui::SameLine();
     if(ImGui::custom_SliderFloat("##psu_slider", "V", &psu, 4.5f, 12.0f, "%.1f V", ImGuiSliderFlags_ClampOnInput) || ImGui::IsItemDeactivatedAfterEdit()) {
         need_usb_send = true;
     }
