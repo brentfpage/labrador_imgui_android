@@ -1,13 +1,13 @@
 #ifndef INPUTSUI_H
 #define INPUTSUI_H
 
-#include "ui_part.h"
-class inputsUI : public UI_part
+#include "ui_tile.h"
+class inputsUI : public UI_tile
 {
     bool scope750 = false;
     bool changed = false;
 public:
-    inputsUI() : UI_part("Inputs","Inputs",UI_part::Width::single, 6) {};
+    inputsUI() : UI_tile("Inputs","Inputs",UI_tile::Width::single, 6) {};
     void update_device_mode();
     bool logic_enable[2] = {0,0};
     bool scope_enable[2] = {true,false};

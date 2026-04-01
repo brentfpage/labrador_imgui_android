@@ -11,7 +11,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "implot.h"
 #include "imgui.h"
-#include "ui_part.h"
+#include "ui_tile.h"
 #include "sig_gen_ui.h"
 #include "inputs_ui.h"
 #include "trigger_ui.h"
@@ -283,23 +283,23 @@ int main(int, char**)
         bool landscape = io.DisplaySize.y < io.DisplaySize.x;
         float settings_height_max;
         float font_scaling = 1.f;
-        float ui_part_single_width_pixels;
+        float tile_single_width_pixels;
         float settings_width;
         // scale the font size so that the ui fits in width-wise in portrait mode and height-wise in landscape mode. only scale the font size b/c most of the other built-in lengths are 0-10 pixels so are only responsive to scalings more extreme than +- 10%
         if(landscape) { 
-            int prescale_settings_height = inputs_ui.get_height() + trigger_ui.get_height(); // want to be able to fit these two ui_parts in one column
+            int prescale_settings_height = inputs_ui.get_height() + trigger_ui.get_height(); // want to be able to fit these two ui_tiles in one column
             int text_height = (inputs_ui.n_lines + trigger_ui.n_lines) * ImGui::GetFontSize(); 
             int padding = prescale_settings_height - text_height; 
             settings_height_max = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
             int avail_for_text = settings_height_max - padding;
             font_scaling = static_cast<float>(avail_for_text)/text_height; 
-            ui_part_single_width_pixels = settings_height_max * pixel_6a_setting_panel_aspect / 3.f;
+            tile_single_width_pixels = settings_height_max * pixel_6a_setting_panel_aspect / 3.f;
         } else {
             float device_independent_x_padding = 2. * ImGuiStyle().WindowPadding.x + ImGuiStyle().ItemSpacing.x;
             // all lengths on a given device are scaled by main_scale, so can't compare pixels to pixels directly across devices.
             float screen_width_ratio = static_cast<double>(portraitScreenWidth / main_scale - device_independent_x_padding)/(pixel_6a_screen_width / pixel_6a_main_scale - device_independent_x_padding);
             font_scaling = screen_width_ratio / 1.02; //1.02: fudge factor to account for padding that's not scaled
-            ui_part_single_width_pixels = (portraitScreenWidth - style.ItemSpacing.x - 2 * style.WindowPadding.x)/3.;
+            tile_single_width_pixels = (portraitScreenWidth - style.ItemSpacing.x - 2 * style.WindowPadding.x)/3.;
             ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
             settings_height_max = inputs_ui.get_height() + trigger_ui.get_height(); 
             ImGui::PopFont();
@@ -307,43 +307,43 @@ int main(int, char**)
 
         plot_ui.recompute_x_bounds(inputs_ui.changed_since_last(), inputs_ui.mode);
 
-        const int n_ui_parts = 6;
-        UI_part* ui_parts[n_ui_parts] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui};
-        selectorUI selector_ui = selectorUI(ui_parts, n_ui_parts);
+        const int n_tiles = 6;
+        UI_tile* tiles[n_tiles] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui};
+        selectorUI selector_ui = selectorUI(tiles, n_tiles);
 
-        // col1 and grp1 contain singlet-width ui_parts, col2 and grp2 have duplex-width ui_parts
-        float ui_part_col_heights[2] = {0.f, 0.f};
+        // col1 and grp1 contain singlet-width tiles, col2 and grp2 have duplex-width tiles
+        float tile_col_heights[2] = {0.f, 0.f};
 
-        float ui_part_height_sum = 0.f;
-        int n_singlet_ui_parts_visible = 0;
-        float singlet_ui_part_height_when_row_col_tiling = 0.f; 
+        float tile_height_sum = 0.f;
+        int n_singlet_tiles_visible = 0;
+        float singlet_tile_height_when_row_col_tiling = 0.f; 
         ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
-        for(int i=0; i < n_ui_parts; i++) {
-            if(ui_parts[i]->is_visible) {
-                float height = ui_parts[i]->is_expanded ? ui_parts[i]->get_height() : ui_parts[i]->get_collapsed_height();
-                ui_part_height_sum += height;
-                ui_part_col_heights[static_cast<int>(ui_parts[i]->width)] += height;
-                if(ui_parts[i]->width == UI_part::Width::single) {
-                    singlet_ui_part_height_when_row_col_tiling = fmax(singlet_ui_part_height_when_row_col_tiling, height);
-                    n_singlet_ui_parts_visible++;
+        for(int i=0; i < n_tiles; i++) {
+            if(tiles[i]->is_visible) {
+                float height = tiles[i]->is_expanded ? tiles[i]->get_height() : tiles[i]->get_collapsed_height();
+                tile_height_sum += height;
+                tile_col_heights[static_cast<int>(tiles[i]->width)] += height;
+                if(tiles[i]->width == UI_tile::Width::single) {
+                    singlet_tile_height_when_row_col_tiling = fmax(singlet_tile_height_when_row_col_tiling, height);
+                    n_singlet_tiles_visible++;
                 }
             }
         }
 
-        bool row_col_tiling = (!landscape && (n_singlet_ui_parts_visible == 2) && ((ui_part_col_heights[1] + singlet_ui_part_height_when_row_col_tiling) < fmax(ui_part_col_heights[0], ui_part_col_heights[1]))) || \
-            (landscape && (n_singlet_ui_parts_visible > 0) && (0 < ui_part_col_heights[1]) && ((ui_part_col_heights[1] + singlet_ui_part_height_when_row_col_tiling) < settings_height_max));
+        bool row_col_tiling = (!landscape && (n_singlet_tiles_visible == 2) && ((tile_col_heights[1] + singlet_tile_height_when_row_col_tiling) < fmax(tile_col_heights[0], tile_col_heights[1]))) || \
+            (landscape && (n_singlet_tiles_visible > 0) && (0 < tile_col_heights[1]) && ((tile_col_heights[1] + singlet_tile_height_when_row_col_tiling) < settings_height_max));
         float col1_width = 0.f;
         float col2_width = 0.f;
 
         if(row_col_tiling) {
-            for(int i=0; i< n_ui_parts; i++) {
-                if(ui_parts[i]->is_visible) {
-                    float height = ui_parts[i]->is_expanded ? ui_parts[i]->get_height() : ui_parts[i]->get_collapsed_height();
+            for(int i=0; i< n_tiles; i++) {
+                if(tiles[i]->is_visible) {
+                    float height = tiles[i]->is_expanded ? tiles[i]->get_height() : tiles[i]->get_collapsed_height();
                 }
             }
         } else {
-            col1_width = (n_singlet_ui_parts_visible > 0) ? ui_part_single_width_pixels : 0;
-            col2_width = (ui_part_col_heights[1] > 0) ? 2 * ui_part_single_width_pixels : 0;
+            col1_width = (n_singlet_tiles_visible > 0) ? tile_single_width_pixels : 0;
+            col2_width = (tile_col_heights[1] > 0) ? 2 * tile_single_width_pixels : 0;
         }
 
         ImGui::SetNextWindowPos(ImVec2(0.f,statusBarHeight));
@@ -364,10 +364,10 @@ int main(int, char**)
                 data_width = ImGui::GetContentRegionAvail().x;
             } else {
                 if(row_col_tiling) {
-                    if (ui_part_col_heights[1] > 0.f) {
-                        settings_width = 2 * ui_part_single_width_pixels + (n_singlet_ui_parts_visible == 2) * style.ItemSpacing.x;
-                    } else if (n_singlet_ui_parts_visible > 0) {
-                        settings_width = ui_part_single_width_pixels + (n_singlet_ui_parts_visible == 2) * (ui_part_single_width_pixels + style.ItemSpacing.x);
+                    if (tile_col_heights[1] > 0.f) {
+                        settings_width = 2 * tile_single_width_pixels + (n_singlet_tiles_visible == 2) * style.ItemSpacing.x;
+                    } else if (n_singlet_tiles_visible > 0) {
+                        settings_width = tile_single_width_pixels + (n_singlet_tiles_visible == 2) * (tile_single_width_pixels + style.ItemSpacing.x);
                     } else {
                         settings_width = ImGui::CalcTextSize(" < ").x + 2 * style.FramePadding.x + style.ItemSpacing.x;
                     }
@@ -380,9 +380,9 @@ int main(int, char**)
             settings_width = portraitScreenWidth - 2 * style.WindowPadding.x;
             data_width = settings_width;
             if(row_col_tiling) {
-                settings_height = singlet_ui_part_height_when_row_col_tiling + ui_part_col_heights[1];
+                settings_height = singlet_tile_height_when_row_col_tiling + tile_col_heights[1];
             } else {
-                settings_height = fmax(fmax(ui_part_col_heights[0], ui_part_col_heights[1]), ImGui::GetFontSize() + 2 * style.FramePadding.y);
+                settings_height = fmax(fmax(tile_col_heights[0], tile_col_heights[1]), ImGui::GetFontSize() + 2 * style.FramePadding.y);
             }
 
             if(collapse_settings) {
@@ -412,7 +412,7 @@ int main(int, char**)
         ImVec2 dataWindowBottomLeft = ImGui::GetWindowPos() + ImVec2(0.f,ImGui::GetWindowSize().y);
         ImVec2 dataWindowBottomRight = ImGui::GetWindowPos() + ImGui::GetWindowSize();
         ImGui::EndChild();
-#define INDENTUP ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(0.f,style.ItemSpacing.y)); // remove gaps between ui_part groups in order to avoid unwanted presses on the background that open the ui_part selector popup.  this ItemSpacing is added back in by the ui_parts within their BeginGroup()/EndGroup() wrappings.  ImGuiContext.DebugShowGroupRects is very handy for debugging the groups
+#define INDENTUP ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(0.f,style.ItemSpacing.y)); // remove gaps between ui_tile groups in order to avoid unwanted presses on the background that open the ui_tile selector popup.  this ItemSpacing is added back in by the tiles within their BeginGroup()/EndGroup() wrappings.  ImGuiContext.DebugShowGroupRects is very handy for debugging the groups
         if(landscape) {
             ImGui::SameLine();
         } else {
@@ -428,7 +428,7 @@ int main(int, char**)
             ImGuiContext& g = *GImGui;
             ImVec2 bp = ImGui::GetCursorScreenPos();
             ImGui::SetNextItemAllowOverlap();
-            if(!screen_keyboard_shown && ImGui::InvisibleButton("open ui_part selector", {0.f, 0.f})) {
+            if(!screen_keyboard_shown && ImGui::InvisibleButton("open ui_tile selector", {0.f, 0.f})) {
                     ImGuiContext& g = *GImGui;
                     ImGuiIO& io = g.IO;
                     maybe_clicked_background = true;
@@ -441,13 +441,13 @@ int main(int, char**)
                         INDENTUP
                     ImGui::BeginGroup();
                     bool first = true;
-                    for(int i=0; i<n_ui_parts; i++) {
-                        if (ui_parts[i]->is_visible && (static_cast<int>(ui_parts[i]->width) == grp)) {
+                    for(int i=0; i<n_tiles; i++) {
+                        if (tiles[i]->is_visible && (static_cast<int>(tiles[i]->width) == grp)) {
                             if((grp==1)&&(!first)) {
                                 INDENTUP
                             }
                             first = false;
-                            ui_parts[i]->draw(ui_part_single_width_pixels + grp * (ui_part_single_width_pixels + style.ItemSpacing.x), &inputs_ui);
+                            tiles[i]->draw(tile_single_width_pixels + grp * (tile_single_width_pixels + style.ItemSpacing.x), &inputs_ui);
                             maybe_clicked_background &= !ImGui::IsItemHovered();
                             // items in group 0 are stacked side-by-side; those in group 1 are stacked vertically
                             if(grp==0) {
@@ -459,16 +459,16 @@ int main(int, char**)
                 }
             } else {
                 for(int col : {0,1}) {
-                    if(ui_part_col_heights[col] > 0)
+                    if(tile_col_heights[col] > 0)
                     {
                         ImGui::BeginGroup();
                         bool first = true;
-                        for(int i=0; i<n_ui_parts; i++) {
-                            if (ui_parts[i]->is_visible && (static_cast<int>(ui_parts[i]->width) == col)) {
+                        for(int i=0; i<n_tiles; i++) {
+                            if (tiles[i]->is_visible && (static_cast<int>(tiles[i]->width) == col)) {
                                 if(!first)
                                     INDENTUP
                                 first=false;
-                                ui_parts[i]->draw((static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels, &inputs_ui);
+                                tiles[i]->draw((static_cast<int>(tiles[i]->width) + 1) * tile_single_width_pixels, &inputs_ui);
                                 maybe_clicked_background &= !ImGui::IsItemHovered();
                             }
                         }
