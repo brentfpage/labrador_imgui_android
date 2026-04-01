@@ -109,11 +109,6 @@ public:
     void respondToStartupOrUsbStateChange(bool is_plugged_in, int file_descriptor, bool bootloader_mode);
     void set_bootloader_mode_allowed(bool allowed);
     void initiateFirmwareFlash();
-    int deviceMode = 0;
-
-    o1buffer *internal_o1_buffer_375_CHA;
-    o1buffer *internal_o1_buffer_375_CHB;
-    o1buffer *internal_o1_buffer_750;
 private:
 
     unsigned short VID, PID;
@@ -144,6 +139,12 @@ private:
     int findDevice_cpp();
     void dfu_launch();
 
+    friend void isoCallback(struct libusb_transfer * transfer);
+    int deviceMode = 0;
+
+    o1buffer *internal_o1_buffer_375_CHA;
+    o1buffer *internal_o1_buffer_375_CHB;
+    o1buffer *internal_o1_buffer_750;
 };
 
 template <typename T>
