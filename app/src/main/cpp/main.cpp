@@ -418,7 +418,7 @@ int main(int, char**)
         }
 
         ImGuiID col2_id;
-        ImVec2 settingsWindowTopRight;
+        ImVec2 settingsWindowTopLeft;
         ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
         bool maybe_clicked_background = false;
         bool screen_keyboard_shown = SDL_ScreenKeyboardShown(window);
@@ -477,7 +477,7 @@ int main(int, char**)
                 }
                 ImGui::NewLine();
             }
-            settingsWindowTopRight = ImGui::GetWindowPos() + ImVec2(ImGui::GetWindowSize().x, 0.f);
+            settingsWindowTopLeft = ImGui::GetWindowPos();
             ImGui::EndChild();
 
         }
@@ -509,7 +509,7 @@ int main(int, char**)
                 strcpy(label, " v ");
             }
             ImGui::BeginChild("data");
-            ImGui::SetCursorScreenPos(settingsWindowTopRight - ImGui::CalcTextSize(" v ") - style.FramePadding * 2);
+            ImGui::SetCursorScreenPos(settingsWindowTopLeft - ImVec2(0.f,ImGui::CalcTextSize(" v ").y + style.FramePadding.y * 2));
             ImGui::PushOverrideID(collapse_id);
             if(ImGui::Button(label)) {
                 collapse_settings = !collapse_settings;
