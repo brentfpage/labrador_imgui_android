@@ -436,7 +436,8 @@ int main(int, char**)
 
             if(row_col_tiling) {
                 for(int grp : {0,1}) {
-                    INDENTUP
+                    if(grp==1)
+                        INDENTUP
                     ImGui::BeginGroup();
                     bool first = true;
                     for(int i=0; i<n_ui_parts; i++) {
