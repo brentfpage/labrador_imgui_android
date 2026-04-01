@@ -10,6 +10,7 @@ void psuUI::draw(float width, inputsUI* inputs_ui)
 {
     ImGuiStyle& style = ImGui::GetStyle();
     ImGui::BeginGroup();
+    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.f,style.ItemSpacing.y)); // combined with lines in main.cpp, effectively folds itemspacing.y into the individual ui_part groups
 
     const float psu_button_width = style.FramePadding.x*2 + ImGui::CalcTextSize(" PSU ").x;
     float close_button_width = ImGui::GetFontSize() + style.FramePadding.x;

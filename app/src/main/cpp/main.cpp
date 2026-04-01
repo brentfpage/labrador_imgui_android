@@ -454,6 +454,7 @@ int main(int, char**)
                     ImGui::BeginGroup();
                     for(int i=0; i<n_ui_parts; i++) {
                         if (ui_parts[i]->is_visible && (ui_part_grps[i] == grp)) {
+                            ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(0.f,style.ItemSpacing.y)); // to remove gaps between ui_part groups.  this itemspacing is added back in by the ui_parts within their BeginGroup()/EndGroup() wrappings
                             ui_parts[i]->draw((static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels, &inputs_ui);
                             maybe_clicked_background &= !ImGui::IsItemHovered();
                             // items in group 0 are stacked side-by-side; those in group 1 are stacked vertically
@@ -471,6 +472,7 @@ int main(int, char**)
                         ImGui::BeginGroup();
                         for(int i=0; i<n_ui_parts; i++) {
                             if (ui_parts[i]->is_visible && (ui_part_cols[i] == col)) {
+                                ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(0.f,style.ItemSpacing.y)); // to remove gaps between ui_part groups.  this itemspacing is added back in by the ui_parts within their BeginGroup()/EndGroup() wrappings
                                 ui_parts[i]->draw((static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels, &inputs_ui);
                                 maybe_clicked_background &= !ImGui::IsItemHovered();
                             }
@@ -479,6 +481,7 @@ int main(int, char**)
                         ImGui::SameLine();
                     }
                 }
+                ImGui::NewLine();
             }
             settingsWindowTopRight = ImGui::GetWindowPos() + ImVec2(ImGui::GetWindowSize().x, 0.f);
             ImGui::EndChild();
