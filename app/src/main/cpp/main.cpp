@@ -311,33 +311,32 @@ int main(int, char**)
         UI_part* ui_parts[n_ui_parts] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui};
         selectorUI selector_ui = selectorUI(ui_parts, n_ui_parts);
 
+        // col1 and grp1 contain singlet-width ui_parts, col2 and grp2 have duplex-width ui_parts
+        float ui_part_col_heights[2] = {0.f, 0.f};
+        float ui_part_grp_heights[2] = {0.f, 0.f};
+
         float ui_part_height_sum = 0.f;
         int n_singlet_ui_parts_visible = 0;
-        float singlet_ui_part_height = 0.f; // only the height when row_col_tiling
-        float duplex_ui_part_height_sum = 0.f;
+        float singlet_ui_part_height_when_row_col_tiling = 0.f; 
+        float singlet_ui_part_height_when_2_col_tiling = 0.f;
         ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
         for(int i=0; i < n_ui_parts; i++) {
             if(ui_parts[i]->is_visible) {
                 float height = ui_parts[i]->is_expanded ? ui_parts[i]->get_height() : ui_parts[i]->get_collapsed_height();
                 ui_part_height_sum += height + style.ItemSpacing.y;
+                ui_part_col_heights[static_cast<int>(ui_parts[i]->width)] += height + style.ItemSpacing.y;
                 if(ui_parts[i]->width == UI_part::Width::single) {
-                    singlet_ui_part_height = fmax(singlet_ui_part_height, height + style.ItemSpacing.y);
+                    singlet_ui_part_height_when_row_col_tiling = fmax(singlet_ui_part_height_when_row_col_tiling, height + style.ItemSpacing.y);
                     n_singlet_ui_parts_visible++;
-                } else {
-                    duplex_ui_part_height_sum += height + style.ItemSpacing.y;
                 }
             }
         }
 
-        static int ui_part_cols[n_ui_parts];
-        float ui_part_col_heights[2] = {0.f, 0.f};
-        float ui_part_grp_heights[2] = {0.f, 0.f};
 
         const int ui_part_grps[n_ui_parts] = {0,0,1,1,1,1};
 
-        const int ui_part_cols_standard[n_ui_parts] = {0,0,1,1,1,1};
-        bool row_col_tiling = (!landscape && (n_singlet_ui_parts_visible == 2) && ((duplex_ui_part_height_sum + singlet_ui_part_height) < settings_height_max)) || \
-            (landscape && (n_singlet_ui_parts_visible > 0) && (0 < duplex_ui_part_height_sum) && ((duplex_ui_part_height_sum + singlet_ui_part_height) < settings_height_max));
+        bool row_col_tiling = (!landscape && (n_singlet_ui_parts_visible == 2) && ((ui_part_col_heights[1] + singlet_ui_part_height_when_row_col_tiling) < fmax(ui_part_col_heights[0], ui_part_col_heights[1]))) || \
+            (landscape && (n_singlet_ui_parts_visible > 0) && (0 < ui_part_col_heights[1]) && ((ui_part_col_heights[1] + singlet_ui_part_height_when_row_col_tiling) < settings_height_max));
         float col1_width = 0.f;
         float col2_width = 0.f;
 
@@ -354,14 +353,7 @@ int main(int, char**)
             }
         } else {
             col1_width = (n_singlet_ui_parts_visible > 0) ? ui_part_single_width_pixels : 0;
-            col2_width = (duplex_ui_part_height_sum > 0) ? 2 * ui_part_single_width_pixels : 0;
-            memcpy(ui_part_cols, ui_part_cols_standard, sizeof(int) * n_ui_parts);
-            for(int i=0; i< n_ui_parts; i++) {
-                if(ui_parts[i]->is_visible) {
-                    float height = ui_parts[i]->is_expanded ? ui_parts[i]->get_height() : ui_parts[i]->get_collapsed_height();
-                    ui_part_col_heights[ui_part_cols[i]] += height + style.ItemSpacing.y;
-                }
-            }
+            col2_width = (ui_part_col_heights[1] > 0) ? 2 * ui_part_single_width_pixels : 0;
         }
 
         ImGui::SetNextWindowPos(ImVec2(0.f,statusBarHeight));
@@ -382,7 +374,7 @@ int main(int, char**)
                 data_width = ImGui::GetContentRegionAvail().x - std::max(ImGui::GetFontSize(), ImGui::CalcTextSize(" < ").x) - 2 * style.FramePadding.x - style.ItemSpacing.x;
             } else {
                 if(row_col_tiling) {
-                    if (duplex_ui_part_height_sum > 0.f) {
+                    if (ui_part_col_heights[1] > 0.f) {
                         settings_width = 2 * ui_part_single_width_pixels + (n_singlet_ui_parts_visible == 2) * style.ItemSpacing.x;
                     } else if (n_singlet_ui_parts_visible > 0) {
                         settings_width = ui_part_single_width_pixels + (n_singlet_ui_parts_visible == 2) * (ui_part_single_width_pixels + style.ItemSpacing.x);
@@ -476,7 +468,7 @@ int main(int, char**)
                     {
                         ImGui::BeginGroup();
                         for(int i=0; i<n_ui_parts; i++) {
-                            if (ui_parts[i]->is_visible && (ui_part_cols[i] == col)) {
+                            if (ui_parts[i]->is_visible && (static_cast<int>(ui_parts[i]->width) == col)) {
                                 INDENTUP
                                 ui_parts[i]->draw((static_cast<int>(ui_parts[i]->width) + 1) * ui_part_single_width_pixels, &inputs_ui);
                                 maybe_clicked_background &= !ImGui::IsItemHovered();
