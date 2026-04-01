@@ -138,7 +138,7 @@ int main(int, char**)
     ImGuiStyle& style = ImGui::GetStyle();
     style.ScaleAllSizes(main_scale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
     style.FontScaleDpi = main_scale;        // Set initial font scale. (in docking branch: using io.ConfigDpiScaleFonts=true automatically overrides this for every window depending on the current monitor)
-    style.FontSizeBase = 18.5f;
+    style.FontSizeBase = 19.f;
     style.WindowPadding = ImVec2(style.WindowPadding.x/2,style.WindowPadding.y/2);
 
     // Setup Platform/Renderer backends
@@ -435,13 +435,16 @@ int main(int, char**)
         ImVec2 settingsWindowTopRight;
         ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
         bool maybe_clicked_background = false;
+        bool screen_keyboard_shown = SDL_ScreenKeyboardShown(window);
         if(!collapse_settings) {
             ImGui::BeginChild("settings",ImVec2(0.f, 0.f),0 );
             ImGuiContext& g = *GImGui;
             ImVec2 bp = ImGui::GetCursorScreenPos();
             ImGui::SetNextItemAllowOverlap();
-            if(ImGui::InvisibleButton("open ui_part selector", {0.f, 0.f})) {
-                maybe_clicked_background = true;
+            if(!screen_keyboard_shown && ImGui::InvisibleButton("open ui_part selector", {0.f, 0.f})) {
+                    ImGuiContext& g = *GImGui;
+                    ImGuiIO& io = g.IO;
+                    maybe_clicked_background = true;
             }
             ImGui::SetCursorScreenPos(bp);
 
