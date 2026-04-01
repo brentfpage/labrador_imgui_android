@@ -517,6 +517,8 @@ int main(int, char**)
 
         // maybe_clicked_background -> clicked_background at this point
         if(maybe_clicked_background) {
+            const ImGuiViewport* viewport = ImGui::GetMainViewport();
+            ImGui::SetNextWindowPos(viewport->GetCenter(),0,ImVec2(0.5f,0.5f));
             ImGui::OpenPopup("config_settings");
             maybe_clicked_background = false;
         }
