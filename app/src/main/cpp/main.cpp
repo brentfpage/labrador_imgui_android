@@ -511,8 +511,8 @@ int main(int, char**)
             } else {
                 strcpy(label, " v ");
             }
-            ImGui::BeginChild("settings");
-            ImGui::SetCursorScreenPos(settingsWindowTopRight - ImVec2(ImGui::CalcTextSize(" v ").x + 4 * style.FramePadding.x + style.ItemSpacing.x, 0.));
+            ImGui::BeginChild("data");
+            ImGui::SetCursorScreenPos(settingsWindowTopRight - ImGui::CalcTextSize(" v ") - style.FramePadding * 2 - style.ItemSpacing);
             ImGui::PushOverrideID(collapse_id);
             if(ImGui::Button(label)) {
                 collapse_settings = !collapse_settings;

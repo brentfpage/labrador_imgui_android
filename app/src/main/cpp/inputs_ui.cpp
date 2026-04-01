@@ -148,8 +148,6 @@ void inputsUI::draw(float width_pixels, inputsUI* inputs_ui)
 //     ImGui::Dummy({0.f, saved_pos.y - ImGui::GetCursorScreenPos().y});
 //     ImGui::PopStyleVar();
     ImGui::EndGroup();
-    p0 = ImGui::GetItemRectMin();
-    ImVec2 p1 = ImGui::GetItemRectMax();
 
     if (mode_update)
         update_device_mode();

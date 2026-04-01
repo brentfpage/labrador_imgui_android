@@ -16,11 +16,15 @@ void virtualTransformUI::draw(float width_pixels, inputsUI* inputs_ui)
     }
 //                 if(xy && j==2) // sync ch1 and ch2 pause states in xy mode
 //                     *(checkbox_bool[j] + (i+1)%2) = *(checkbox_bool[j] + i);
-    standard_header(width_pixels);
-    if(!is_expanded)
-        return;
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, 0.f));
+
     ImGui::BeginGroup();
+    standard_header(width_pixels);
+    if(!is_expanded) {
+        ImGui::EndGroup();
+        return;
+    }
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, 0.f));
+    ImGui::BeginGroup(); // for bounding rect
     if(ImGui::BeginTable("helper1",2, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_SizingFixedSame | ImGuiTableFlags_NoHostExtendX, ImVec2(width_pixels, 0.))) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
@@ -64,6 +68,7 @@ void virtualTransformUI::draw(float width_pixels, inputsUI* inputs_ui)
     ImVec2 p1 = ImGui::GetItemRectMax();
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     draw_list->AddRect(p0, p1, IM_COL32(90, 90, 120, 255),0,0,2);
+    ImGui::EndGroup();
     librador_set_virtual_transform_settings(ch_sel, 
             (o1buffer::virtual_transform_settings) 
             {.offset=curr_ch_settings->offset, .gain=gains[curr_ch_settings->gain_sel], .is_ac=curr_ch_settings->is_ac, .is_paused=curr_ch_settings->is_paused}); 

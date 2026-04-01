@@ -37,9 +37,13 @@ void sigGenUI::draw(float width_pixels, inputsUI* inputs_ui)
         both_ch_data[1] = ch_data();
     }
 
+    ImGui::BeginGroup();
     standard_header(width_pixels);
     if(!is_expanded)
+    {
+        ImGui::EndGroup();
         return;
+    }
 
     ImDrawList* draw_list;
     ImVec2 p0;
@@ -104,6 +108,7 @@ void sigGenUI::draw(float width_pixels, inputsUI* inputs_ui)
 
         ImGui::EndTable();
     }
+    ImGui::EndGroup();
     if(need_usb_send) {
         std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
         if(std::chrono::duration_cast<std::chrono::milliseconds>(now - last_usb_send) > between_usb_sends_min) {

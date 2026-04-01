@@ -9,6 +9,7 @@
 void psuUI::draw(float width, inputsUI* inputs_ui)
 {
     ImGuiStyle& style = ImGui::GetStyle();
+    ImGui::BeginGroup();
 
     const float psu_button_width = style.FramePadding.x*2 + ImGui::CalcTextSize("PSU").x;
     float close_button_width = ImGui::GetFontSize() + style.FramePadding.x+ style.ItemSpacing.x;
@@ -16,7 +17,7 @@ void psuUI::draw(float width, inputsUI* inputs_ui)
     ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + style.CellPadding);
     const float x_padding = style.CellPadding.x * 2 + style.ItemSpacing.x;
     ImGui::PushItemWidth(width - psu_button_width - x_padding - 1 - close_button_width);  // -1 to give space for bounding rect
-    ImGui::BeginGroup();
+    ImGui::BeginGroup(); // for bounding rect
     button_common("PSU", "##psu_slider", ImVec2(psu_button_width,0.f), style);
     ImGui::PopStyleVar();
     ImGui::SameLine();
@@ -35,7 +36,8 @@ void psuUI::draw(float width, inputsUI* inputs_ui)
         is_expanded = false;
         is_visible = false;
     }
-    ImGui::Dummy({0.f,0.f});
+
+    ImGui::EndGroup();
 
 
 

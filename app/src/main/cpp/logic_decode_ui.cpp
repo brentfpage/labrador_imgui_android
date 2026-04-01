@@ -114,9 +114,13 @@ bool logicDecodeUI::decoding_on()
 
 void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
 {
+    ImGui::BeginGroup();
     standard_header(width_pixels);
     if(!is_expanded)
+    {
+        ImGui::EndGroup();
         return;
+    }
 
     bool logic_enable[2];
     if(inputs_ui->scopelogic_mode()) {
@@ -225,6 +229,7 @@ void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
         ImGui::EndPopup();
     }
     ImGui::EndDisabled(); //!logic_enable[0] && !logic_enable[1]);
+    ImGui::EndGroup();
 
 
     if(uart_changed)
