@@ -270,8 +270,8 @@ int usbCallHandler::setup_usb_iso(){
             return error;
             LOGW("setup_usb_iso failed\n");
         }
-        iso_thread_active = true;
         iso_polling_thread = new std::thread(iso_polling_function, ctx);
+        iso_thread_active = true;
     }
     return 0;
 }
