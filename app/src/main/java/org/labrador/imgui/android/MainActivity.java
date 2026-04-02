@@ -35,6 +35,7 @@ import androidx.core.view.ViewCompat;
 import android.content.pm.ActivityInfo;
 // import android.graphics.Insets;
 
+// TODO: handle edge cases related to user unplugging board in non-bootloader state, replugging it back in in bootloader state
 public class MainActivity extends SDLActivity {
     private static final String ACTION_USB_PERMISSION = "org.labrador.imgui.android.USB_PERMISSION";
     private static final String usbStateChangeAction = "android.hardware.usb.action.USB_STATE";
@@ -86,41 +87,60 @@ public class MainActivity extends SDLActivity {
         if(intent != null) { 
             Log.d(TAG, "new intent: " + intent.getAction());
             // intent.getAction()==null included to allow a debugger to start the app; can be removed for non-debug-version apk
+            UsbDevice device;
+            boolean goToNextStep = false;
+            HashMap<String,Integer> device_info = new HashMap<String,Integer>();
             if((intent.getAction()==null) || Intent.ACTION_MAIN.equals(intent.getAction())) {
-                nativeRespondToStartupOrUsbStateChange(false, -1, false);
+                // look for the device
+                UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);  //Handle to system USB service?
+                HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
+                Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
+                if(!deviceIterator.hasNext()){
+                    Log.d(TAG, "no device found");
+                }
+                while(!goToNextStep && deviceIterator.hasNext()) {
+                    Log.d(TAG, "DEVICE FOUND");
+                    device = deviceIterator.next();
+                    device_info = processUsbDevice(device);
+                    if(!device_info.isEmpty()) {
+                        goToNextStep = true;
+                    }
+                }
             } else if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(intent.getAction())) {
-                UsbDevice device;
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                   device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice.class);
                 } else {
                   device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                 }
-                HashMap<String,Integer> device_info = processUsbDevice(device);
-                if(device_info.isEmpty()) {
-                    nativeRespondToStartupOrUsbStateChange(false, -1, false);
-                    return;
-                } else {
-                    int file_descriptor = device_info.get("file_descriptor");
-                    boolean bootloader_mode = device_info.get("bootloader_mode") == 1 ? true : false;
-                    if(!bootloader_mode_allowed && bootloader_mode) {
-                        AlertDialog alert = new AlertDialog.Builder(MainActivity.this)
-                             .setMessage("Board found in bootloader mode, which is intended for firmware updates.  Please unplug the board, disconnect Digital Out 1 from GND, and plug the board back in.  If a firmware update is needed, it will be performed automatically.")
-                             .setPositiveButton("OK", new DialogInterface.OnClickListener()
-                                        {
-                                            @Override
-                                            public void onClick(DialogInterface dialog, int id)
-                                            {
-                                            }
-                                        } 
-                                        )
-                             .setCancelable(false)
-                             .create();
-                        alert.show();
-                        nativeRespondToStartupOrUsbStateChange(false, file_descriptor, bootloader_mode);
-                        return;
-                    }
-                    nativeRespondToStartupOrUsbStateChange(true, file_descriptor, bootloader_mode);
+                device_info = processUsbDevice(device);
+                if(!device_info.isEmpty()) {
+                    goToNextStep = true;
                 }
+            }
+            if(goToNextStep) {
+                int file_descriptor = device_info.get("file_descriptor");
+                boolean bootloader_mode = device_info.get("bootloader_mode") == 1 ? true : false;
+                if(!bootloader_mode_allowed && bootloader_mode) {
+                    AlertDialog alert = new AlertDialog.Builder(MainActivity.this)
+                         .setMessage("Board found in bootloader mode, which is intended for firmware updates.  Please unplug the board, disconnect Digital Out 1 from GND, and plug the board back in.  If a firmware update is needed, it will be performed automatically.")
+                         .setPositiveButton("OK", new DialogInterface.OnClickListener()
+                                    {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int id)
+                                        {
+                                        }
+                                    } 
+                                    )
+                         .setCancelable(false)
+                         .create();
+                    alert.show();
+                    nativeRespondToStartupOrUsbStateChange(false, file_descriptor, bootloader_mode);
+                    return;
+                }
+                nativeRespondToStartupOrUsbStateChange(true, file_descriptor, bootloader_mode);
+            } else {
+                nativeRespondToStartupOrUsbStateChange(false, -1, false);
+                return;
             }
         }
     }
@@ -153,19 +173,23 @@ public class MainActivity extends SDLActivity {
         // handle edge case: Labrador board is connected -> user puts phone to sleep -> user unplugs Labrador board -> user wakes phone back up (at which point onResume() gets called with intent= the most recent intent received by the app, i.e., the original intent signaling that the board was connected)
         HashMap<String, UsbDevice> dl = manager.getDeviceList();
         if (!manager.getDeviceList().containsValue(device)) {
-            Log.d(TAG, "reached wake without device");
             return device_info;
         }
 
         manager.requestPermission(device, mPermissionIntent);
 
-        while(!manager.hasPermission(device)){
+        while(!manager.hasPermission(device)) {
             ;
             }
 
         int DeviceID = device.getDeviceId();
         int VID = device.getVendorId();
         int PID = device.getProductId();
+
+        // in practice only relevant when the app is started with the device already plugged in
+        if(!((VID==0x03eb) && ((PID==0x2fe4) || (PID==0xba94)))) {
+            return device_info; // not the device we're looking for
+        }
 
         if(!manager.hasPermission(device)){
             Log.d(TAG, "permission was not granted to the USB device!!!");
