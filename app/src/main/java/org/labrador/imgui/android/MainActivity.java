@@ -84,64 +84,62 @@ public class MainActivity extends SDLActivity {
         registerReceiver(myUsbDetachBroadcastReceiver, filter);
 
         Intent intent = getIntent();
-        if(intent != null) { 
-            Log.d(TAG, "new intent: " + intent.getAction());
-            // intent.getAction()==null included to allow a debugger to start the app; can be removed for non-debug-version apk
-            UsbDevice device;
-            boolean goToNextStep = false;
-            HashMap<String,Integer> device_info = new HashMap<String,Integer>();
-            if((intent.getAction()==null) || Intent.ACTION_MAIN.equals(intent.getAction())) {
-                // look for the device
-                UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);  //Handle to system USB service?
-                HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
-                Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
-                if(!deviceIterator.hasNext()){
-                    Log.d(TAG, "no device found");
-                }
-                while(!goToNextStep && deviceIterator.hasNext()) {
-                    Log.d(TAG, "DEVICE FOUND");
-                    device = deviceIterator.next();
-                    device_info = processUsbDevice(device);
-                    if(!device_info.isEmpty()) {
-                        goToNextStep = true;
-                    }
-                }
-            } else if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(intent.getAction())) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                  device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice.class);
-                } else {
-                  device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-                }
+        Log.d(TAG, "new intent: " + intent.getAction());
+        // intent.getAction()==null included to allow a debugger to start the app; can be removed for non-debug-version apk
+        UsbDevice device;
+        boolean goToNextStep = false;
+        HashMap<String,Integer> device_info = new HashMap<String,Integer>();
+        if((intent.getAction()==null) || Intent.ACTION_MAIN.equals(intent.getAction())) {
+            // look for the device
+            UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);  //Handle to system USB service?
+            HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
+            Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
+            if(!deviceIterator.hasNext()){
+                Log.d(TAG, "no device found");
+            }
+            while(!goToNextStep && deviceIterator.hasNext()) {
+                Log.d(TAG, "DEVICE FOUND");
+                device = deviceIterator.next();
                 device_info = processUsbDevice(device);
                 if(!device_info.isEmpty()) {
                     goToNextStep = true;
                 }
             }
-            if(goToNextStep) {
-                int file_descriptor = device_info.get("file_descriptor");
-                boolean bootloader_mode = device_info.get("bootloader_mode") == 1 ? true : false;
-                if(!bootloader_mode_allowed && bootloader_mode) {
-                    AlertDialog alert = new AlertDialog.Builder(MainActivity.this)
-                         .setMessage("Board found in bootloader mode, which is intended for firmware updates.  Please unplug the board, disconnect Digital Out 1 from GND, and plug the board back in.  If a firmware update is needed, it will be performed automatically.")
-                         .setPositiveButton("OK", new DialogInterface.OnClickListener()
-                                    {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int id)
-                                        {
-                                        }
-                                    } 
-                                    )
-                         .setCancelable(false)
-                         .create();
-                    alert.show();
-                    nativeRespondToStartupOrUsbStateChange(false, file_descriptor, bootloader_mode);
-                    return;
-                }
-                nativeRespondToStartupOrUsbStateChange(true, file_descriptor, bootloader_mode);
+        } else if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(intent.getAction())) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+              device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice.class);
             } else {
-                nativeRespondToStartupOrUsbStateChange(false, -1, false);
+              device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+            }
+            device_info = processUsbDevice(device);
+            if(!device_info.isEmpty()) {
+                goToNextStep = true;
+            }
+        }
+        if(goToNextStep) {
+            int file_descriptor = device_info.get("file_descriptor");
+            boolean bootloader_mode = device_info.get("bootloader_mode") == 1 ? true : false;
+            if(!bootloader_mode_allowed && bootloader_mode) {
+                AlertDialog alert = new AlertDialog.Builder(MainActivity.this)
+                     .setMessage("Board found in bootloader mode, which is intended for firmware updates.  Please unplug the board, disconnect Digital Out 1 from GND, and plug the board back in.  If a firmware update is needed, it will be performed automatically.")
+                     .setPositiveButton("OK", new DialogInterface.OnClickListener()
+                                {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int id)
+                                    {
+                                    }
+                                } 
+                                )
+                     .setCancelable(false)
+                     .create();
+                alert.show();
+                nativeRespondToStartupOrUsbStateChange(false, file_descriptor, bootloader_mode);
                 return;
             }
+            nativeRespondToStartupOrUsbStateChange(true, file_descriptor, bootloader_mode);
+        } else {
+            nativeRespondToStartupOrUsbStateChange(false, -1, false);
+            return;
         }
     }
 
