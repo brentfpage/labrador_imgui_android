@@ -41,6 +41,7 @@ public class MainActivity extends SDLActivity {
     private static final String usbStateChangeAction = "android.hardware.usb.action.USB_STATE";
     private static final String TAG = "org.labrador.imgui.android";
     public AssetManager mgr;
+    private boolean usb_permission_request_allowed = true;
 
     private UsbDeviceConnection connection = null;
     public boolean bootloader_mode_allowed = false; // modified by usbcallhandler
@@ -81,14 +82,14 @@ public class MainActivity extends SDLActivity {
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+        // don't need to add the ACTION_USB_DEVICE_ATTACHED intent because it is already declared in the manifest and accordingly launches the app or gets forwarded to this app's onNewIntent() by android software.
         registerReceiver(myUsbDetachBroadcastReceiver, filter);
 
         Intent intent = getIntent();
         Log.d(TAG, "new intent: " + intent.getAction());
-        // intent.getAction()==null included to allow a debugger to start the app; can be removed for non-debug-version apk
         UsbDevice device;
-        boolean goToNextStep = false;
         HashMap<String,Integer> device_info = new HashMap<String,Integer>();
+        // intent.getAction()==null included to allow a debugger to start the app; can be removed for non-debug-version apk
         if((intent.getAction()==null) || Intent.ACTION_MAIN.equals(intent.getAction())) {
             // look for the device
             UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);  //Handle to system USB service?
@@ -97,13 +98,10 @@ public class MainActivity extends SDLActivity {
             if(!deviceIterator.hasNext()){
                 Log.d(TAG, "no device found");
             }
-            while(!goToNextStep && deviceIterator.hasNext()) {
+            while(device_info.isEmpty() && deviceIterator.hasNext()) {
                 Log.d(TAG, "device list has device");
                 device = deviceIterator.next();
                 device_info = processUsbDevice(device);
-                if(!device_info.isEmpty()) {
-                    goToNextStep = true;
-                }
             }
         } else if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(intent.getAction())) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -112,34 +110,11 @@ public class MainActivity extends SDLActivity {
               device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
             }
             device_info = processUsbDevice(device);
-            if(!device_info.isEmpty()) {
-                goToNextStep = true;
-            }
         }
-        if(goToNextStep) {
-            int file_descriptor = device_info.get("file_descriptor");
-            boolean bootloader_mode = device_info.get("bootloader_mode") == 1 ? true : false;
-            if(!bootloader_mode_allowed && bootloader_mode) {
-                AlertDialog alert = new AlertDialog.Builder(MainActivity.this)
-                     .setMessage("Board found in bootloader mode, which is intended for firmware updates.  Please unplug the board, disconnect Digital Out 1 from GND, plug the board back in, and then unplug and replug the board a second time.  If a firmware update is needed, it will be performed automatically.")
-                     .setPositiveButton("OK", new DialogInterface.OnClickListener()
-                                {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int id)
-                                    {
-                                    }
-                                } 
-                                )
-                     .setCancelable(false)
-                     .create();
-                alert.show();
-                nativeRespondToStartupOrUsbStateChange(false, file_descriptor, bootloader_mode);
-                return;
-            }
-            nativeRespondToStartupOrUsbStateChange(true, file_descriptor, bootloader_mode);
-        } else {
+        if(device_info.isEmpty()) {
             nativeRespondToStartupOrUsbStateChange(false, -1, false);
-            return;
+        } else {
+            sendDeviceToLibrador(device_info);
         }
     }
 
@@ -159,7 +134,7 @@ public class MainActivity extends SDLActivity {
     }
 
     private HashMap<String,Integer> processUsbDevice(UsbDevice device) {
-        HashMap<String,Integer> device_info = new HashMap<>();
+        HashMap<String,Integer> device_info = new HashMap<String,Integer>();
         PendingIntent mPermissionIntent;
         Intent intent = new Intent(MainActivity.ACTION_USB_PERMISSION);
         intent.setPackage(MainActivity.getContext().getPackageName());
@@ -174,23 +149,25 @@ public class MainActivity extends SDLActivity {
             return device_info;
         }
 
-        manager.requestPermission(device, mPermissionIntent);
-        // typically, a component of the android software at a higher level than this app has already requested the user's permission to open the usb device, in which case this line has very little effect.
-        // if not: this line causes a dialog window to open that prompts the user for permission.  meanwhile, this function proceeds and hits the !manager.hasPermission() block below, which returns an empty device_info, which gets handled cleanly.  After the user responds to the dialog window, onResume() gets called, which leads back here.  If the user responded in the affirmative, then the above line has very little effect.
-
         int DeviceID = device.getDeviceId();
         int VID = device.getVendorId();
         int PID = device.getProductId();
 
-        // in practice only relevant when the app is started with the device already plugged in
+        // this check is typically not needed b/c this piece of code gets reached after android software recognizes that the labrador board specifically was plugged in
         if(!((VID==0x03eb) && ((PID==0x2fe4) || (PID==0xba94)))) {
             return device_info; // not the device we're looking for
         }
 
-        if(!manager.hasPermission(device)){
-            Log.d(TAG, "permission was not granted to the USB device!!!");
+        // Block below: for the rare case that the app finds the board and android software hasn't handled the usb permissions so they need to be handled by the app.  E.g., if the user connects the board, rejects the resulting permission request from android software, then opens the app; or if the user connects the board, grants a non-permanent usb permission (at which point android software opens the app), then closes and re-opens the app.
+        if(!manager.hasPermission(device)) {
+            // block below: open a dialog window that prompts the user for usb connection permission.  meanwhile, this function returns an empty device_info, which gets handled cleanly.  After the user responds to the dialog window, onResume() gets called, which leads back here.  In the case of rejection by the user, the usb_permission_request_allowed boolean prevents the request from being repeated.  This bool gets reset to true if the user disconnects the board.
+            if(usb_permission_request_allowed) {
+                manager.requestPermission(device, mPermissionIntent);
+                usb_permission_request_allowed = false;
+            }
             return device_info;
         }
+
         connection = manager.openDevice(device);
         int file_descriptor;
         if(connection==null) {
@@ -211,6 +188,29 @@ public class MainActivity extends SDLActivity {
 
         Log.d(TAG, "Returning...");
         return device_info;
+    }
+
+    private void sendDeviceToLibrador(HashMap<String,Integer> device_info) {
+        int file_descriptor = device_info.get("file_descriptor");
+        boolean bootloader_mode = device_info.get("bootloader_mode") == 1 ? true : false;
+        if(!bootloader_mode_allowed && bootloader_mode) {
+            AlertDialog alert = new AlertDialog.Builder(MainActivity.this)
+                 .setMessage("Board found in bootloader mode, which is intended for firmware updates.  Please unplug the board, disconnect Digital Out 1 from GND, plug the board back in, and then unplug and replug the board a second time.  If a firmware update is needed, it will be performed automatically.")
+                 .setPositiveButton("OK", new DialogInterface.OnClickListener()
+                            {
+                                @Override
+                                public void onClick(DialogInterface dialog, int id)
+                                {
+                                }
+                            } 
+                            )
+                 .setCancelable(false)
+                 .create();
+            alert.show();
+            nativeRespondToStartupOrUsbStateChange(false, file_descriptor, bootloader_mode);
+            return;
+        }
+        nativeRespondToStartupOrUsbStateChange(true, file_descriptor, bootloader_mode);
     }
 
 // doesn't work ideally at the moment because iso_polling_thread in
@@ -234,6 +234,7 @@ public class MainActivity extends SDLActivity {
                 int PID = device.getProductId();
                 if((VID==0x03eb) && (PID==0xba94)){
                     nativeRespondToStartupOrUsbStateChange(false, -1, false);
+                    usb_permission_request_allowed = true;
                 }
                 if(connection != null) {
                     connection.close();
