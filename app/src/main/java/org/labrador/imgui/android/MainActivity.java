@@ -98,7 +98,7 @@ public class MainActivity extends SDLActivity {
                 Log.d(TAG, "no device found");
             }
             while(!goToNextStep && deviceIterator.hasNext()) {
-                Log.d(TAG, "DEVICE FOUND");
+                Log.d(TAG, "device list has device");
                 device = deviceIterator.next();
                 device_info = processUsbDevice(device);
                 if(!device_info.isEmpty()) {
@@ -175,10 +175,8 @@ public class MainActivity extends SDLActivity {
         }
 
         manager.requestPermission(device, mPermissionIntent);
-
-        while(!manager.hasPermission(device)) {
-            ;
-            }
+        // typically, a component of the android software at a higher level than this app has already requested the user's permission to open the usb device, in which case this line has very little effect.
+        // if not: this line causes a dialog window to open that prompts the user for permission.  meanwhile, this function proceeds and hits the !manager.hasPermission() block below, which returns an empty device_info, which gets handled cleanly.  After the user responds to the dialog window, onResume() gets called, which leads back here.  If the user responded in the affirmative, then the above line has very little effect.
 
         int DeviceID = device.getDeviceId();
         int VID = device.getVendorId();
