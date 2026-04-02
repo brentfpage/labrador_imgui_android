@@ -50,7 +50,7 @@ void o1buffer::add(int value, int address){
 }
 
 int o1buffer::addVector(int *firstElement, int numElements){
-    if(m_virtual_transform_settings.is_paused)
+    if(m_virtual_transform_settings.is_paused) // TODO need mutex when setting is_paused?
         return 1;
     int currentAddress = mostRecentAddress;
 
@@ -65,7 +65,7 @@ int o1buffer::addVector(int *firstElement, int numElements){
 }
 
 int o1buffer::addVector(char *firstElement, int numElements){
-    if(m_virtual_transform_settings.is_paused)
+    if(m_virtual_transform_settings.is_paused) // TODO need mutex when setting is_paused?
         return 1;
     int currentAddress = mostRecentAddress;
 
@@ -81,7 +81,7 @@ int o1buffer::addVector(char *firstElement, int numElements){
 }
 
 int o1buffer::addVector(unsigned char *firstElement, int numElements){
-    if(m_virtual_transform_settings.is_paused)
+    if(m_virtual_transform_settings.is_paused) // TODO need mutex when setting is_paused?
         return 1;
     int currentAddress = mostRecentAddress;
 
@@ -96,7 +96,7 @@ int o1buffer::addVector(unsigned char *firstElement, int numElements){
 }
 
 int o1buffer::addVector(short *firstElement, int numElements){
-    if(m_virtual_transform_settings.is_paused)
+    if(m_virtual_transform_settings.is_paused) // TODO need mutex when setting is_paused?
         return 1;
     int currentAddress = mostRecentAddress;
 
