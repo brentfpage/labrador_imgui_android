@@ -121,7 +121,7 @@ public class MainActivity extends SDLActivity {
             boolean bootloader_mode = device_info.get("bootloader_mode") == 1 ? true : false;
             if(!bootloader_mode_allowed && bootloader_mode) {
                 AlertDialog alert = new AlertDialog.Builder(MainActivity.this)
-                     .setMessage("Board found in bootloader mode, which is intended for firmware updates.  Please unplug the board, disconnect Digital Out 1 from GND, and plug the board back in.  If a firmware update is needed, it will be performed automatically.")
+                     .setMessage("Board found in bootloader mode, which is intended for firmware updates.  Please unplug the board, disconnect Digital Out 1 from GND, plug the board back in, and then unplug and replug the board a second time.  If a firmware update is needed, it will be performed automatically.")
                      .setPositiveButton("OK", new DialogInterface.OnClickListener()
                                 {
                                     @Override
