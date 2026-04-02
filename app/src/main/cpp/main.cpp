@@ -217,7 +217,7 @@ int main(int, char**)
 
     // Main loop
     bool done = false;
-    bool iso_thread_active;
+    bool iso_thread_active = false;
     bool need_board_init = true;
 #ifdef __EMSCRIPTEN__
     // For an Emscripten build we are disabling file-system access, so let's not attempt to do a fopen() of the imgui.ini file.
