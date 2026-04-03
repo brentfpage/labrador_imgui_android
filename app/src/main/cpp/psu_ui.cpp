@@ -6,33 +6,31 @@
 #include "imgui_internal.h"
 #include "psu_ui.h"
 
-void psuUI::draw(float width, inputsUI* inputs_ui)
+void psuUI::draw(float width_pixels, inputsUI* inputs_ui)
 {
     ImGuiStyle& style = ImGui::GetStyle();
     ImGui::BeginGroup();
     ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.f,style.ItemSpacing.y)); // combined with lines in main.cpp, effectively folds itemspacing.y into the group covering this ui_tile.  
+    ImVec2 baseline_loc = ImGui::GetCursorScreenPos();
 
     const float psu_button_width = style.FramePadding.x*2 + ImGui::CalcTextSize(" PSU ").x;
+    ImVec2 slider_loc = baseline_loc + ImVec2(psu_button_width + style.ItemInnerSpacing.x, 0.f);
     float close_button_width = ImGui::GetFontSize() + style.FramePadding.x;
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(style.ItemInnerSpacing.x,style.ItemSpacing.y));
-    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + style.CellPadding);
+    ImVec2 close_button_loc = baseline_loc + ImVec2(width_pixels - close_button_width, style.FramePadding.y );
+
     ImGui::BeginGroup(); // for bounding rect
     button_common(" PSU ", "##psu_slider", ImVec2(psu_button_width,0.f), style);
     ImGui::SameLine();
-    ImGui::PopStyleVar();
-    const float x_padding = style.CellPadding.x * 2 + style.ItemSpacing.x;
-    ImGui::PushItemWidth(width - psu_button_width - x_padding - 1 - close_button_width);  // -1 to give space for bounding rect
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {style.ItemSpacing.x,style.CellPadding.y});
+    ImGui::SetCursorScreenPos(slider_loc); 
+    ImGui::PushItemWidth(width_pixels - psu_button_width - 2 * style.ItemInnerSpacing.x - 1 - close_button_width);  // -1 to give space for bounding rect
     if(ImGui::custom_SliderFloat("##psu_slider", "V", &psu, 4.5f, 12.0f, "%.1f V", ImGuiSliderFlags_ClampOnInput) || ImGui::IsItemDeactivatedAfterEdit()) {
         need_usb_send = true;
     }
     ImGui::SameLine();
-    ImVec2 close_button_loc = ImGui::GetCursorScreenPos() + ImVec2(0.f, style.ItemSpacing.y);
     ImGui::EndGroup();
-    ImGui::PopStyleVar();
 
-    ImVec2 p0 = ImGui::GetItemRectMin() - style.CellPadding;
-    ImVec2 p1 = ImGui::GetItemRectMax() + style.CellPadding;
+    ImVec2 p0 = ImGui::GetItemRectMin();
+    ImVec2 p1 = ImGui::GetItemRectMax();
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     draw_list->AddRect(p0, p1, IM_COL32(90, 90, 120, 255),0,0,2);
 
@@ -40,10 +38,12 @@ void psuUI::draw(float width, inputsUI* inputs_ui)
         is_expanded = false;
         is_visible = false;
     }
+    ImGui::SameLine();
+    // mimic the spacing/cursor advancement that a standard Button(...) would generate
+    ImGui::SetCursorScreenPos(close_button_loc);
+    ImGui::Dummy({close_button_width,0.f});
 
-    ImGui::Dummy({0.f,0.f});
     ImGui::EndGroup();
-//     ImGui::PopStyleVar();
 
     if(need_usb_send) {
         std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
