@@ -143,11 +143,6 @@ public class MainActivity extends SDLActivity {
         int VID = device.getVendorId();
         int PID = device.getProductId();
 
-        // this check is typically not needed b/c this piece of code gets reached after android software recognizes that the labrador board specifically was plugged in
-        if(!((VID==0x03eb) && ((PID==0x2fe4) || (PID==0xba94)))) {
-            return device_info; // not the device we're looking for
-        }
-
         // Block below: for the rare case that the app finds the board and android software hasn't handled the usb permissions so they need to be handled by the app.  E.g., if the user connects the board, rejects the resulting permission request from android software, then opens the app; or if the user connects the board, grants a non-permanent usb permission (at which point android software opens the app), then closes and re-opens the app.
         if(!manager.hasPermission(device)) {
             // block below: open a dialog window that prompts the user for usb connection permission.  meanwhile, this function returns an empty device_info, which gets handled cleanly.  After the user responds to the dialog window, onResume() gets called, which leads back here.  In the case of rejection by the user, the usb_permission_request_allowed boolean prevents the request from being repeated.  This bool gets reset to true if the user disconnects the board.
