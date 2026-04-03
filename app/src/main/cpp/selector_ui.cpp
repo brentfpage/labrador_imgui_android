@@ -37,7 +37,7 @@ void selectorUI::draw(float width_pixels, inputsUI* inputs_ui)
 void selectorUI::draw_popup()
 {
     if(ImGui::BeginPopup("config_settings")) {
-        ImGui::Text("Select widgets");
+        ImGui::Text("Select tiles");
         ImGui::Separator();
         for (int i=0; i< n_tiles; i++) {
             if(ImGui::Checkbox(tiles[i]->name, &tiles[i]->is_visible)) {
@@ -56,5 +56,5 @@ void selectorUI::draw_popup()
 int selectorUI::get_height()
 {
     ImGuiStyle& style = ImGui::GetStyle();
-    return CHECKBOX_SIZE * n_lines + style.ItemSpacing.y * (n_lines - 1);
+    return CHECKBOX_SIZE * n_lines + style.ItemSpacing.y * (n_lines - 1) + style.WindowPadding.y*2 + 2 * style.ItemSpacing.y + style.SeparatorSize + ImGui::GetFontSize();
 }

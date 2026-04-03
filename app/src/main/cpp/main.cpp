@@ -423,8 +423,10 @@ int main(int, char**)
         ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
         bool maybe_clicked_background = false;
         bool screen_keyboard_shown = SDL_ScreenKeyboardShown(window);
+        ImVec2 settings_window_center;
         if(!collapse_settings) {
             ImGui::BeginChild("settings",ImVec2(0.f, 0.f),0 );
+            settings_window_center = ImGui::GetWindowPos() + ImGui::GetWindowSize()/2.;
             ImGuiContext& g = *GImGui;
             ImVec2 bp = ImGui::GetCursorScreenPos();
             ImGui::SetNextItemAllowOverlap();
@@ -518,7 +520,11 @@ int main(int, char**)
         // maybe_clicked_background -> clicked_background at this point
         if(maybe_clicked_background) {
             const ImGuiViewport* viewport = ImGui::GetMainViewport();
-            ImGui::SetNextWindowPos(viewport->GetCenter(),0,ImVec2(0.5f,0.5f));
+            if( (settings_window_center.y + selector_ui.get_height()/2.) > (ImGui::GetWindowPos().y + ImGui::GetWindowSize().y) ) {
+                ImGui::SetNextWindowPos(ImGui::GetWindowPos() + ImVec2(ImGui::GetWindowSize().x/2, ImGui::GetWindowSize().y),0,ImVec2(0.5f,1.f));
+            } else {
+                ImGui::SetNextWindowPos(settings_window_center,0,ImVec2(0.5f,0.5f));
+            }
             ImGui::OpenPopup("config_settings");
             maybe_clicked_background = false;
         }
