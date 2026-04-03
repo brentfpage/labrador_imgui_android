@@ -1,6 +1,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui.h"
 #include "selector_ui.h"
+#include <librador.h>
 
 void selectorUI::draw_popup()
 {
@@ -29,4 +30,15 @@ int selectorUI::get_height()
             style.ItemSpacing.y + style.SeparatorSize + \
             CHECKBOX_SIZE * n_tiles + style.ItemSpacing.y * (n_tiles - 1) + \
             style.WindowPadding.y + style.WindowBorderSize;
+}
+
+int selectorUI::get_width()
+{
+    ImGuiStyle& style = ImGui::GetStyle();
+    float text_width = 0;
+    for(int i = 0; i < n_tiles; i++) {
+        text_width = fmax(text_width, ImGui::CalcTextSize(tiles[i]->name).x);
+    }
+    return CHECKBOX_SIZE + style.ItemInnerSpacing.x + text_width + 2 * (style.WindowBorderSize + style.WindowPadding.x);
+
 }

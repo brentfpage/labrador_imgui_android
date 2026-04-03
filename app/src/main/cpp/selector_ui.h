@@ -9,6 +9,7 @@ class selectorUI
 public:
     selectorUI(UI_tile** tiles, int n_tiles) : tiles(tiles), n_tiles(n_tiles) {};
     int get_height();
+    int get_width();
     void draw_popup();
 };
 

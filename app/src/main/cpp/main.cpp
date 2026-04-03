@@ -519,13 +519,20 @@ int main(int, char**)
         ImGui::EndChild();
         ImGui::EndChild();
 
-        // maybe_clicked_background -> clicked_background at this point
+        // maybe_clicked_background = clicked_background at this point
         if(maybe_clicked_background) {
-            const ImGuiViewport* viewport = ImGui::GetMainViewport();
-            if( (settings_window_center.y + selector_ui.get_height()/2.) > (ImGui::GetWindowPos().y + ImGui::GetWindowSize().y) ) {
-                ImGui::SetNextWindowPos(ImGui::GetWindowPos() + ImVec2(ImGui::GetWindowSize().x/2, ImGui::GetWindowSize().y),0,ImVec2(0.5f,1.f));
+            if(landscape) {
+                if( (settings_window_center.x + selector_ui.get_width()/2.) > (ImGui::GetWindowPos().x + ImGui::GetWindowSize().x) ) {
+                    ImGui::SetNextWindowPos(ImGui::GetWindowPos() + ImVec2(ImGui::GetWindowSize().x, ImGui::GetWindowSize().y/2.),0,ImVec2(1.f,0.5f));
+                } else {
+                    ImGui::SetNextWindowPos(settings_window_center,0,ImVec2(0.5f,0.5f));
+                }
             } else {
-                ImGui::SetNextWindowPos(settings_window_center,0,ImVec2(0.5f,0.5f));
+                if( (settings_window_center.y + selector_ui.get_height()/2.) > (ImGui::GetWindowPos().y + ImGui::GetWindowSize().y) ) {
+                    ImGui::SetNextWindowPos(ImGui::GetWindowPos() + ImVec2(ImGui::GetWindowSize().x/2, ImGui::GetWindowSize().y),0,ImVec2(0.5f,1.f));
+                } else {
+                    ImGui::SetNextWindowPos(settings_window_center,0,ImVec2(0.5f,0.5f));
+                }
             }
             ImGui::OpenPopup("config_settings");
             maybe_clicked_background = false;
