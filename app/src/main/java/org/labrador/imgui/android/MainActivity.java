@@ -45,7 +45,7 @@ public class MainActivity extends SDLActivity {
 
     private UsbDeviceConnection connection = null;
     public boolean bootloader_mode_allowed = false; // modified by usbcallhandler
-    private native void nativeRespondToStartupOrUsbStateChange(boolean is_plugged_in, int file_descriptor, boolean bootloader_mode); // fn in librador.cpp
+    private native void nativeRespondToStartupOrUsbStateChange(boolean is_plugged_in, int file_descriptor, boolean bootloader_mode); // fn in librador.cpp.  **this fn initiates librador**
     private native void nativeInitiateFirmwareFlash();
 
     @Override

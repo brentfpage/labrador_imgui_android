@@ -145,6 +145,21 @@ private:
     o1buffer *internal_o1_buffer_375_CHA;
     o1buffer *internal_o1_buffer_375_CHB;
     o1buffer *internal_o1_buffer_750;
+
+    int begin_iso_thread_shutdown();
+    bool is_iso_thread_shutdown_requested();
+    int decrement_remaining_transfers();
+    void iso_polling_function(libusb_context *ctx);
+    bool safe_to_exit_thread();
+
+
+    bool iso_thread_shutdown_requested = false;
+    int iso_thread_shutdown_remaining_transfers = NUM_FUTURE_CTX;
+    bool iso_thread_active = false;
+
+    std::mutex iso_thread_shutdown_mutex;
+    std::mutex buffer_read_write_mutex;
+    std::mutex get_set_iso_thread_active_mutex;
 };
 
 template <typename T>

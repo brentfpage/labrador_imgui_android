@@ -11,45 +11,6 @@
 #include <mutex>
 #include <thread>
 #include "SDL_android.h"
-#define E_BOARD_IN_BOOTLOADER static_cast<unsigned char>(-65)
-
-
-std::mutex iso_thread_shutdown_mutex;
-std::mutex buffer_read_write_mutex;
-std::mutex get_set_iso_thread_active_mutex;
-bool iso_thread_active = false;
-bool iso_thread_shutdown_requested = false;
-int iso_thread_shutdown_remaining_transfers = NUM_FUTURE_CTX;
-
-int begin_iso_thread_shutdown(){
-    iso_thread_shutdown_mutex.lock();
-    iso_thread_shutdown_requested = true;
-    iso_thread_shutdown_mutex.unlock();
-    return 0;
-}
-
-bool is_iso_thread_shutdown_requested(){
-    bool tempReturn;
-    iso_thread_shutdown_mutex.lock();
-    tempReturn = iso_thread_shutdown_requested;
-    iso_thread_shutdown_mutex.unlock();
-    return tempReturn;
-}
-
-int decrement_remaining_transfers(){
-    iso_thread_shutdown_mutex.lock();
-    iso_thread_shutdown_remaining_transfers--;
-    iso_thread_shutdown_mutex.unlock();
-    return 0;
-}
-
-bool safe_to_exit_thread(){
-    bool tempReturn;
-    iso_thread_shutdown_mutex.lock();
-    tempReturn = (iso_thread_shutdown_remaining_transfers == 0);
-    iso_thread_shutdown_mutex.unlock();
-    return tempReturn;
-}
 
 void LIBUSB_CALL isoCallback(struct libusb_transfer * transfer){
     //Thread mutex??
@@ -57,7 +18,7 @@ void LIBUSB_CALL isoCallback(struct libusb_transfer * transfer){
     usbCallHandler *usb_driver = (usbCallHandler *)transfer->user_data;
     if(transfer->status==LIBUSB_TRANSFER_COMPLETED)
     {
-        buffer_read_write_mutex.lock(); 
+        usb_driver->buffer_read_write_mutex.lock(); 
         for(int i=0;i<transfer->num_iso_packets;i++){
             unsigned char *packetPointer = libusb_get_iso_packet_buffer_simple(transfer, i);
             //TODO: a switch statement here to handle all the modes.
@@ -88,27 +49,58 @@ void LIBUSB_CALL isoCallback(struct libusb_transfer * transfer){
                 break;
             }
         }
-        buffer_read_write_mutex.unlock();
+        usb_driver->buffer_read_write_mutex.unlock();
     }
 
     //printf("Re-arm the endpoint...\n");
-    if(!is_iso_thread_shutdown_requested()){
+    if(!usb_driver->is_iso_thread_shutdown_requested()){
         int error = libusb_submit_transfer(transfer);
         if(error){
             LOGW("Error re-arming the endpoint!\n");
-            begin_iso_thread_shutdown();
-            decrement_remaining_transfers();
-            LOGW("Transfer not being rearmed!  %d armed transfers remaining\n", iso_thread_shutdown_remaining_transfers);
+            usb_driver->begin_iso_thread_shutdown();
+            usb_driver->decrement_remaining_transfers();
+            LOGW("Transfer not being rearmed!  %d armed transfers remaining\n", usb_driver->iso_thread_shutdown_remaining_transfers);
         }
     } else {
-        decrement_remaining_transfers();
-        LOGW("Transfer not being rearmed!  %d armed transfers remaining\n", iso_thread_shutdown_remaining_transfers);
+        usb_driver->decrement_remaining_transfers();
+        LOGW("Transfer not being rearmed!  %d armed transfers remaining\n", usb_driver->iso_thread_shutdown_remaining_transfers);
     }
     return;
 }
 
+int usbCallHandler::begin_iso_thread_shutdown(){
+    iso_thread_shutdown_mutex.lock();
+    iso_thread_shutdown_requested = true;
+    iso_thread_shutdown_mutex.unlock();
+    return 0;
+}
+
+bool usbCallHandler::is_iso_thread_shutdown_requested(){
+    bool tempReturn;
+    iso_thread_shutdown_mutex.lock();
+    tempReturn = iso_thread_shutdown_requested;
+    iso_thread_shutdown_mutex.unlock();
+    return tempReturn;
+}
+
+int usbCallHandler::decrement_remaining_transfers(){
+    iso_thread_shutdown_mutex.lock();
+    iso_thread_shutdown_remaining_transfers--;
+    iso_thread_shutdown_mutex.unlock();
+    return 0;
+}
+
+bool usbCallHandler::safe_to_exit_thread(){
+    bool tempReturn;
+    iso_thread_shutdown_mutex.lock();
+    tempReturn = (iso_thread_shutdown_remaining_transfers == 0);
+    iso_thread_shutdown_mutex.unlock();
+    return tempReturn;
+}
+
+
 // it makes sense to call this iso_polling_function because we only use libusb's asynchronous API for isochronous transfers
-void iso_polling_function(libusb_context *ctx){
+void usbCallHandler::iso_polling_function(libusb_context *ctx){
     LOGW("iso_polling_function thread spawned\n");
     struct timeval tv;
     tv.tv_sec = 1;
@@ -270,7 +262,7 @@ int usbCallHandler::setup_usb_iso(){
             return error;
             LOGW("setup_usb_iso failed\n");
         }
-        iso_polling_thread = new std::thread(iso_polling_function, ctx);
+        iso_polling_thread = new std::thread(&usbCallHandler::iso_polling_function, this, ctx);
         iso_thread_active = true;
     }
     return 0;
