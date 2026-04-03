@@ -60,7 +60,7 @@ class logicDecodeUI : public UI_tile
     bool uart_ch_console_at_bottom[2] = {true, true};
     bool i2c_console_at_bottom = true;
 public:
-    logicDecodeUI() : UI_tile("Logic Decoder","Log.Dec.", UI_tile::Width::duplex, 2) {};
+    logicDecodeUI() : UI_tile("Logic Decoder", UI_tile::Width::duplex, 2) {};
     bool decoding_on();
     void draw(float width, inputsUI* inputs_ui = nullptr) override;
     void draw_console(float window_content_width);//const char * from_librador_1, const char * from_librador_2 = nullptr);

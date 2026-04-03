@@ -10,7 +10,7 @@ class triggerUI : public UI_tile
     o1buffer::trigger_settings both_ch_trigger_settings[2];
     o1buffer::trigger_settings* curr_ch_trigger_settings = &both_ch_trigger_settings[ch_sel-1];
 public:
-    triggerUI() : UI_tile("Trigger","Trigger",UI_tile::Width::singlet, 7) {};
+    triggerUI() : UI_tile("Trigger",UI_tile::Width::singlet, 7) {};
     void draw(float width, inputsUI* inputs_ui = nullptr) override;
     int get_height() override;
 };
