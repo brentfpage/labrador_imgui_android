@@ -283,7 +283,7 @@ int main(int, char**)
         bool landscape = io.DisplaySize.y < io.DisplaySize.x;
         float settings_height_max;
         float font_scaling = 1.f;
-        float tile_single_width_pixels;
+        float tile_singlet_width_pixels;
         float settings_width;
         // scale the font size so that the ui fits in width-wise in portrait mode and height-wise in landscape mode. only scale the font size b/c most of the other built-in lengths are 0-10 pixels so are only responsive to scalings more extreme than +- 10%
         if(landscape) { 
@@ -293,13 +293,13 @@ int main(int, char**)
             settings_height_max = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
             int avail_for_text = settings_height_max - padding;
             font_scaling = static_cast<float>(avail_for_text)/text_height; 
-            tile_single_width_pixels = settings_height_max * pixel_6a_setting_panel_aspect / 3.f;
+            tile_singlet_width_pixels = settings_height_max * pixel_6a_setting_panel_aspect / 3.f;
         } else {
             float device_independent_x_padding = 2. * ImGuiStyle().WindowPadding.x + ImGuiStyle().ItemSpacing.x;
             // all lengths on a given device are scaled by main_scale, so can't compare pixels to pixels directly across devices.
             float screen_width_ratio = static_cast<double>(portraitScreenWidth / main_scale - device_independent_x_padding)/(pixel_6a_screen_width / pixel_6a_main_scale - device_independent_x_padding);
             font_scaling = screen_width_ratio / 1.02; //1.02: fudge factor to account for padding that's not scaled
-            tile_single_width_pixels = (portraitScreenWidth - style.ItemSpacing.x - 2 * style.WindowPadding.x)/3.;
+            tile_singlet_width_pixels = (portraitScreenWidth - style.ItemSpacing.x - 2 * style.WindowPadding.x)/3.;
             ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
             settings_height_max = inputs_ui.get_height() + trigger_ui.get_height(); 
             ImGui::PopFont();
@@ -323,7 +323,7 @@ int main(int, char**)
                 float height = tiles[i]->next_is_expanded ? tiles[i]->get_height() : tiles[i]->get_collapsed_height();
                 tile_height_sum += height;
                 tile_col_heights[static_cast<int>(tiles[i]->width)] += height;
-                if(tiles[i]->width == UI_tile::Width::single) {
+                if(tiles[i]->width == UI_tile::Width::singlet) {
                     singlet_tile_height_when_row_col_tiling = fmax(singlet_tile_height_when_row_col_tiling, height);
                     n_singlet_tiles_visible++;
                 }
@@ -342,8 +342,8 @@ int main(int, char**)
                 }
             }
         } else {
-            col1_width = (n_singlet_tiles_visible > 0) ? tile_single_width_pixels : 0;
-            col2_width = (tile_col_heights[1] > 0) ? 2 * tile_single_width_pixels : 0;
+            col1_width = (n_singlet_tiles_visible > 0) ? tile_singlet_width_pixels : 0;
+            col2_width = (tile_col_heights[1] > 0) ? 2 * tile_singlet_width_pixels : 0;
         }
 
         ImGui::SetNextWindowPos(ImVec2(0.f,statusBarHeight));
@@ -365,9 +365,9 @@ int main(int, char**)
             } else {
                 if(row_col_tiling) {
                     if (tile_col_heights[1] > 0.f) {
-                        settings_width = 2 * tile_single_width_pixels + (n_singlet_tiles_visible == 2) * style.ItemSpacing.x;
+                        settings_width = 2 * tile_singlet_width_pixels + (n_singlet_tiles_visible == 2) * style.ItemSpacing.x;
                     } else if (n_singlet_tiles_visible > 0) {
-                        settings_width = tile_single_width_pixels + (n_singlet_tiles_visible == 2) * (tile_single_width_pixels + style.ItemSpacing.x);
+                        settings_width = tile_singlet_width_pixels + (n_singlet_tiles_visible == 2) * (tile_singlet_width_pixels + style.ItemSpacing.x);
                     } else {
                         settings_width = ImGui::CalcTextSize(" < ").x + 2 * style.FramePadding.x + style.ItemSpacing.x;
                     }
@@ -449,7 +449,7 @@ int main(int, char**)
                                 INDENTUP
                             }
                             first = false;
-                            tiles[i]->draw(tile_single_width_pixels + grp * (tile_single_width_pixels + style.ItemSpacing.x), &inputs_ui);
+                            tiles[i]->draw(tile_singlet_width_pixels + grp * (tile_singlet_width_pixels + style.ItemSpacing.x), &inputs_ui);
                             maybe_clicked_background &= !ImGui::IsItemHovered();
                             // items in group 0 are stacked side-by-side; those in group 1 are stacked vertically
                             if(grp==0) {
@@ -470,7 +470,7 @@ int main(int, char**)
                                 if(!first)
                                     INDENTUP
                                 first=false;
-                                tiles[i]->draw((static_cast<int>(tiles[i]->width) + 1) * tile_single_width_pixels, &inputs_ui);
+                                tiles[i]->draw((static_cast<int>(tiles[i]->width) + 1) * tile_singlet_width_pixels, &inputs_ui);
                                 maybe_clicked_background &= !ImGui::IsItemHovered();
                             }
                         }

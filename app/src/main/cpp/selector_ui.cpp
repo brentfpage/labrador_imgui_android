@@ -11,7 +11,7 @@ void selectorUI::draw_popup()
             if(ImGui::Checkbox(tiles[i]->name, &tiles[i]->is_visible)) {
                 if(tiles[i]->is_visible)
                 {
-                    tiles[i]->is_expanded = true; // so that it opens up in an expanded state if it is opened again
+                    tiles[i]->next_is_expanded = true; // so that it opens up in an expanded state if it is opened again
                 }
             }
 

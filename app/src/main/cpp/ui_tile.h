@@ -6,7 +6,7 @@ class UI_tile
 {
     public:
         virtual ~UI_tile() {};
-        enum Width {single, duplex};
+        enum Width {singlet, duplex};
         UI_tile(const char* name, const char* short_name, Width width, int n_lines) : name(name), short_name(short_name), width(width), n_lines(n_lines) {};
         virtual int get_height() = 0;
         int get_collapsed_height();
