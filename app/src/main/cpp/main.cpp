@@ -269,7 +269,9 @@ int main(int, char**)
         ImGuiIO& io = ImGui::GetIO();
 
 // should compute these scalings only once, but there's no way to get the navigation/status bar heights in landscape mode when in portrait mode
-        bool landscape = io.DisplaySize.y < io.DisplaySize.x;
+        static bool landscape = io.DisplaySize.y < io.DisplaySize.x;
+        bool orientation_changed = (landscape != (io.DisplaySize.y < io.DisplaySize.x));
+        landscape = (io.DisplaySize.y < io.DisplaySize.x);
         float settings_height_max;
         float font_scaling = 1.f;
         float tile_singlet_width_pixels;
@@ -509,10 +511,12 @@ int main(int, char**)
         ImGui::EndChild();
 
         // maybe_clicked_background = clicked_background at this point
-        if(maybe_clicked_background) {
+        if(maybe_clicked_background || (orientation_changed && ImGui::IsPopupOpen("config_settings"))) {
             ImVec2 main_window_bottom_right = ImGui::GetWindowPos() + ImGui::GetWindowSize();
             ImVec2 centered_selector_window_bottom_right = settings_window_center + ImVec2(selector_ui.get_width(), selector_ui.get_height())/2.;
-            if((centered_selector_window_bottom_right.x > main_window_bottom_right.x) || (centered_selector_window_bottom_right.y > main_window_bottom_right.y)) {
+            if(\
+                (landscape && (centered_selector_window_bottom_right.x > main_window_bottom_right.x)) || 
+                (!landscape && (centered_selector_window_bottom_right.y > main_window_bottom_right.y))) {
                 ImVec2 edge_selector_window_pos = ImGui::GetWindowPos() + \
                                          ImVec2((ImGui::GetWindowSize().x - selector_ui.get_width()) * (landscape ? 1. : 0.5), (ImGui::GetWindowSize().y - selector_ui.get_height()) * (landscape ? 0.5 : 1));
                 ImGui::SetNextWindowPos(edge_selector_window_pos,0,ImVec2(0.f,0.f));
