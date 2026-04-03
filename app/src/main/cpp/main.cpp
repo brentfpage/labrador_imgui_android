@@ -306,14 +306,12 @@ int main(int, char**)
         // col1 and grp1 contain singlet-width tiles, col2 and grp2 have duplex-width tiles
         float tile_col_heights[2] = {0.f, 0.f};
 
-        float tile_height_sum = 0.f;
         int n_singlet_tiles_visible = 0;
         float singlet_tile_height_when_row_col_tiling = 0.f; 
         ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
         for(int i=0; i < n_tiles; i++) {
             if(tiles[i]->is_visible) {
                 float height = tiles[i]->next_is_expanded ? tiles[i]->get_height() : tiles[i]->get_collapsed_height();
-                tile_height_sum += height;
                 tile_col_heights[static_cast<int>(tiles[i]->width)] += height;
                 if(tiles[i]->width == UI_tile::Width::singlet) {
                     singlet_tile_height_when_row_col_tiling = fmax(singlet_tile_height_when_row_col_tiling, height);
@@ -321,22 +319,12 @@ int main(int, char**)
                 }
             }
         }
+        // these widths only relevent to two-col tiling
+        float col1_width = (n_singlet_tiles_visible > 0) ? tile_singlet_width_pixels : 0;
+        float col2_width = (tile_col_heights[1] > 0) ? 2 * tile_singlet_width_pixels : 0;
 
         bool row_col_tiling = (!landscape && (n_singlet_tiles_visible == 2) && ((tile_col_heights[1] + singlet_tile_height_when_row_col_tiling) < fmax(tile_col_heights[0], tile_col_heights[1]))) || \
             (landscape && (n_singlet_tiles_visible > 0) && (0 < tile_col_heights[1]) && ((tile_col_heights[1] + singlet_tile_height_when_row_col_tiling) < settings_height_max));
-        float col1_width = 0.f;
-        float col2_width = 0.f;
-
-        if(row_col_tiling) {
-            for(int i=0; i< n_tiles; i++) {
-                if(tiles[i]->is_visible) {
-                    float height = tiles[i]->next_is_expanded ? tiles[i]->get_height() : tiles[i]->get_collapsed_height();
-                }
-            }
-        } else {
-            col1_width = (n_singlet_tiles_visible > 0) ? tile_singlet_width_pixels : 0;
-            col2_width = (tile_col_heights[1] > 0) ? 2 * tile_singlet_width_pixels : 0;
-        }
 
         ImGui::SetNextWindowPos(ImVec2(0.f,statusBarHeight));
         ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x,io.DisplaySize.y - statusBarHeight - navigationBarHeight));
@@ -422,14 +410,12 @@ int main(int, char**)
             ImGui::BeginChild("settings",ImVec2(0.f, 0.f),0 );
             settings_window_center = ImGui::GetWindowPos() + ImGui::GetWindowSize()/2.;
             ImGuiContext& g = *GImGui;
-            ImVec2 bp = ImGui::GetCursorScreenPos();
+            ImVec2 settings_start_pos = ImGui::GetCursorScreenPos();
             ImGui::SetNextItemAllowOverlap();
             if(!screen_keyboard_shown && ImGui::InvisibleButton("open ui_tile selector", {0.f, 0.f})) {
-                    ImGuiContext& g = *GImGui;
-                    ImGuiIO& io = g.IO;
                     maybe_clicked_background = true;
             }
-            ImGui::SetCursorScreenPos(bp);
+            ImGui::SetCursorScreenPos(settings_start_pos);
 
             if(row_col_tiling) {
                 for(int grp : {0,1}) {

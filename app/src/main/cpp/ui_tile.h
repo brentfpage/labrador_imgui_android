@@ -17,7 +17,7 @@ class UI_tile
         const char* name;
         const char* short_name;
         bool is_expanded = true;
-        bool next_is_expanded = true;
+        bool next_is_expanded = true; // to prevent expansion/contraction of tiles mid-frame
         bool is_visible = true;
 };
 #endif
