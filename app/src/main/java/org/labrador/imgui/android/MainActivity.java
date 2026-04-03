@@ -104,7 +104,26 @@ public class MainActivity extends SDLActivity {
         if(device_info.isEmpty()) {
             nativeRespondToStartupOrUsbStateChange(false, -1, false);
         } else {
-            sendDeviceToLibrador(device_info);
+            int file_descriptor = device_info.get("file_descriptor");
+            boolean bootloader_mode = device_info.get("bootloader_mode") == 1 ? true : false;
+            if(!bootloader_mode_allowed && bootloader_mode) {
+                AlertDialog alert = new AlertDialog.Builder(MainActivity.this)
+                     .setMessage("Board found in bootloader mode, which is intended for firmware updates.  Please unplug the board, disconnect Digital Out 1 from GND, plug the board back in, and then unplug and replug the board a second time.  If a firmware update is needed, it will be performed automatically.")
+                     .setPositiveButton("OK", new DialogInterface.OnClickListener()
+                                {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int id)
+                                    {
+                                    }
+                                } 
+                                )
+                     .setCancelable(false)
+                     .create();
+                alert.show();
+                nativeRespondToStartupOrUsbStateChange(false, file_descriptor, bootloader_mode);
+                return;
+            }
+            nativeRespondToStartupOrUsbStateChange(true, file_descriptor, bootloader_mode);
         }
     }
 
@@ -143,9 +162,9 @@ public class MainActivity extends SDLActivity {
         int VID = device.getVendorId();
         int PID = device.getProductId();
 
-        // Block below: for the rare case that the app finds the board and android software hasn't handled the usb permissions so they need to be handled by the app.  E.g., if the user connects the board, rejects the resulting permission request from android software, then opens the app; or if the user connects the board, grants a non-permanent usb permission (at which point android software opens the app), then closes and re-opens the app.
+        // Block below: for the rare case that the app finds the board and android software hasn't handled the usb permissions so they need to be handled by the app.  E.g., if the user connects the board, rejects the resulting permission request from android software, then opens the app
         if(!manager.hasPermission(device)) {
-            // block below: open a dialog window that prompts the user for usb connection permission.  meanwhile, this function returns an empty device_info, which gets handled cleanly.  After the user responds to the dialog window, onResume() gets called, which leads back here.  In the case of rejection by the user, the usb_permission_request_allowed boolean prevents the request from being repeated.  This bool gets reset to true if the user disconnects the board.
+            // block below: open a dialog window that prompts the user for usb connection permission.  meanwhile, this function returns an empty device_info, which gets handled cleanly.  After the user responds to the dialog window, onResume() gets called, which leads back to this fn.  In the case of rejection by the user, the usb_permission_request_allowed boolean prevents the request from being repeated.  This bool gets reset to true if the user disconnects the board.
             if(usb_permission_request_allowed) {
                 manager.requestPermission(device, mPermissionIntent);
                 usb_permission_request_allowed = false;
@@ -173,29 +192,6 @@ public class MainActivity extends SDLActivity {
 
         Log.d(TAG, "Returning...");
         return device_info;
-    }
-
-    private void sendDeviceToLibrador(HashMap<String,Integer> device_info) {
-        int file_descriptor = device_info.get("file_descriptor");
-        boolean bootloader_mode = device_info.get("bootloader_mode") == 1 ? true : false;
-        if(!bootloader_mode_allowed && bootloader_mode) {
-            AlertDialog alert = new AlertDialog.Builder(MainActivity.this)
-                 .setMessage("Board found in bootloader mode, which is intended for firmware updates.  Please unplug the board, disconnect Digital Out 1 from GND, plug the board back in, and then unplug and replug the board a second time.  If a firmware update is needed, it will be performed automatically.")
-                 .setPositiveButton("OK", new DialogInterface.OnClickListener()
-                            {
-                                @Override
-                                public void onClick(DialogInterface dialog, int id)
-                                {
-                                }
-                            } 
-                            )
-                 .setCancelable(false)
-                 .create();
-            alert.show();
-            nativeRespondToStartupOrUsbStateChange(false, file_descriptor, bootloader_mode);
-            return;
-        }
-        nativeRespondToStartupOrUsbStateChange(true, file_descriptor, bootloader_mode);
     }
 
 // doesn't work ideally at the moment because iso_polling_thread in
