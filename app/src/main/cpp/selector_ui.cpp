@@ -24,5 +24,9 @@ void selectorUI::draw_popup()
 int selectorUI::get_height()
 {
     ImGuiStyle& style = ImGui::GetStyle();
-    return CHECKBOX_SIZE * n_tiles + style.ItemSpacing.y * (n_tiles - 1) + style.WindowPadding.y*2 + 2 * style.ItemSpacing.y + style.SeparatorSize + ImGui::GetFontSize();
+    return style.WindowPadding.y + style.WindowBorderSize + \
+            style.ItemSpacing.y + ImGui::GetFontSize() + \
+            style.ItemSpacing.y + style.SeparatorSize + \
+            CHECKBOX_SIZE * n_tiles + style.ItemSpacing.y * (n_tiles - 1) + \
+            style.WindowPadding.y + style.WindowBorderSize;
 }
