@@ -510,18 +510,25 @@ int main(int, char**)
 
         // maybe_clicked_background = clicked_background at this point
         if(maybe_clicked_background) {
+            float edge;
+            float edge_max;
             if(landscape) {
-                if( (settings_window_center.x + selector_ui.get_width()/2.) > (ImGui::GetWindowPos().x + ImGui::GetWindowSize().x) ) {
-                    ImGui::SetNextWindowPos(ImGui::GetWindowPos() + ImVec2(ImGui::GetWindowSize().x, ImGui::GetWindowSize().y/2.),0,ImVec2(1.f,0.5f));
-                } else {
-                    ImGui::SetNextWindowPos(settings_window_center,0,ImVec2(0.5f,0.5f));
-                }
+                edge = settings_window_center.x + selector_ui.get_width()/2.;
+                edge_max = ImGui::GetWindowPos().x + ImGui::GetWindowSize().x;
             } else {
-                if( (settings_window_center.y + selector_ui.get_height()/2.) > (ImGui::GetWindowPos().y + ImGui::GetWindowSize().y) ) {
-                    ImGui::SetNextWindowPos(ImGui::GetWindowPos() + ImVec2(ImGui::GetWindowSize().x/2, ImGui::GetWindowSize().y),0,ImVec2(0.5f,1.f));
+                edge = settings_window_center.y + selector_ui.get_height()/2.;
+                edge_max = ImGui::GetWindowPos().y + ImGui::GetWindowSize().y;
+            }
+            if(edge > edge_max) {
+                ImVec2 edge_window_pos;
+                if(landscape) {
+                    edge_window_pos = ImGui::GetWindowPos() + ImVec2(ImGui::GetWindowSize().x - selector_ui.get_width(), ImGui::GetWindowSize().y/2. - selector_ui.get_height()/2.);
                 } else {
-                    ImGui::SetNextWindowPos(settings_window_center,0,ImVec2(0.5f,0.5f));
+                    edge_window_pos = ImGui::GetWindowPos() + ImVec2(ImGui::GetWindowSize().x/2. - selector_ui.get_width()/2., ImGui::GetWindowSize().y - selector_ui.get_height());
                 }
+                ImGui::SetNextWindowPos(edge_window_pos,0,ImVec2(0.f,0.f));
+            } else {
+                ImGui::SetNextWindowPos(settings_window_center,0,ImVec2(0.5f,0.5f));
             }
             ImGui::OpenPopup("config_settings");
             maybe_clicked_background = false;
