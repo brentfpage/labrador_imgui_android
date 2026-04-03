@@ -349,7 +349,7 @@ int main(int, char**)
                     } else if (n_singlet_tiles_visible > 0) {
                         settings_width = tile_singlet_width_pixels + (n_singlet_tiles_visible == 2) * (tile_singlet_width_pixels + style.ItemSpacing.x);
                     } else {
-                        settings_width = ImGui::CalcTextSize(" < ").x + 2 * style.FramePadding.x + style.ItemSpacing.x;
+                        settings_width = 0.f;
                     }
                 } else {
                     settings_width = col1_width + col2_width + ((col1_width>0)&&(col2_width>0)) * style.ItemSpacing.x;
@@ -360,16 +360,15 @@ int main(int, char**)
         } else {
             settings_width = portraitScreenWidth - 2 * style.WindowPadding.x;
             data_width = settings_width;
-            if(row_col_tiling) {
-                settings_height = singlet_tile_height_when_row_col_tiling + tile_col_heights[1];
-            } else {
-                settings_height = fmax(tile_col_heights[0], tile_col_heights[1]);
-            }
-            settings_height = fmax(settings_height, ImGui::GetFontSize() + 2 * style.ItemSpacing.y);
-
             if(collapse_settings) {
                 data_height = ImGui::GetContentRegionAvail().y;
             } else {
+                if(row_col_tiling) {
+                    settings_height = singlet_tile_height_when_row_col_tiling + tile_col_heights[1];
+                } else {
+                    settings_height = fmax(tile_col_heights[0], tile_col_heights[1]);
+                }
+                settings_height = fmax(settings_height, ImGui::GetFontSize() + 2 * style.ItemSpacing.y);
                 data_height = ImGui::GetContentRegionAvail().y - settings_height;
             }
         }
