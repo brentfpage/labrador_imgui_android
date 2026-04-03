@@ -82,33 +82,23 @@ public class MainActivity extends SDLActivity {
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-        // don't need to add the ACTION_USB_DEVICE_ATTACHED intent because it is already declared in the manifest and accordingly launches the app or gets forwarded to this app's onNewIntent() by android software.
+        // don't need to add the ACTION_USB_DEVICE_ATTACHED intent because it is already declared in the manifest and accordingly gets forwarded to this app's onNewIntent() by android software.
         registerReceiver(myUsbDetachBroadcastReceiver, filter);
 
         Intent intent = getIntent();
         Log.d(TAG, "new intent: " + intent.getAction());
         UsbDevice device;
         HashMap<String,Integer> device_info = new HashMap<String,Integer>();
-        // intent.getAction()==null included to allow a debugger to start the app; can be removed for non-debug-version apk
-        if((intent.getAction()==null) || Intent.ACTION_MAIN.equals(intent.getAction())) {
-            // look for the device
-            UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);  //Handle to system USB service?
-            HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
-            Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
-            if(!deviceIterator.hasNext()){
-                Log.d(TAG, "no device found");
-            }
-            while(device_info.isEmpty() && deviceIterator.hasNext()) {
-                Log.d(TAG, "device list has device");
-                device = deviceIterator.next();
-                device_info = processUsbDevice(device);
-            }
-        } else if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(intent.getAction())) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-              device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice.class);
-            } else {
-              device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-            }
+        // look for the device
+        UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);  //Handle to system USB service?
+        HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
+        Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
+        if(!deviceIterator.hasNext()){
+            Log.d(TAG, "no device found");
+        }
+        while(device_info.isEmpty() && deviceIterator.hasNext()) {
+            Log.d(TAG, "device list has device");
+            device = deviceIterator.next();
             device_info = processUsbDevice(device);
         }
         if(device_info.isEmpty()) {
