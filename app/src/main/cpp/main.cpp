@@ -374,6 +374,7 @@ int main(int, char**)
                 } else {
                     settings_width = col1_width + col2_width + ((col1_width>0)&&(col2_width>0)) * style.ItemSpacing.x;
                 }
+                settings_width = fmax(settings_width, ImGui::GetFontSize() + 2 * style.FramePadding.x);
                 data_width = ImGui::GetContentRegionAvail().x - style.ItemSpacing.x - settings_width;
             }
         } else {
@@ -382,8 +383,9 @@ int main(int, char**)
             if(row_col_tiling) {
                 settings_height = singlet_tile_height_when_row_col_tiling + tile_col_heights[1];
             } else {
-                settings_height = fmax(fmax(tile_col_heights[0], tile_col_heights[1]), ImGui::GetFontSize() + 2 * style.FramePadding.y);
+                settings_height = fmax(tile_col_heights[0], tile_col_heights[1]);
             }
+            settings_height = fmax(settings_height, ImGui::GetFontSize() + 2 * style.ItemSpacing.y);
 
             if(collapse_settings) {
                 data_height = ImGui::GetContentRegionAvail().y;
