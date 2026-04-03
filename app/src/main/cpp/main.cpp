@@ -512,20 +512,29 @@ int main(int, char**)
         if(maybe_clicked_background) {
             float edge;
             float edge_max;
+            float settings_window_center_coord;
+            float selector_ui_length;
+            float main_window_coord;
+            float main_window_length;
+            float x_centering_factor;
+            float y_centering_factor;
             if(landscape) {
-                edge = settings_window_center.x + selector_ui.get_width()/2.;
-                edge_max = ImGui::GetWindowPos().x + ImGui::GetWindowSize().x;
+                settings_window_center_coord = settings_window_center.x;
+                selector_ui_length = selector_ui.get_width();
+                main_window_coord = ImGui::GetWindowPos().x;
+                main_window_length = ImGui::GetWindowSize().x;
+                x_centering_factor = 1.;
+                y_centering_factor = 0.5;
             } else {
-                edge = settings_window_center.y + selector_ui.get_height()/2.;
-                edge_max = ImGui::GetWindowPos().y + ImGui::GetWindowSize().y;
+                settings_window_center_coord = settings_window_center.y;
+                selector_ui_length = selector_ui.get_height();
+                main_window_coord = ImGui::GetWindowPos().y;
+                main_window_length = ImGui::GetWindowSize().y;
+                x_centering_factor = 0.5;
+                y_centering_factor = 1.;
             }
-            if(edge > edge_max) {
-                ImVec2 edge_window_pos;
-                if(landscape) {
-                    edge_window_pos = ImGui::GetWindowPos() + ImVec2(ImGui::GetWindowSize().x - selector_ui.get_width(), ImGui::GetWindowSize().y/2. - selector_ui.get_height()/2.);
-                } else {
-                    edge_window_pos = ImGui::GetWindowPos() + ImVec2(ImGui::GetWindowSize().x/2. - selector_ui.get_width()/2., ImGui::GetWindowSize().y - selector_ui.get_height());
-                }
+            if((settings_window_center_coord + selector_ui_length/2.) > (main_window_coord + main_window_length)) {
+                ImVec2 edge_window_pos = ImGui::GetWindowPos() + ImVec2((ImGui::GetWindowSize().x - selector_ui.get_width()) * x_centering_factor, (ImGui::GetWindowSize().y - selector_ui.get_height()) * y_centering_factor);
                 ImGui::SetNextWindowPos(edge_window_pos,0,ImVec2(0.f,0.f));
             } else {
                 ImGui::SetNextWindowPos(settings_window_center,0,ImVec2(0.5f,0.5f));
