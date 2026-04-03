@@ -4,6 +4,7 @@
 #include "ui_tile.h"
 void UI_tile::standard_header(float width_pixels)
 {
+    is_expanded = next_is_expanded;
     ImGuiStyle& style = ImGui::GetStyle();
 
     float close_button_width = ImGui::GetFontSize() + style.FramePadding.x;
@@ -24,7 +25,7 @@ void UI_tile::standard_header(float width_pixels)
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,{style.ItemSpacing.x,0.f}); // fold ItemSpacing.y into the invisible button below
     if(ImGui::InvisibleButton("toggle is_expanded", {invisible_button_width, ImGui::GetFontSize() + 2 * itemspacingy}))
     {
-        is_expanded = !is_expanded;
+        next_is_expanded = !next_is_expanded;
     }
     ImGui::PopID();
 
@@ -34,7 +35,7 @@ void UI_tile::standard_header(float width_pixels)
         sprintf(buf, "%s_close", name);
         if(ImGui::CloseButton(ImGui::GetID(buf), close_button_pos))
         {
-        is_visible = false;
+            is_visible = false;
         }
         ImGui::SameLine();
         // mimic the spacing/cursor advancement that a standard Button(...) would generate

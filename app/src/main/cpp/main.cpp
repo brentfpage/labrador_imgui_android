@@ -320,7 +320,7 @@ int main(int, char**)
         ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
         for(int i=0; i < n_tiles; i++) {
             if(tiles[i]->is_visible) {
-                float height = tiles[i]->is_expanded ? tiles[i]->get_height() : tiles[i]->get_collapsed_height();
+                float height = tiles[i]->next_is_expanded ? tiles[i]->get_height() : tiles[i]->get_collapsed_height();
                 tile_height_sum += height;
                 tile_col_heights[static_cast<int>(tiles[i]->width)] += height;
                 if(tiles[i]->width == UI_tile::Width::single) {
@@ -338,7 +338,7 @@ int main(int, char**)
         if(row_col_tiling) {
             for(int i=0; i< n_tiles; i++) {
                 if(tiles[i]->is_visible) {
-                    float height = tiles[i]->is_expanded ? tiles[i]->get_height() : tiles[i]->get_collapsed_height();
+                    float height = tiles[i]->next_is_expanded ? tiles[i]->get_height() : tiles[i]->get_collapsed_height();
                 }
             }
         } else {

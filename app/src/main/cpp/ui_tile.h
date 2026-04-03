@@ -17,6 +17,7 @@ class UI_tile
         const char* name;
         const char* short_name;
         bool is_expanded = true;
+        bool next_is_expanded = true;
         bool is_visible = true;
 };
 #endif
