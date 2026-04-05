@@ -1,3 +1,4 @@
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include "implot.h"
 #include "imgui_internal.h"
 #include "plot_ui.h"
@@ -158,11 +159,48 @@ void plotUI::draw(bool iso_thread_active, inputsUI::Mode mode, bool chA_enabled,
             }
 
             ImPlotRect axes_limits = ImPlot::GetPlotLimits();
-            ymin = axes_limits.Y.Min;
-            ymax = axes_limits.Y.Max;
-            xmin = axes_limits.X.Min;
-            xmax = axes_limits.X.Max;
+            if(ImPlot::IsAxisLongPressed(ImAxis_X1)) {
+                ImGui::SetNextWindowPos(ImGui::GetWindowPos() + ImGui::GetWindowSize()/2.,0,{0.5,0.5});
+                ImGui::OpenPopup("select x lims");
+            }
+            if(ImGui::BeginPopup("select x lims")) {
+                ImGuiStyle& style = ImGui::GetStyle();
+                ImGui::Text("X-axis limits:");
+                ImGui::PushItemWidth(ImGui::CalcTextSize("-10.00 s").x + 2 * style.FramePadding.x);
+                ImGui::InputFloat("Min", &xmin, 0.f, 0.f, "%.2f s");
+                float new_window = xmax - xmin;
+                float new_delay = fabs(-xmax); // fabs to prevent signed 0
+                ImGui::InputFloat("Window", &new_window, 0.f, 0.f, "%.2f s");
+                ImGui::InputFloat("Delay", &new_delay, 0.f, 0.f, "%.2f s");
+                xmin = -new_delay - new_window;
+                xmax = -new_delay;
+                ImGui::EndPopup();
+            } else {
+                xmin = axes_limits.X.Min;
+                xmax = axes_limits.X.Max;
+            }
+
+            if(ImPlot::IsAxisLongPressed(ImAxis_Y1)) {
+                ImGui::SetNextWindowPos(ImGui::GetWindowPos() + ImGui::GetWindowSize()/2.,0,{0.5,0.5});
+                ImGui::OpenPopup("select y lims");
+            }
+            if(ImGui::BeginPopup("select y lims")) {
+                ImGuiStyle& style = ImGui::GetStyle();
+                ImGui::Text("Y-axis limits:");
+                ImGui::PushItemWidth(ImGui::CalcTextSize("-20.00 V").x + 2 * style.FramePadding.x);
+                ImGui::InputFloat("Max", &ymax, 0.f, 0.f, "%.2f V");
+                ImGui::InputFloat("Min", &ymin, 0.f, 0.f, "%.2f V");
+                ImGui::EndPopup();
+            } else {
+                ymin = axes_limits.Y.Min;
+                ymax = axes_limits.Y.Max;
+            }
+
             ImPlot::EndPlot();
+
+            ImPlot::SetNextAxisLimits(ImAxis_X1, xmin, xmax, ImPlotCond_Always);
+            ImPlot::SetNextAxisLimits(ImAxis_Y1, ymin, ymax, ImPlotCond_Always);
+
         }
     }
     ImGui::EndChild();
