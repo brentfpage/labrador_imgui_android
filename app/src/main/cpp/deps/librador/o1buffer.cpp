@@ -147,7 +147,7 @@ std::vector<double> *o1buffer::getMany_double(int numToGet, double interval_samp
         if(tempAddress < 0)
             tempAddress += NUM_SAMPLES_PER_CHANNEL;
         window_mean = get_filtered_sample(tempAddress, 1, round(interval_samples * numToGet), scope_gain, twelve_bit_multimeter);
-        m_ac_offset_adc_units = inverseSampleConvert(window_mean + twelve_bit_multimeter ? 0 : voltage_ref, scope_gain, twelve_bit_multimeter);
+        m_ac_offset_adc_units = inverseSampleConvert(window_mean + (twelve_bit_multimeter ? 0 : voltage_ref), scope_gain, twelve_bit_multimeter);
     } else {
         m_ac_offset_adc_units = 0;
     }
