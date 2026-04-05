@@ -355,7 +355,7 @@ int main(int, char**)
             } else {
                 if(row_col_tiling) {
                     if (tile_col_heights[1] > 0.f) {
-                        settings_width = 2 * tile_singlet_width_pixels + (n_singlet_tiles_visible == 2) * style.ItemSpacing.x;
+                        settings_width = 2 * tile_singlet_width_pixels + style.ItemSpacing.x;
                     } else if (n_singlet_tiles_visible > 0) {
                         settings_width = tile_singlet_width_pixels + (n_singlet_tiles_visible == 2) * (tile_singlet_width_pixels + style.ItemSpacing.x);
                     } else {
