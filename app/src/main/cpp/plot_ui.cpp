@@ -217,21 +217,21 @@ void plotUI::draw(bool iso_thread_active, inputsUI::Mode mode, bool chA_enabled,
                 ImGui::BringWindowToDisplayFront(g.CurrentWindow);
                 if(enable_xcursors) {
                     ImGui::BeginGroup();
-                    ImGui::Text("X1: %.2f", xval1);
-                    ImGui::Text("X2: %.2f", xval2);
-                    ImGui::Text("\xee\xa4\x84X: %.2f", xval2 - xval1);
+                    ImGui::Text("X1: %.3f", fmin(xval1,xval2));
+                    ImGui::Text("X2: %.3f", fmax(xval1,xval2));
+                    ImGui::Text("\xee\xa4\x84X: %.3f", fabs(xval2 - xval1));
                     ImGui::EndGroup();
                 }
                 char prefix[3] = "";
                 if(enable_xcursors && enable_ycursors) {
                     ImGui::SameLine();
-                    strcpy(prefix,", ");
+                    strcpy(prefix," ");
                 }
                 if(enable_ycursors) {
                     ImGui::BeginGroup();
-                    ImGui::Text("%sY1: %.2f", prefix, yval1);
-                    ImGui::Text("%sY2: %.2f", prefix, yval2);
-                    ImGui::Text("%s\xee\xa4\x84Y: %.2f", prefix, yval2 - yval1);
+                    ImGui::Text("%sY1: %.2f", prefix, fmin(yval1,yval2));
+                    ImGui::Text("%sY2: %.2f", prefix, fmax(yval1,yval2));
+                    ImGui::Text("%s\xee\xa4\x84Y: %.2f", prefix, fabs(yval2 - yval1));
                     ImGui::EndGroup();
                 }
                 ImGui::End();
