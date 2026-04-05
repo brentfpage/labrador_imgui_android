@@ -43,6 +43,7 @@ public:
     int addVector(short *firstElement, int numElements);
     int get(int address);
     int mostRecentAddress = 0;
+    int mostRecentAddressPaused = 0;
     int stream_index_at_last_call = 0;
     int distanceFromMostRecentAddress(int index);
     void resetTrigger(double scope_gain, bool twelve_bit_multimeter);
@@ -52,7 +53,7 @@ public:
     double vcc = 3.3;
     double frontendGain = (75.0/1075.0);
     double voltage_ref = 1.65;
-    int setPaused(bool is_paused);
+    int setPaused(bool is_paused, int mostRecentAddressDelta = 0);
     bool getPaused();
     bool setTriggerSettings(trigger_settings new_trigger_settings);
     bool setVirtualTransformSettings(virtual_transform_settings new_virtual_transform_settings);
@@ -67,6 +68,7 @@ private:
     trigger_settings m_trigger_settings;
     virtual_transform_settings m_virtual_transform_settings;
     int *buffer;
+    int *buffer_paused;
     bool *m_is_triggered;
     std::vector<double> convertedStream_double;
     std::vector<uint8_t> convertedStream_digital;

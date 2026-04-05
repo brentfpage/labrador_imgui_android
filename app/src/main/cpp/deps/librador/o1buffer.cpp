@@ -5,7 +5,10 @@
 #include <stdint.h>
 
 #include "uartstyledecoder.h"
-std::mutex trigger_clear_mutex;
+
+
+//TODO: incorporate mostRecentAddressPaused into getSinceLast?
+std::mutex buffer_related_settings_mutex;
 
 //o1buffer is an object that has o(1) access times for its elements.
 //At the moment it's basically an array, but I'm keeping it as an object so it can be changed to something more memory efficient later.
@@ -13,6 +16,7 @@ std::mutex trigger_clear_mutex;
 o1buffer::o1buffer(double sps)
 {
     buffer = (int *) (malloc(sizeof(int)*NUM_SAMPLES_PER_CHANNEL));
+    buffer_paused = (int *) (malloc(sizeof(int)*NUM_SAMPLES_PER_CHANNEL));
     m_is_triggered = (bool *) (malloc(sizeof(bool)*NUM_SAMPLES_PER_CHANNEL));
     m_samples_per_second = sps;
     m_uart_decoder = new uartStyleDecoder(this);
@@ -20,6 +24,7 @@ o1buffer::o1buffer(double sps)
 
 o1buffer::~o1buffer(){
     free(buffer);
+    free(buffer_paused);
     free(m_is_triggered);
     delete m_uart_decoder;
 }
@@ -50,57 +55,49 @@ void o1buffer::add(int value, int address){
 }
 
 int o1buffer::addVector(int *firstElement, int numElements){
-    if(m_virtual_transform_settings.is_paused) // TODO need mutex when setting is_paused?
-        return 1;
     int currentAddress = mostRecentAddress;
 
-    trigger_clear_mutex.lock();
+    buffer_related_settings_mutex.lock();
     for(int i=0; i< numElements; i++){
         add(firstElement[i], currentAddress);
         checkTriggered(currentAddress);
         currentAddress = (currentAddress + 1) % NUM_SAMPLES_PER_CHANNEL;
     }
-    trigger_clear_mutex.unlock();
+    buffer_related_settings_mutex.unlock();
     return 0;
 }
 
 int o1buffer::addVector(char *firstElement, int numElements){
-    if(m_virtual_transform_settings.is_paused) // TODO need mutex when setting is_paused?
-        return 1;
     int currentAddress = mostRecentAddress;
 
-    trigger_clear_mutex.lock();
+    buffer_related_settings_mutex.lock();
     for(int i=0; i< numElements; i++){
         add(firstElement[i], currentAddress);
         checkTriggered(currentAddress);
         currentAddress = (currentAddress + 1) % NUM_SAMPLES_PER_CHANNEL;
     }
-    trigger_clear_mutex.unlock();
+    buffer_related_settings_mutex.unlock();
 
     return 0;
 }
 
 int o1buffer::addVector(unsigned char *firstElement, int numElements){
-    if(m_virtual_transform_settings.is_paused) // TODO need mutex when setting is_paused?
-        return 1;
     int currentAddress = mostRecentAddress;
 
-    trigger_clear_mutex.lock();
+    buffer_related_settings_mutex.lock();
     for(int i=0; i< numElements; i++){
         add(firstElement[i], currentAddress);
         checkTriggered(currentAddress);
         currentAddress = (currentAddress + 1) % NUM_SAMPLES_PER_CHANNEL;
     }
-    trigger_clear_mutex.unlock();
+    buffer_related_settings_mutex.unlock();
     return 0;
 }
 
 int o1buffer::addVector(short *firstElement, int numElements){
-    if(m_virtual_transform_settings.is_paused) // TODO need mutex when setting is_paused?
-        return 1;
     int currentAddress = mostRecentAddress;
 
-    trigger_clear_mutex.lock();
+    buffer_related_settings_mutex.lock();
     for(int i=0; i< numElements; i++){
     #ifdef MULTIMETER_INVERT
         add(-firstElement[i] >> 4, currentAddress);
@@ -110,12 +107,19 @@ int o1buffer::addVector(short *firstElement, int numElements){
         checkTriggered(currentAddress);
         currentAddress = (currentAddress + 1) % NUM_SAMPLES_PER_CHANNEL;
     }
-    trigger_clear_mutex.unlock();
+    buffer_related_settings_mutex.unlock();
     return 0;
 }
 
 
 int o1buffer::get(int address){
+    int *read_buffer;
+    if(m_virtual_transform_settings.is_paused) {
+        read_buffer = buffer_paused;
+    } else {
+        read_buffer = buffer;
+    }
+
     //Ensure that the address is not too high.
     if(address >= NUM_SAMPLES_PER_CHANNEL){
         address = address % NUM_SAMPLES_PER_CHANNEL;
@@ -124,7 +128,7 @@ int o1buffer::get(int address){
         LIBRADOR_LOG(LOG_ERROR, "ERROR: o1buffer::get was given a negative address\n");
     }
     //Return the value
-    return buffer[address];
+    return read_buffer[address];
 }
 
 inline void o1buffer::updateMostRecentAddress(int newAddress){
@@ -143,7 +147,7 @@ std::vector<double> *o1buffer::getMany_double(int numToGet, double interval_samp
 
     if(m_virtual_transform_settings.is_ac)
     {
-        tempAddress = mostRecentAddress - delay_samples - round(interval_samples*numToGet/2.);
+        tempAddress = (m_virtual_transform_settings.is_paused ? mostRecentAddressPaused : mostRecentAddress) - delay_samples - round(interval_samples*numToGet/2.);
         if(tempAddress < 0)
             tempAddress += NUM_SAMPLES_PER_CHANNEL;
         window_mean = get_filtered_sample(tempAddress, 1, round(interval_samples * numToGet), scope_gain, twelve_bit_multimeter);
@@ -153,7 +157,7 @@ std::vector<double> *o1buffer::getMany_double(int numToGet, double interval_samp
     }
 
     for(int i=0;i<numToGet;i++){
-        tempAddress = mostRecentAddress - delay_samples - round(interval_samples * i);
+        tempAddress = (m_virtual_transform_settings.is_paused ? mostRecentAddressPaused : mostRecentAddress) - delay_samples - round(interval_samples * i);
         if(tempAddress < 0){
             tempAddress += NUM_SAMPLES_PER_CHANNEL;
         }
@@ -181,7 +185,7 @@ std::vector<double> *o1buffer::getMany_singleBit(int numToGet, double interval_s
 
     for(int i=0;i<numToGet;i++){
         subsample_current_delay = delay_subsamples + round(interval_subsamples * i);
-        tempAddress = mostRecentAddress - subsample_current_delay / 8;
+        tempAddress = (m_virtual_transform_settings.is_paused ? mostRecentAddressPaused : mostRecentAddress) - subsample_current_delay / 8;
         mask = 0x01 << (subsample_current_delay % 8);
         if(tempAddress < 0){
             tempAddress += NUM_SAMPLES_PER_CHANNEL;
@@ -260,11 +264,17 @@ double o1buffer::get_filtered_sample(int index, int filter_type, int filter_size
     double accum = 0;
     int currentPos = index - (filter_size / 2);
     int end = currentPos + filter_size;
+    int *read_buffer;
+    if(m_virtual_transform_settings.is_paused) {
+        read_buffer = buffer_paused;
+    } else {
+        read_buffer = buffer;
+    }
 
     switch(filter_type){
         case 0: //No filter
 //             buffer[index];
-            return sampleConvert(buffer[index], scope_gain, twelve_bit_multimeter);
+            return sampleConvert(read_buffer[index], scope_gain, twelve_bit_multimeter);
         case 1: //Moving Average filter
             if(currentPos < 0){
                 currentPos += NUM_SAMPLES_PER_CHANNEL;
@@ -273,13 +283,13 @@ double o1buffer::get_filtered_sample(int index, int filter_type, int filter_size
                 end -= NUM_SAMPLES_PER_CHANNEL;
             }
             while(currentPos != end){
-                accum += buffer[currentPos];
+                accum += read_buffer[currentPos];
                 currentPos = (currentPos + 1) % NUM_SAMPLES_PER_CHANNEL;
             }
             return sampleConvert(accum/((double)filter_size), scope_gain, twelve_bit_multimeter);
         break;
         default: //Default to "no filter"
-            return buffer[index];
+            return read_buffer[index];
     }
 }
 
@@ -324,12 +334,12 @@ void o1buffer::resetTrigger(double scope_gain, bool twelve_bit_multimeter)
     double actual_trigger_level = (m_trigger_settings.trigger_level - m_virtual_transform_settings.offset)/m_virtual_transform_settings.gain;
 
     short new_triggerLevelADC = inverseSampleConvert(actual_trigger_level, scope_gain, twelve_bit_multimeter);
-    trigger_clear_mutex.lock();
+    buffer_related_settings_mutex.lock();
     memset(m_is_triggered, false, sizeof(bool) * NUM_SAMPLES_PER_CHANNEL);
     m_triggerSeekState = TriggerSeekState::Invalid;
     m_triggerLevelADC = new_triggerLevelADC;
     m_triggerSensitivity = static_cast<short>((1 + abs(actual_trigger_level * kTriggerSensitivityMultiplier )) * TOP / 128.);
-    trigger_clear_mutex.unlock();
+    buffer_related_settings_mutex.unlock();
 
     LOGW("Trigger Level: %d", m_triggerLevelADC);
     LOGW("Trigger sensitivity: %d", m_triggerSensitivity);
@@ -359,7 +369,7 @@ void o1buffer::checkTriggered(int mostRecentAddress) {
 
 int o1buffer::getDelayIncludingFromTrigger(int delay_samples, int window_samples, bool* single_shot_reached) {
     int tempAddress = mostRecentAddress - delay_samples;
-    if(m_trigger_settings.trigger_type == TriggerType::Disabled)
+    if((m_trigger_settings.trigger_type == TriggerType::Disabled) || (m_virtual_transform_settings.is_paused))
         return delay_samples;
 //     for (int i=0; i<(NUM_SAMPLES_PER_CHANNEL - delay_samples - window_samples); i++) {
     for (int trigger_delay=0; trigger_delay<window_samples ; trigger_delay++) {
@@ -370,17 +380,26 @@ int o1buffer::getDelayIncludingFromTrigger(int delay_samples, int window_samples
             if(m_trigger_settings.is_single_shot)
             {
                 *single_shot_reached = true;
-                m_virtual_transform_settings.is_paused=true;
+                setPaused(true, -trigger_delay);
+                return delay_samples;
+            } else {
+                return delay_samples + trigger_delay;
             }
-            return delay_samples + trigger_delay;
         }
         tempAddress = tempAddress - 1;
     }
     return delay_samples; // triggering enabled but no trigger point found
 }
 
-int o1buffer::setPaused(bool is_paused){
-    m_virtual_transform_settings.is_paused = is_paused;
+// mostRecentAddressDelta is useful for single-shot triggering: makes sure that, immediately after the single-shot trigger, getDelayIncludingFromTrigger can set trigger_delay = 0 and the trigger point will be on the rhs of the screen.  Then, the user can pan around freely while getDelayIncludingFromTrigger continues to set trigger_delay = 0.  As a side-effect, this causes the initial mostRecentAddresDelta samples to be plotted as though they occurred ~10s (or whatever the max window is) previously, but this is not a huge price to pay.
+int o1buffer::setPaused(bool is_paused, int mostRecentAddressDelta){
+    if(!m_virtual_transform_settings.is_paused && is_paused) {
+        buffer_related_settings_mutex.lock();
+        m_virtual_transform_settings.is_paused = is_paused;
+        memcpy(buffer_paused, buffer, sizeof(int)*NUM_SAMPLES_PER_CHANNEL);
+        mostRecentAddressPaused = mostRecentAddress + mostRecentAddressDelta;
+        buffer_related_settings_mutex.unlock();
+    }
     return 0;
 }
 
@@ -401,7 +420,7 @@ bool o1buffer::setVirtualTransformSettings(o1buffer::virtual_transform_settings 
          !(m_virtual_transform_settings.offset == new_virtual_transform_settings.offset) ||
          !(m_virtual_transform_settings.gain == new_virtual_transform_settings.gain) ||
          !(m_virtual_transform_settings.is_ac == new_virtual_transform_settings.is_ac);
-
+    setPaused(new_virtual_transform_settings.is_paused);
     m_virtual_transform_settings = new_virtual_transform_settings;
     return update_trigger;
 }
