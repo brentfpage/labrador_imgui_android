@@ -1,6 +1,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "implot.h"
 #include "imgui_internal.h"
+#include "implot_internal.h"
 #include "plot_ui.h"
 #include "librador.h"
 
@@ -196,10 +197,45 @@ void plotUI::draw(bool iso_thread_active, inputsUI::Mode mode, bool chA_enabled,
                 ymax = axes_limits.Y.Max;
             }
 
+            ImPlotPlot* mainplot = ImPlot::GetCurrentPlot();
             ImPlot::EndPlot();
 
             ImPlot::SetNextAxisLimits(ImAxis_X1, xmin, xmax, ImPlotCond_Always);
             ImPlot::SetNextAxisLimits(ImAxis_Y1, ymin, ymax, ImPlotCond_Always);
+
+
+            static bool show_ref_line_window = enable_xcursors || enable_ycursors; 
+            show_ref_line_window = enable_xcursors || enable_ycursors; 
+            if(show_ref_line_window) {
+                ImGui::SetNextWindowBgAlpha(0.25f);
+                ImGuiStyle& style = ImGui::GetStyle();
+
+                ImPlotContext& gp = *GImPlot;
+                ImGui::SetNextWindowPos(mainplot->PlotRect.Min + ImVec2(mainplot->PlotRect.GetWidth() - gp.Style.LegendPadding.x, gp.Style.LegendPadding.y), 0, {1.f,0.f});
+
+                ImGui::Begin("why", &show_ref_line_window, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_AlwaysAutoResize);
+                ImGui::BringWindowToDisplayFront(g.CurrentWindow);
+                if(enable_xcursors) {
+                    ImGui::BeginGroup();
+                    ImGui::Text("X1: %.2f", xval1);
+                    ImGui::Text("X2: %.2f", xval2);
+                    ImGui::Text("\xee\xa4\x84X: %.2f", xval2 - xval1);
+                    ImGui::EndGroup();
+                }
+                char prefix[3] = "";
+                if(enable_xcursors && enable_ycursors) {
+                    ImGui::SameLine();
+                    strcpy(prefix,", ");
+                }
+                if(enable_ycursors) {
+                    ImGui::BeginGroup();
+                    ImGui::Text("%sY1: %.2f", prefix, yval1);
+                    ImGui::Text("%sY2: %.2f", prefix, yval2);
+                    ImGui::Text("%s\xee\xa4\x84Y: %.2f", prefix, yval2 - yval1);
+                    ImGui::EndGroup();
+                }
+                ImGui::End();
+            }
 
         }
     }

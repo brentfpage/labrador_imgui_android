@@ -185,6 +185,16 @@ int main(int, char**)
     waveform_glyph_font = io.Fonts->AddFontFromMemoryTTF(buf, nb_read, 13.f, &config);
     AAsset_close(asset);
 
+    config.GlyphOffset = { 0.f, 4.5f };
+    const char* filename2 = "font/greek_delta.ttf";
+    AAsset* asset2 = AAssetManager_open(mgr, filename2, AASSET_MODE_STREAMING);
+    char buf2[2048];
+    int nb_read2 = 0;
+    nb_read2 = AAsset_read(asset2, buf2, 2048);
+    ImFont* greek_delta_glyph;
+    greek_delta_glyph = io.Fonts->AddFontFromMemoryTTF(buf2, nb_read2, 13.f, &config);
+    AAsset_close(asset);
+
     jmethodID getStatusBarHeightID = env->GetMethodID(MainActivity, "getStatusBarHeight", "()I");
     jmethodID getNavigationBarHeightID = env->GetMethodID(MainActivity, "getNavigationBarHeight", "()I");
     jmethodID getScreenWidth = env->GetMethodID(MainActivity, "getScreenWidth", "()I");
