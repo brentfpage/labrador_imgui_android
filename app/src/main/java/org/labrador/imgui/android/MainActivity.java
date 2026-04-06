@@ -35,7 +35,6 @@ import androidx.core.view.ViewCompat;
 import android.content.pm.ActivityInfo;
 // import android.graphics.Insets;
 
-// TODO: in onResume(), access is_connected from usbcallhandler.cpp and only look for the board if !is_connected
 // TODO: handle edge cases related to user unplugging board in non-bootloader state, replugging it back in in bootloader state
 public class MainActivity extends SDLActivity {
     private static final String ACTION_USB_PERMISSION = "org.labrador.imgui.android.USB_PERMISSION";

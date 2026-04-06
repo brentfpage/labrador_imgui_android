@@ -857,6 +857,9 @@ void usbCallHandler::respondToStartupOrUsbStateChange(bool is_plugged_in, int fi
                 LOGW("flashRet: %d", flashRet);
             }
         } else {
+            if(connected) {
+                return;
+            }
             init_libusb();
             int control_setup_success = setup_usb_control(file_descriptor);
             if(control_setup_success==0) {
