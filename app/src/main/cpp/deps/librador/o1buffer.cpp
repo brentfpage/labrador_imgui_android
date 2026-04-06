@@ -397,7 +397,7 @@ int o1buffer::getDelayIncludingFromTrigger(int delay_samples, int window_samples
     return delay_samples; // triggering enabled but no trigger point found
 }
 
-// mostRecentAddressDelta is useful for single-shot triggering: makes sure that, immediately after the single-shot trigger, getDelayIncludingFromTrigger can set trigger_delay = 0 and the trigger point will be on the rhs of the screen.  Then, the user can pan around freely while getDelayIncludingFromTrigger continues to set trigger_delay = 0.  As a side-effect, this causes the initial mostRecentAddresDelta samples to be plotted as though they occurred ~10s (or whatever the max window is) previously, but this is not a huge price to pay.
+// mostRecentAddressDelta is useful for single-shot triggering: makes sure that, immediately after the single-shot trigger, getDelayIncludingFromTrigger can set trigger_delay = 0 and the trigger point will be on the rhs of the screen.  Then, the user can pan around freely while getDelayIncludingFromTrigger continues to set trigger_delay = 0.  As a side-effect, this causes the initial mostRecentAddressDelta samples to be plotted as though they occurred ~10s (or whatever the max window is) previously, but this is not a huge price to pay.
 int o1buffer::setPaused(bool is_paused, int mostRecentAddressDelta, bool hard){
     if(is_paused && (!m_virtual_transform_settings.is_paused || hard)) {
         buffer_related_settings_mutex.lock();
