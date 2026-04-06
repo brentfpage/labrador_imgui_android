@@ -350,26 +350,27 @@ std::vector<double>* temp_to_return = nullptr;
 buffer_read_write_mutex.lock();
     int delay_including_trigger;
     bool single_shot_reached = false;
+    int trigger_delay = 0;
     switch(deviceMode){
     case 0:
         if(channel == 1) {
-            delay_including_trigger = internal_o1_buffer_375_CHA->getDelayIncludingFromTrigger(delay_sample, round(interval_samples * numToGet), &single_shot_reached);
+            delay_including_trigger = internal_o1_buffer_375_CHA->getDelayIncludingFromTrigger(delay_sample, round(interval_samples * numToGet));
             temp_to_return = internal_o1_buffer_375_CHA->getMany_double(numToGet, interval_samples, delay_including_trigger, filter_mode, current_scope_gain, false);
         }
         break;
     case 1:
         if(channel == 1) {
-            delay_including_trigger = internal_o1_buffer_375_CHA->getDelayIncludingFromTrigger(delay_sample, round(interval_samples * numToGet), &single_shot_reached);
+            delay_including_trigger = internal_o1_buffer_375_CHA->getDelayIncludingFromTrigger(delay_sample, round(interval_samples * numToGet));
             temp_to_return = internal_o1_buffer_375_CHA->getMany_double(numToGet, interval_samples, delay_including_trigger, filter_mode, current_scope_gain, false);
         }
         break;
     case 2:
         if(internal_o1_buffer_375_CHA->isTriggeringEnabled()) {
-            delay_including_trigger = internal_o1_buffer_375_CHA->getDelayIncludingFromTrigger(delay_sample, round(interval_samples * numToGet), &single_shot_reached);
-            internal_o1_buffer_375_CHB->setPaused(single_shot_reached);
+            delay_including_trigger = internal_o1_buffer_375_CHA->getDelayIncludingFromTrigger(delay_sample, round(interval_samples * numToGet), &single_shot_reached, &trigger_delay);
+            internal_o1_buffer_375_CHB->setPaused(single_shot_reached,-trigger_delay,true);
         } else if(internal_o1_buffer_375_CHB->isTriggeringEnabled()) {
-            delay_including_trigger = internal_o1_buffer_375_CHB->getDelayIncludingFromTrigger(delay_sample, round(interval_samples * numToGet), &single_shot_reached);
-            internal_o1_buffer_375_CHA->setPaused(single_shot_reached);
+            delay_including_trigger = internal_o1_buffer_375_CHB->getDelayIncludingFromTrigger(delay_sample, round(interval_samples * numToGet), &single_shot_reached, &trigger_delay);
+            internal_o1_buffer_375_CHA->setPaused(single_shot_reached,-trigger_delay,true);
         } else {
             delay_including_trigger = delay_sample;
         }
@@ -378,13 +379,13 @@ buffer_read_write_mutex.lock();
         break;
     case 6:
         if(channel == 1){
-            delay_including_trigger = internal_o1_buffer_750->getDelayIncludingFromTrigger(delay_sample, round(interval_samples * numToGet), &single_shot_reached);
+            delay_including_trigger = internal_o1_buffer_750->getDelayIncludingFromTrigger(delay_sample, round(interval_samples * numToGet));
             temp_to_return = internal_o1_buffer_750->getMany_double(numToGet, interval_samples, delay_including_trigger, filter_mode, current_scope_gain, false);
         }
         break;
     case 7:
         if(channel == 1) {
-            delay_including_trigger = internal_o1_buffer_375_CHA->getDelayIncludingFromTrigger(delay_sample, round(interval_samples * numToGet), &single_shot_reached);
+            delay_including_trigger = internal_o1_buffer_375_CHA->getDelayIncludingFromTrigger(delay_sample, round(interval_samples * numToGet));
             temp_to_return = internal_o1_buffer_375_CHA->getMany_double(numToGet, interval_samples, delay_including_trigger, filter_mode, current_scope_gain, true);
         }
         break;

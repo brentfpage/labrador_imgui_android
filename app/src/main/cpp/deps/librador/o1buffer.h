@@ -53,13 +53,13 @@ public:
     double vcc = 3.3;
     double frontendGain = (75.0/1075.0);
     double voltage_ref = 1.65;
-    int setPaused(bool is_paused, int mostRecentAddressDelta = 0);
+    int setPaused(bool is_paused, int mostRecentAddressDelta = 0, bool hard = false);
     bool getPaused();
     bool setTriggerSettings(trigger_settings new_trigger_settings);
     bool setVirtualTransformSettings(virtual_transform_settings new_virtual_transform_settings);
     void setUartDecodeSettings(UartSettings new_settings);
     bool isTriggeringEnabled();
-    int getDelayIncludingFromTrigger(int delay_samples, int window_samples, bool* single_shot_reached);
+    int getDelayIncludingFromTrigger(int delay_samples, int window_samples, bool* single_shot_reached = NULL, int* trigger_delay_out = NULL);
     double m_samples_per_second;
     int m_bufferLen = NUM_SAMPLES_PER_CHANNEL;
     void UartDecode();

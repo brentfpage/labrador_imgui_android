@@ -8,6 +8,7 @@
 
 
 //TODO: incorporate mostRecentAddressPaused into getSinceLast?
+//TODO: triggering is finicky when the trigger level is ~0 b/c m_triggerSensitivity becomes too small?
 std::mutex buffer_related_settings_mutex;
 
 //o1buffer is an object that has o(1) access times for its elements.
@@ -367,7 +368,7 @@ void o1buffer::checkTriggered(int mostRecentAddress) {
     } 
 }
 
-int o1buffer::getDelayIncludingFromTrigger(int delay_samples, int window_samples, bool* single_shot_reached) {
+int o1buffer::getDelayIncludingFromTrigger(int delay_samples, int window_samples, bool* single_shot_reached, int* trigger_delay_out) {
     int tempAddress = mostRecentAddress - delay_samples;
     if((m_trigger_settings.trigger_type == TriggerType::Disabled) || (m_virtual_transform_settings.is_paused))
         return delay_samples;
@@ -379,7 +380,12 @@ int o1buffer::getDelayIncludingFromTrigger(int delay_samples, int window_samples
         {
             if(m_trigger_settings.is_single_shot)
             {
-                *single_shot_reached = true;
+                if(!(single_shot_reached == nullptr)) {
+                    *single_shot_reached = true;
+                }
+                if(!(trigger_delay_out == nullptr)) {
+                    *trigger_delay_out = trigger_delay;
+                }
                 setPaused(true, -trigger_delay);
                 return delay_samples;
             } else {
@@ -392,8 +398,8 @@ int o1buffer::getDelayIncludingFromTrigger(int delay_samples, int window_samples
 }
 
 // mostRecentAddressDelta is useful for single-shot triggering: makes sure that, immediately after the single-shot trigger, getDelayIncludingFromTrigger can set trigger_delay = 0 and the trigger point will be on the rhs of the screen.  Then, the user can pan around freely while getDelayIncludingFromTrigger continues to set trigger_delay = 0.  As a side-effect, this causes the initial mostRecentAddresDelta samples to be plotted as though they occurred ~10s (or whatever the max window is) previously, but this is not a huge price to pay.
-int o1buffer::setPaused(bool is_paused, int mostRecentAddressDelta){
-    if(!m_virtual_transform_settings.is_paused && is_paused) {
+int o1buffer::setPaused(bool is_paused, int mostRecentAddressDelta, bool hard){
+    if(is_paused && (!m_virtual_transform_settings.is_paused || hard)) {
         buffer_related_settings_mutex.lock();
         m_virtual_transform_settings.is_paused = is_paused;
         memcpy(buffer_paused, buffer, sizeof(int)*NUM_SAMPLES_PER_CHANNEL);
