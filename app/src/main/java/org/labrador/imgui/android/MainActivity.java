@@ -35,6 +35,7 @@ import androidx.core.view.ViewCompat;
 import android.content.pm.ActivityInfo;
 // import android.graphics.Insets;
 
+// TODO: in onResume(), access is_connected from usbcallhandler.cpp and only look for the board if !is_connected
 // TODO: handle edge cases related to user unplugging board in non-bootloader state, replugging it back in in bootloader state
 public class MainActivity extends SDLActivity {
     private static final String ACTION_USB_PERMISSION = "org.labrador.imgui.android.USB_PERMISSION";
@@ -136,10 +137,7 @@ public class MainActivity extends SDLActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        nativeRespondToStartupOrUsbStateChange(false, -1, false);
-        if(connection != null) {
-            connection.close();
-        }
+        disconnectIfConnected();
     }
 
     private HashMap<String,Integer> processUsbDevice(UsbDevice device) {
@@ -162,7 +160,7 @@ public class MainActivity extends SDLActivity {
         int VID = device.getVendorId();
         int PID = device.getProductId();
 
-        // Block below: for the rare case that the app finds the board and android software hasn't handled the usb permissions so they need to be handled by the app.  E.g., if the user connects the board, rejects the resulting permission request from android software, then opens the app
+        // Block below: for the rare case that the app finds the board and android software hasn't handled the usb permissions, so they need to be handled by the app.  E.g., if the user connects the board for the first time when their phone is asleep
         if(!manager.hasPermission(device)) {
             // block below: open a dialog window that prompts the user for usb connection permission.  meanwhile, this function returns an empty device_info, which gets handled cleanly.  After the user responds to the dialog window, onResume() gets called, which leads back to this fn.  In the case of rejection by the user, the usb_permission_request_allowed boolean prevents the request from being repeated.  This bool gets reset to true if the user disconnects the board.
             if(usb_permission_request_allowed) {
@@ -214,8 +212,7 @@ public class MainActivity extends SDLActivity {
                 int VID = device.getVendorId();
                 int PID = device.getProductId();
                 if((VID==0x03eb) && (PID==0xba94)){
-                    nativeRespondToStartupOrUsbStateChange(false, -1, false);
-                    usb_permission_request_allowed = true;
+                    disconnectIfConnected();
                 }
                 if(connection != null) {
                     connection.close();
@@ -284,4 +281,12 @@ public class MainActivity extends SDLActivity {
         alert.show();
     }
 
+    public void disconnectIfConnected() 
+    {
+        nativeRespondToStartupOrUsbStateChange(false, -1, false);
+        if(connection != null) {
+            connection.close();
+        }
+        usb_permission_request_allowed = true;
+    }
 }
