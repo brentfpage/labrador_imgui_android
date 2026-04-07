@@ -88,7 +88,7 @@ void plotUI::draw(bool iso_thread_active, inputsUI::Mode mode, bool chA_enabled,
 
     ImGui::BeginChild("plot",ImVec2(data_width, plot_height));
     {
-        if (ImPlot::BeginPlot("##scope traces", ImGui::GetContentRegionAvail())) {
+        if (ImPlot::BeginPlot("##scope traces", ImGui::GetContentRegionAvail(),ImPlotFlags_NoMouseText)) {
             ImPlot::SetupAxes("time (s)","volts");
 
             ImPlot::SetupAxisLimitsConstraints(ImAxis_X1, x_constraint_min, x_constraint_max);
@@ -204,7 +204,7 @@ void plotUI::draw(bool iso_thread_active, inputsUI::Mode mode, bool chA_enabled,
                 ImGuiStyle& style = ImGui::GetStyle();
 
                 ImPlotContext& gp = *GImPlot;
-                ImGui::SetNextWindowPos(mainplot->PlotRect.Min + ImVec2(mainplot->PlotRect.GetWidth() - gp.Style.LegendPadding.x, gp.Style.LegendPadding.y), 0, {1.f,0.f});
+                ImGui::SetNextWindowPos(mainplot->PlotRect.Max - gp.Style.LegendPadding, 0, {1.f,1.f});
 
                 ImGui::Begin("why", &show_ref_line_window, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_AlwaysAutoResize);
                 ImGui::BringWindowToDisplayFront(g.CurrentWindow);
