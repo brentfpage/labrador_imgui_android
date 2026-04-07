@@ -200,15 +200,6 @@ int main(int, char**)
     jmethodID getScreenWidth = env->GetMethodID(MainActivity, "getScreenWidth", "()I");
     jmethodID getScreenHeight = env->GetMethodID(MainActivity, "getScreenHeight", "()I");
     
-
-    int portraitScreenHeight = (int) env->CallIntMethod(MainActivityObject,getScreenHeight);
-    int portraitScreenWidth = (int) env->CallIntMethod(MainActivityObject,getScreenWidth);
-    if(portraitScreenWidth > portraitScreenHeight) {
-        int temp = portraitScreenWidth;
-        portraitScreenWidth = portraitScreenHeight;
-        portraitScreenHeight = temp;
-    }
-
     // Our state
     bool show_mainwindow = true;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -293,16 +284,16 @@ int main(int, char**)
             int prescale_settings_height = inputs_ui.get_height() + trigger_ui.get_height(); // want to be able to fit these two ui_tiles in one column
             int text_height = (inputs_ui.n_lines + trigger_ui.n_lines) * ImGui::GetFontSize(); 
             int padding = prescale_settings_height - text_height; 
-            settings_height_max = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
+            settings_height_max = io.DisplaySize.y - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
             int avail_for_text = settings_height_max - padding;
             font_scaling = static_cast<float>(avail_for_text)/text_height; 
             tile_singlet_width_pixels = settings_height_max * pixel_6a_setting_panel_aspect / 3.f;
         } else {
             float device_independent_x_padding = 2. * ImGuiStyle().WindowPadding.x + ImGuiStyle().ItemSpacing.x;
             // all lengths on a given device are scaled by main_scale, so can't compare pixels to pixels directly across devices.
-            float screen_width_ratio = static_cast<double>(portraitScreenWidth / main_scale - device_independent_x_padding)/(pixel_6a_screen_width / pixel_6a_main_scale - device_independent_x_padding);
+            float screen_width_ratio = static_cast<double>(io.DisplaySize.x / main_scale - device_independent_x_padding)/(pixel_6a_screen_width / pixel_6a_main_scale - device_independent_x_padding);
             font_scaling = screen_width_ratio / 1.02; //1.02: fudge factor to account for padding that's not scaled
-            tile_singlet_width_pixels = (portraitScreenWidth - style.ItemSpacing.x - 2 * style.WindowPadding.x)/3.;
+            tile_singlet_width_pixels = (io.DisplaySize.x - style.ItemSpacing.x - 2 * style.WindowPadding.x)/3.;
             ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
             settings_height_max = inputs_ui.get_height() + trigger_ui.get_height(); 
             ImGui::PopFont();
@@ -350,7 +341,7 @@ int main(int, char**)
         float data_height;
         float settings_height;
         if(landscape) {
-            data_height = portraitScreenWidth - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
+            data_height = io.DisplaySize.y - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
             if(collapse_settings) {
                 data_width = ImGui::GetContentRegionAvail().x;
             } else {
@@ -369,7 +360,7 @@ int main(int, char**)
                 data_width = ImGui::GetContentRegionAvail().x - style.ItemSpacing.x - settings_width;
             }
         } else {
-            settings_width = portraitScreenWidth - 2 * style.WindowPadding.x;
+            settings_width = io.DisplaySize.x - 2 * style.WindowPadding.x;
             data_width = settings_width;
             if(collapse_settings) {
                 data_height = ImGui::GetContentRegionAvail().y;
