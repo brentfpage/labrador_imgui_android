@@ -220,16 +220,28 @@ public class MainActivity extends SDLActivity {
         }
     };
 
+    // for APIs 35 and higher, the status bar is included in the main display, so it's necessary to account for it and avoid it.  Otherwise, return 0;
     public int getStatusBarHeight()
     {
-        WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(getWindow().getDecorView());
-        int statusBarHeight = insets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.systemBars()).top;
+        int statusBarHeight;
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(getWindow().getDecorView());
+            statusBarHeight = insets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.systemBars()).top;
+        } else {
+            statusBarHeight = 0;
+        }
         return statusBarHeight;
     }
+    // for APIs 35 and higher, the navigation bar is included in the main display, so it's necessary to account for it and avoid it.  Otherwise, return 0;
     public int getNavigationBarHeight()
     {
-        WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(getWindow().getDecorView());
-        int navigationBarHeight = insets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.systemBars()).bottom;
+        int navigationBarHeight;
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(getWindow().getDecorView());
+            navigationBarHeight = insets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.systemBars()).bottom;
+        } else {
+            navigationBarHeight = 0;
+        }
         return navigationBarHeight;
     }
 

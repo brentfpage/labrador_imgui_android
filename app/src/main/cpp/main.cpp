@@ -251,6 +251,7 @@ int main(int, char**)
             continue;
         }
 
+        // will intentionally be zero sometimes; see MainActivity
         int statusBarHeight = (int) env->CallIntMethod(MainActivityObject,getStatusBarHeightID);
         int navigationBarHeight = (int) env->CallIntMethod(MainActivityObject,getNavigationBarHeightID);
 
@@ -286,8 +287,8 @@ int main(int, char**)
         float font_scaling = 1.f;
         float tile_singlet_width_pixels;
         float settings_width;
-// should compute these scalings only once, but there's no way to get the navigation/status bar heights in landscape mode when in portrait mode
-        // scale the font size so that the ui fits in width-wise in portrait mode and height-wise in landscape mode. only scale the font size b/c most of the other built-in lengths are 0-10 pixels so are only responsive to scalings more extreme than +- 10%
+// should compute these scalings only once, but there's no way to get the navigation/status bar heights in landscape mode when in portrait mode or vice-versa; it's necessary to wait until the device actually enters a given orientation to compute the scaling
+// scale the font size so that the ui fits in width-wise in portrait mode and height-wise in landscape mode. only scale the font size b/c most of the other built-in lengths are 0-10 pixels so are only responsive to scalings more extreme than +- 10%
         if(landscape) { 
             int prescale_settings_height = inputs_ui.get_height() + trigger_ui.get_height(); // want to be able to fit these two ui_tiles in one column
             int text_height = (inputs_ui.n_lines + trigger_ui.n_lines) * ImGui::GetFontSize(); 
