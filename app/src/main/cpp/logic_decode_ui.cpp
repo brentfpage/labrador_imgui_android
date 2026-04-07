@@ -24,6 +24,7 @@ float logicDecodeUI::draw_grabber(const char * label)
     }
 }
 
+#define USB_ON
 void logicDecodeUI::print_stream(int id, const char * text, bool *at_bottom, float window_content_width, float ch_console_height)
 {
     ImGui::PushID(id);
@@ -80,17 +81,14 @@ void logicDecodeUI::print_stream(int id, const char * text, bool *at_bottom, flo
 void logicDecodeUI::draw_console(float window_content_width)
 {
     float y_avail = ImGui::GetContentRegionAvail().y;
-    if(both_ch_uart_settings[1].decode_on) {
-        ch_console_height[1] = fmin(ch_console_height[1], y_avail - ch_console_height[0] - grabber_height * (1 + both_ch_uart_settings[0].decode_on) - 4);
-        ch_console_height[1] = fmax(ch_console_height[1], 2 * grabber_height);
-    } 
-    if(both_ch_uart_settings[0].decode_on) {
-        ch_console_height[0] = fmin(ch_console_height[0], y_avail - ch_console_height[1] - grabber_height * (1 + both_ch_uart_settings[1].decode_on) - 4);
-        ch_console_height[0] = fmax(ch_console_height[0], 2 * grabber_height);
-    }
-    int n_consoles = both_ch_uart_settings[0].decode_on + both_ch_uart_settings[1].decode_on + (protocol_sel == Protocol::I2C); // 1 or 2
     for(int i: {0,1}) {
         ch_console_height[i] *= both_ch_uart_settings[i].decode_on;
+    }
+    for(int i:{1,0}) {
+        if(both_ch_uart_settings[i].decode_on) {
+            ch_console_height[i] = fmin(ch_console_height[i], y_avail - ch_console_height[(i+1)%2] - grabber_height * (1 + both_ch_uart_settings[(i+1)%2].decode_on) - 4);
+            ch_console_height[i] = fmax(ch_console_height[i], 2 * grabber_height);
+        } 
     }
     if(protocol_sel == Protocol::UART) {
         if(both_ch_uart_settings[0].decode_on)

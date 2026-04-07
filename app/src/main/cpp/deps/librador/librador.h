@@ -1,7 +1,6 @@
 #ifndef LIBRADOR_H
 #define LIBRADOR_H
 
-#define USB_ON
 #include "librador_global.h"
 #include <android/log.h>
 #include "usbcallhandler.h"
