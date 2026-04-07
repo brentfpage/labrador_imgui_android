@@ -378,19 +378,17 @@ int main(int, char**)
         ImGui::PopFont();
         ImGui::BeginChild("data",ImVec2(data_width, data_height));
         {
-            float plot_height;
+            float console_height;
             if(logic_decode_ui.decoding_on()) {
                 ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,0));
-                plot_height = ImGui::GetContentRegionAvail().y - logic_decode_ui.get_console_height(ImGui::GetContentRegionAvail().y);
-            } else {
-                plot_height = ImGui::GetContentRegionAvail().y;
-            }
-            plot_ui.draw(iso_thread_active, inputs_ui.mode, inputs_ui.ch_enabled(1), inputs_ui.ch_enabled(2), data_width, plot_height);
-
-            if(logic_decode_ui.decoding_on()) {
                 logic_decode_ui.draw_console(data_width);
+            }
+                
+            plot_ui.draw(iso_thread_active, inputs_ui.mode, inputs_ui.ch_enabled(1), inputs_ui.ch_enabled(2), data_width, 0.);
+            if(logic_decode_ui.decoding_on()) {
                 ImGui::PopStyleVar();
             }
+
         }
         ImVec2 dataWindowBottomLeft = ImGui::GetWindowPos() + ImVec2(0.f,ImGui::GetWindowSize().y);
         ImVec2 dataWindowBottomRight = ImGui::GetWindowPos() + ImGui::GetWindowSize();

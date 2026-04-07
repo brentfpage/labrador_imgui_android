@@ -6,15 +6,7 @@
 #include "logic_decode_ui.h"
 #include "inputs_ui.h"
 
-float logicDecodeUI::get_console_height(float avail_y)
-{
-    float cushion = grabber_height * (1 + both_ch_uart_settings[0].decode_on + both_ch_uart_settings[1].decode_on + (protocol_sel == Protocol::I2C));
-    console_height = std::max(console_height, cushion);
-    console_height = std::min(console_height, avail_y - grabber_height * 2);
-    return console_height;
-}
-
-void logicDecodeUI::draw_separator(const char * label, float *item_below_height)
+float logicDecodeUI::draw_grabber(const char * label)
 {
     ImGui::InvisibleButton(label, ImVec2(-1, grabber_height));
     ImVec2 p0 = ImGui::GetItemRectMin();
@@ -25,9 +17,10 @@ void logicDecodeUI::draw_separator(const char * label, float *item_below_height)
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     draw_list->AddLine(ImVec2(hcenter - ImGui::GetFontSize(), ycenter - yspan/4),ImVec2(hcenter + ImGui::GetFontSize(), ycenter - yspan/4), IM_COL32(120, 120, 160, 255));
     draw_list->AddLine(ImVec2(hcenter - ImGui::GetFontSize(), ycenter + yspan/4),ImVec2(hcenter + ImGui::GetFontSize(), ycenter + yspan/4), IM_COL32(120, 120, 160, 255));
-    if (ImGui::IsItemActive())
-    {
-        *item_below_height -= ImGui::GetIO().MouseDelta.y;
+    if (ImGui::IsItemActive()) {
+        return ImGui::GetIO().MouseDelta.y;
+    } else {
+        return 0.0;
     }
 }
 
@@ -80,30 +73,52 @@ void logicDecodeUI::print_stream(int id, const char * text, bool *at_bottom, flo
 
         ImGui::EndChild();
     }
+    LOGW("ch_c%d_h%.2f",id,ch_console_height);
     ImGui::PopID();
 }
 
 void logicDecodeUI::draw_console(float window_content_width)
 {
-    draw_separator("plot_console_splitter", &console_height);
+    float y_avail = ImGui::GetContentRegionAvail().y;
+    if(both_ch_uart_settings[1].decode_on) {
+        ch_console_height[1] = fmin(ch_console_height[1], y_avail - ch_console_height[0] - grabber_height * (1 + both_ch_uart_settings[0].decode_on) - 4);
+        ch_console_height[1] = fmax(ch_console_height[1], 2 * grabber_height);
+    } 
+    if(both_ch_uart_settings[0].decode_on) {
+        ch_console_height[0] = fmin(ch_console_height[0], y_avail - ch_console_height[1] - grabber_height * (1 + both_ch_uart_settings[1].decode_on) - 4);
+        ch_console_height[0] = fmax(ch_console_height[0], 2 * grabber_height);
+    }
+    int n_consoles = both_ch_uart_settings[0].decode_on + both_ch_uart_settings[1].decode_on + (protocol_sel == Protocol::I2C); // 1 or 2
+    for(int i: {0,1}) {
+        ch_console_height[i] *= both_ch_uart_settings[i].decode_on;
+    }
     if(protocol_sel == Protocol::UART) {
         if(both_ch_uart_settings[0].decode_on)
         {
-            print_stream(1,librador_get_uart_string(1), &uart_ch_console_at_bottom[0], window_content_width, ImGui::GetContentRegionAvail().y - ch_console_height[1]);
+            print_stream(1,librador_get_uart_string(1), &uart_ch_console_at_bottom[0], window_content_width, ch_console_height[0]);
         }
+        float next_ch1_height = ch_console_height[1];
         if(both_ch_uart_settings[0].decode_on && both_ch_uart_settings[1].decode_on)
         {
-            draw_separator("chA_chB_splitter", &ch_console_height[1]);
-            ch_console_height[1] = std::max(ch_console_height[1], 2*grabber_height);
-            console_height = std::max(console_height, grabber_height * 4);
-            ch_console_height[1] = std::min(ch_console_height[1], console_height - 2*grabber_height);
+            float console_sep_delta = draw_grabber("chA_chB_splitter");
+            console_sep_delta = fmin(console_sep_delta, (ch_console_height[1] - 2 * grabber_height));
+            console_sep_delta = fmax(console_sep_delta, -(ch_console_height[0] - 2 * grabber_height));
+            next_ch1_height -= console_sep_delta;
+            ch_console_height[0] += console_sep_delta;
         }
         if(both_ch_uart_settings[1].decode_on)
         {
-            print_stream(2, librador_get_uart_string(2), &uart_ch_console_at_bottom[1], window_content_width, ImGui::GetContentRegionAvail().y);
+            print_stream(2, librador_get_uart_string(2), &uart_ch_console_at_bottom[1], window_content_width, ch_console_height[1]);
+            ch_console_height[1] = next_ch1_height;
         }
     } else if(protocol_sel == Protocol::I2C) {
-            print_stream(3, librador_get_i2c_string(), &i2c_console_at_bottom, window_content_width, ImGui::GetContentRegionAvail().y);
+            print_stream(3, librador_get_i2c_string(), &i2c_console_at_bottom, window_content_width, ch_console_height[0]);
+    }
+    float console_height_delta = draw_grabber("plot_console_splitter");
+    if(both_ch_uart_settings[1].decode_on) {
+        ch_console_height[1] += console_height_delta;
+    } else if (both_ch_uart_settings[0].decode_on) {
+        ch_console_height[0] += console_height_delta;
     }
 }
 
@@ -129,7 +144,6 @@ void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
     } else {
         memcpy(logic_enable, inputs_ui->logic_enable, 2 * sizeof(bool));
     }
-    ch_console_height[0] = console_height - ch_console_height[1];
     bool uart_changed = false;
     bool i2c_changed = false;
     bool uart_allowed = logic_enable[0] || logic_enable[1];
@@ -189,7 +203,6 @@ void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
         {
             uart_changed = true;
             both_ch_uart_settings[ch-1].decode_on = false; 
-            ch_console_height[ch-1] = 0.f;
         }
     }
 
@@ -240,13 +253,8 @@ void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
     {
         librador_set_i2c_is_decoding(protocol_sel == Protocol::I2C);
         if(protocol_sel == Protocol::I2C)
-            console_height = init_console_height_per_ch - grabber_height;
+            ch_console_height[0] = init_console_height_per_ch - grabber_height;
     }
-
-    if(protocol_sel == Protocol::UART)
-        console_height = ch_console_height[0] + ch_console_height[1];
-    else if (protocol_sel == Protocol::None)
-        console_height = 0.f;
 }
 
 int logicDecodeUI::get_height()
