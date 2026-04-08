@@ -24,7 +24,7 @@ float logicDecodeUI::draw_grabber(const char * label)
     }
 }
 
-#define USB_ON
+//#define USB_ON
 void logicDecodeUI::print_stream(int id, const char * text, bool *at_bottom, float window_content_width, float ch_console_height)
 {
     ImGui::PushID(id);

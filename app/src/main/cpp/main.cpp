@@ -291,7 +291,7 @@ int main(int, char**)
         } else {
             float device_independent_x_padding = 2. * ImGuiStyle().WindowPadding.x + ImGuiStyle().ItemSpacing.x;
             // all lengths on a given device are scaled by main_scale, so can't compare pixels to pixels directly across devices.
-            float screen_width_ratio = static_cast<double>(io.DisplaySize.x / main_scale - device_independent_x_padding)/(pixel_6a_screen_width / pixel_6a_main_scale - device_independent_x_padding);
+            float screen_width_delta = static_cast<double>(io.DisplaySize.x / main_scale - device_independent_x_padding) - (pixel_6a_screen_width / pixel_6a_main_scale - device_independent_x_padding);
             font_scaling = screen_width_ratio / 1.02; //1.02: fudge factor to account for padding that's not scaled
             tile_singlet_width_pixels = (io.DisplaySize.x - style.ItemSpacing.x - 2 * style.WindowPadding.x)/3.;
             ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
@@ -449,7 +449,10 @@ int main(int, char**)
                                 if(!first)
                                     INDENTUP
                                 first=false;
-                                tiles[i]->draw((static_cast<int>(tiles[i]->width) + 1) * tile_singlet_width_pixels, &inputs_ui);
+                                float adjustment = 0.1;
+    // "singlet"-width tiles are (tile_singlet_width_pixels + adjustment) wide
+    // "duplex"-width tiles are (tile_singlet_width_pixels - adjustment) wide
+                                tiles[i]->draw((static_cast<int>(tiles[i]->width) + 1) * tile_singlet_width_pixels + (-2*static_cast<int>(tiles[i]->width) + 1) * adjustment, &inputs_ui);
                                 maybe_clicked_background &= !ImGui::IsItemHovered();
                             }
                         }

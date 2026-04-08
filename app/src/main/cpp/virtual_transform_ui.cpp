@@ -48,12 +48,15 @@ void virtualTransformUI::draw(float width_pixels, inputsUI* inputs_ui)
         ImGui::EndTable();
     }
     if(ImGui::BeginTable("helper3", 3, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH, ImVec2(width_pixels, 0.f))) {
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.55f);
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.225);
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.225);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.5f);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.25);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.25);
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+//         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {style.FramePadding.x/4.f,style.FramePadding.y});
+        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x - style.FramePadding.x - ImGui::CalcTextSize("Gain").x);
         ImGui::Combo("Gain", &curr_ch_settings->gain_sel, gain_labels, IM_COUNTOF(gain_labels));
+//         ImGui::PopStyleVar();
         ImGui::TableNextColumn();
         ImGui::Checkbox("AC", &curr_ch_settings->is_ac);
         ImGui::TableNextColumn();
