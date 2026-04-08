@@ -81,16 +81,16 @@ void logicDecodeUI::print_stream(int id, const char * text, bool *at_bottom, flo
 void logicDecodeUI::draw_console(float window_content_width)
 {
     float y_avail = ImGui::GetContentRegionAvail().y;
-    for(int i: {0,1}) {
-        ch_console_height[i] *= both_ch_uart_settings[i].decode_on;
-    }
-    for(int i:{1,0}) {
-        if(both_ch_uart_settings[i].decode_on) {
-            ch_console_height[i] = fmin(ch_console_height[i], y_avail - ch_console_height[(i+1)%2] - grabber_height * (1 + both_ch_uart_settings[(i+1)%2].decode_on) - 4);
-            ch_console_height[i] = fmax(ch_console_height[i], 2 * grabber_height);
-        } 
-    }
     if(protocol_sel == Protocol::UART) {
+        for(int i: {0,1}) {
+            ch_console_height[i] *= both_ch_uart_settings[i].decode_on;
+        }
+        for(int i:{1,0}) {
+            if(both_ch_uart_settings[i].decode_on) {
+                ch_console_height[i] = fmin(ch_console_height[i], y_avail - ch_console_height[(i+1)%2] - grabber_height * (1 + both_ch_uart_settings[(i+1)%2].decode_on) - 4);
+                ch_console_height[i] = fmax(ch_console_height[i], 2 * grabber_height);
+            } 
+        }
         if(both_ch_uart_settings[0].decode_on)
         {
             print_stream(1,librador_get_uart_string(1), &uart_ch_console_at_bottom[0], window_content_width, ch_console_height[0]);
@@ -110,12 +110,15 @@ void logicDecodeUI::draw_console(float window_content_width)
             ch_console_height[1] = next_ch1_height;
         }
     } else if(protocol_sel == Protocol::I2C) {
-            print_stream(3, librador_get_i2c_string(), &i2c_console_at_bottom, window_content_width, ch_console_height[0]);
+        ch_console_height[1] = 0.f;
+        ch_console_height[0] = fmin(ch_console_height[0], y_avail - grabber_height - 4);
+        ch_console_height[0] = fmax(ch_console_height[0], 2 * grabber_height);
+        print_stream(3, librador_get_i2c_string(), &i2c_console_at_bottom, window_content_width, ch_console_height[0]);
     }
     float console_height_delta = draw_grabber("plot_console_splitter");
     if(both_ch_uart_settings[1].decode_on) {
         ch_console_height[1] += console_height_delta;
-    } else if (both_ch_uart_settings[0].decode_on) {
+    } else if (both_ch_uart_settings[0].decode_on || (protocol_sel == Protocol::I2C)) {
         ch_console_height[0] += console_height_delta;
     }
 }
@@ -151,7 +154,6 @@ void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
 
     ImGui::BeginDisabled(!(logic_enable[0] || logic_enable[1])); //covers nearly entire fn.
 
-    bool* changed[2] = {&uart_changed, &i2c_changed};
     Protocol prots[2] = {Protocol::UART, Protocol::I2C};
     const char * labels[2] = {"UART", "I2C"};
 
@@ -185,7 +187,9 @@ void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
     
     ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2( (width_pixels - ImGui::CalcTextSize("I2C").x - style.ItemInnerSpacing.x - CHECKBOX_SIZE)/2., style.FramePadding.y ));
     ImGui::BeginDisabled(!i2c_allowed);
-    ImGui::Checkbox("I2C", (bool *) &protocol_sel);
+    if(ImGui::Checkbox("I2C", (bool *) &protocol_sel)) {
+        i2c_changed = true;
+    }
     ImGui::EndDisabled();
 
     ImGui::EndGroup();
