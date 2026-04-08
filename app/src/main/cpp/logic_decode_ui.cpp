@@ -145,13 +145,12 @@ void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
     bool uart_changed = false;
     bool i2c_changed = false;
     bool uart_allowed = logic_enable[0] || logic_enable[1];
-    bool i2c_allowed = logic_enable[0] && logic_enable[1];
+    bool i2c_allowed = logic_enable[0] && logic_enable[1] && !both_ch_uart_settings[0].decode_on && !both_ch_uart_settings[1].decode_on;
 
     ImGuiStyle& style = ImGui::GetStyle();
 
     ImGui::BeginDisabled(!(logic_enable[0] || logic_enable[1])); //covers nearly entire fn.
 
-    bool allowed[2] = {uart_allowed, i2c_allowed};
     bool* changed[2] = {&uart_changed, &i2c_changed};
     Protocol prots[2] = {Protocol::UART, Protocol::I2C};
     const char * labels[2] = {"UART", "I2C"};
@@ -159,51 +158,90 @@ void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
     bool open_ch_serial_settings = false;
     char chAB[2] = {'A', 'B'};
 
-    if (ImGui::BeginTable("logic_settings_table", 2, ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH , ImVec2(width_pixels, 0.f)) )
+//     ImVec2 saved_pos = ImGui::GetCursorScreenPos();
+//     ImGui::SetCursorScreenPos(saved_pos);
+    ImGui::BeginGroup(); // for bounding rect
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,{0.f,0.f});
+    ImGui::Dummy(ImVec2(width_pixels,0.f));
+    ImGui::PopStyleVar();
+    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2((width_pixels - ImGui::CalcTextSize("UART").x)/2.,style.FramePadding.y));
+    ImGui::Text("UART");
+    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2( (width_pixels - ImGui::CalcTextSize("CH ACH B").x - style.ItemSpacing.x - 4 * style.FramePadding.x)/2., 0.f ));
+    for (int ch: {1,2})
     {
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.6f);
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.4f);
-        ImGui::TableNextRow();
-        for(int j : {1,2}) {
-            ImGui::TableNextColumn();
-            ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2( (ImGui::GetContentRegionAvail().x - CHECKBOX_SIZE - ImGui::CalcTextSize(labels[j-1]).x - style.ItemInnerSpacing.x)/2., 0.f ));
-            ImGui::BeginDisabled(!allowed[j-1]);
-            if(ImGui::custom_RadioButton(labels[j-1], (int *) &protocol_sel, j))
-                *changed[j-1] = true;
-            ImGui::EndDisabled();
-            if(!allowed[j-1] && protocol_sel==prots[j-1])
-            {
-                *changed[j-1] = true;
-                protocol_sel = Protocol::None;
-            }
+        ImGui::BeginDisabled(!logic_enable[ch-1] || !(protocol_sel==Protocol::UART));
+        char buf[20];
+        sprintf(buf,"CH %c##serial_decode",chAB[ch-1]);
+        if(ImGui::Button(buf)) {
+            open_ch_serial_settings = true;
+            ch_sel = ch;
         }
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2( (ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("CH ACH B").x - style.ItemSpacing.x - 4 * style.FramePadding.x)/2., 0.f ));
-        for (int ch: {1,2})
-        {
-            ImGui::BeginDisabled(!logic_enable[ch-1] || !(protocol_sel==Protocol::UART));
-            char buf[20];
-            sprintf(buf,"CH %c##serial_decode",chAB[ch-1]);
-            if(ImGui::Button(buf)) {
-                open_ch_serial_settings = true;
-                ch_sel = ch;
-            }
-            ImGui::EndDisabled(); 
-            ImGui::SameLine();
-        }
-        ImGui::EndTable();
+        ImGui::EndDisabled(); 
+        ImGui::SameLine();
     }
-    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.f, -style.ItemSpacing.y));
+    ImGui::NewLine();
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    draw_list->AddLine(ImGui::GetCursorScreenPos(), ImGui::GetCursorScreenPos() + ImVec2(width_pixels,0.f), IM_COL32(90, 90, 120, 255));
+    
+    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2( (width_pixels - ImGui::CalcTextSize("I2C").x - style.ItemInnerSpacing.x - CHECKBOX_SIZE)/2., style.FramePadding.y ));
+    ImGui::BeginDisabled(!i2c_allowed);
+    ImGui::Checkbox("I2C", (bool *) &protocol_sel);
+    ImGui::EndDisabled();
 
-    for (int ch : {1,2})
-    {
-        if((!logic_enable[ch-1] || !(protocol_sel==Protocol::UART)) && both_ch_uart_settings[ch-1].decode_on) 
-        {
-            uart_changed = true;
-            both_ch_uart_settings[ch-1].decode_on = false; 
-        }
-    }
+    ImGui::EndGroup();
+    ImVec2 p0 = ImGui::GetItemRectMin();
+    ImVec2 p1 = ImGui::GetItemRectMax() + ImVec2(0.f,style.FramePadding.y);
+    draw_list->AddRect(p0, p1, IM_COL32(90, 90, 120, 255));
+    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.f,style.FramePadding.y - style.ItemSpacing.y));
+    ImGui::Dummy({0.f,0.f}); // prevents issue with this draw() command affecting the vertical alignment of whatever ui element comes after it
+    ImGui::EndGroup();
+
+
+//     if (ImGui::BeginTable("logic_settings_table", 2, ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH , ImVec2(width_pixels, 0.f)) )
+//     {
+//         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.5f);
+//         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.5f);
+//         ImGui::TableNextRow();
+//         for(int j : {1,2}) {
+//             ImGui::TableNextColumn();
+//             ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2( (ImGui::GetContentRegionAvail().x - CHECKBOX_SIZE - ImGui::CalcTextSize(labels[j-1]).x - style.ItemInnerSpacing.x)/2., 0.f ));
+//             ImGui::BeginDisabled(!allowed[j-1]);
+//             if(ImGui::custom_RadioButton(labels[j-1], (int *) &protocol_sel, j))
+//                 *changed[j-1] = true;
+//             ImGui::EndDisabled();
+//             if(!allowed[j-1] && protocol_sel==prots[j-1])
+//             {
+//                 *changed[j-1] = true;
+//                 protocol_sel = Protocol::None;
+//             }
+//         }
+//         ImGui::TableNextRow();
+//         ImGui::TableNextColumn();
+//         ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2( (ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("CH ACH B").x - style.ItemSpacing.x - 4 * style.FramePadding.x)/2., 0.f ));
+//         for (int ch: {1,2})
+//         {
+//             ImGui::BeginDisabled(!logic_enable[ch-1] || !(protocol_sel==Protocol::UART));
+//             char buf[20];
+//             sprintf(buf,"CH %c##serial_decode",chAB[ch-1]);
+//             if(ImGui::Button(buf)) {
+//                 open_ch_serial_settings = true;
+//                 ch_sel = ch;
+//             }
+//             ImGui::EndDisabled(); 
+//             ImGui::SameLine();
+//         }
+//         ImGui::EndTable();
+//     }
+//     ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.f, -style.ItemSpacing.y));
+// 
+//     for (int ch : {1,2})
+//     {
+//         if((!logic_enable[ch-1] || !(protocol_sel==Protocol::UART)) && both_ch_uart_settings[ch-1].decode_on) 
+//         {
+//             uart_changed = true;
+//             both_ch_uart_settings[ch-1].decode_on = false; 
+//         }
+//     }
 
     if(open_ch_serial_settings)
     {
@@ -241,7 +279,6 @@ void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
         ImGui::EndPopup();
     }
     ImGui::EndDisabled(); //!logic_enable[0] && !logic_enable[1]);
-    ImGui::EndGroup();
 
 
     if(uart_changed)
@@ -260,7 +297,8 @@ int logicDecodeUI::get_height()
 {
     ImGuiStyle& style = ImGui::GetStyle();
     int calc_height = 2 * style.ItemSpacing.y + ImGui::GetFontSize() + \
-                      2 * style.CellPadding.y + 2 * style.FramePadding.y + ImGui::GetFontSize() + \
-                      2 * style.CellPadding.y + 2 * style.FramePadding.y + ImGui::GetFontSize();
+                      style.FramePadding.y + ImGui::GetFontSize() + style.ItemSpacing.y + \
+                      2 * style.FramePadding.y + ImGui::GetFontSize() + 2 * style.ItemSpacing.y + \
+                      3 * style.FramePadding.y + ImGui::GetFontSize();
     return calc_height;
 }

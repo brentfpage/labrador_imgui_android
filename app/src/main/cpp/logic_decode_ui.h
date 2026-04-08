@@ -6,8 +6,8 @@
 
 class logicDecodeUI : public UI_tile
 {
-    enum class Protocol {None, UART, I2C};
-    Protocol protocol_sel = Protocol::None;
+    enum class Protocol {UART, I2C};
+    Protocol protocol_sel = Protocol::UART;
 
     static const int num_baud_options = 12;
     const int baud_rates[num_baud_options] = {      
@@ -59,7 +59,7 @@ class logicDecodeUI : public UI_tile
     bool uart_ch_console_at_bottom[2] = {true, true};
     bool i2c_console_at_bottom = true;
 public:
-    logicDecodeUI() : UI_tile("Logic Decoder", UI_tile::Width::duplex, 2) {};
+    logicDecodeUI() : UI_tile("Logic Dec.", UI_tile::Width::singlet, 4) {};
     bool decoding_on();
     void draw(float width, inputsUI* inputs_ui = nullptr) override;
     void draw_console(float window_content_width);//const char * from_librador_1, const char * from_librador_2 = nullptr);
