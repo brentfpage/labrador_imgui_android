@@ -205,6 +205,15 @@ int main(int, char**)
     jmethodID getNavigationBarHeightID = env->GetMethodID(MainActivity, "getNavigationBarHeight", "()I");
     jmethodID getScreenWidth = env->GetMethodID(MainActivity, "getScreenWidth", "()I");
     jmethodID getScreenHeight = env->GetMethodID(MainActivity, "getScreenHeight", "()I");
+
+    int sw = (int) env->CallIntMethod(MainActivityObject,getScreenWidth);
+    int sh = (int) env->CallIntMethod(MainActivityObject,getScreenHeight);
+    int sbh = (int) env->CallIntMethod(MainActivityObject,getStatusBarHeightID);
+    int nbh = (int) env->CallIntMethod(MainActivityObject,getNavigationBarHeightID);
+    LOGW("screen width: %d", sw);
+    LOGW("screen height: %d", sh);
+    LOGW("status bar beight: %d", sbh);
+    LOGW("navigation bar beight: %d", nbh);
     
     // Our state
     bool show_mainwindow = true;
@@ -216,8 +225,12 @@ int main(int, char**)
     sigGenUI sig_gen_ui = sigGenUI();
     psuUI psu_ui = psuUI();
     logicDecodeUI logic_decode_ui = logicDecodeUI();
+    virtual_transform_ui.is_expanded = false;
+    virtual_transform_ui.is_visible = false;
     logic_decode_ui.is_expanded = false;
     logic_decode_ui.is_visible = false;
+    psu_ui.is_expanded = false;
+    psu_ui.is_visible = false;
     plotUI plot_ui = plotUI();
 
     // Main loop
@@ -287,27 +300,16 @@ int main(int, char**)
         float adjustment = 0.f;
         float tile_singlet_width_pixels;
         float settings_width;
-// should compute these scalings only once, but there's no way to get the navigation/status bar heights in landscape mode when in portrait mode or vice-versa; it's necessary to wait until the device actually enters a given orientation to compute the scaling
-// scale the font size so that the ui fits in width-wise in portrait mode and height-wise in landscape mode. only scale the font size b/c most of the other built-in lengths are 0-10 pixels so are only responsive to scalings more extreme than +- 10%
+// should compute these values only once, but there's no way to get the navigation/status bar heights in landscape mode when in portrait mode or vice-versa; it's necessary to wait until the device actually enters a given orientation to compute the values
+// in landscape mode, allow for the possibility of needing to scroll in the y direction
         if(landscape) { 
-            int prescale_settings_height = inputs_ui.get_height() + trigger_ui.get_height(); // want to be able to fit these two ui_tiles in one column
-            int text_height = (inputs_ui.n_lines + trigger_ui.n_lines) * ImGui::GetFontSize(); 
-            int padding = prescale_settings_height - text_height; 
             settings_height_max = io.DisplaySize.y - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
-            int avail_for_text = settings_height_max - padding;
-            font_scaling = static_cast<float>(avail_for_text)/text_height; 
-
-            // 
-
-
             tile_singlet_width_pixels = settings_height_max * pixel_6a_setting_panel_aspect / 3.f;
         } else {
-            adjustment = ((pixel_6a_screen_width * dpi / pixel_6a_dpi) - static_cast<double>(io.DisplaySize.x))/3.; // will be transferred from singlet-width pixels (which tend to be more space-constrained width-wise) to duplex-width pixels
+            // if the current device's screen is smaller width-wise than the pixel 6a's screen, make sure the singlet-width tiles remain the same width in inches as on the pixel 6a.  do this by transfering space from the duplex-width tiles (which aren't as space-constrained)
+            adjustment = ((pixel_6a_screen_width * dpi / pixel_6a_dpi) - static_cast<double>(io.DisplaySize.x))/3.; 
             adjustment = adjustment < 0 ? 0 : adjustment;
             tile_singlet_width_pixels = (io.DisplaySize.x - style.ItemSpacing.x - 2 * style.WindowPadding.x)/3.;
-//             ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
-//             settings_height_max = inputs_ui.get_height() + trigger_ui.get_height(); 
-//             ImGui::PopFont();
         };
 
         plot_ui.recompute_x_bounds(inputs_ui.changed_since_last(), inputs_ui.mode);
