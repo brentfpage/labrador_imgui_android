@@ -134,7 +134,7 @@ int main(int, char**)
     ImGuiStyle& style = ImGui::GetStyle();
     style.ScaleAllSizes(main_scale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
     style.FontScaleDpi = main_scale;        // Set initial font scale. (in docking branch: using io.ConfigDpiScaleFonts=true automatically overrides this for every window depending on the current monitor)
-    style.FontSizeBase = 19.f;
+    style.FontSizeBase = 18.5f;
     style.WindowPadding = ImVec2(style.WindowPadding.x/2,style.WindowPadding.y/2);
 
     // Setup Platform/Renderer backends
@@ -276,6 +276,7 @@ int main(int, char**)
         landscape = new_landscape;
         float settings_height_max;
         float font_scaling = 1.f;
+        float adjustment = 0.f;
         float tile_singlet_width_pixels;
         float settings_width;
 // should compute these scalings only once, but there's no way to get the navigation/status bar heights in landscape mode when in portrait mode or vice-versa; it's necessary to wait until the device actually enters a given orientation to compute the scaling
@@ -289,14 +290,13 @@ int main(int, char**)
             font_scaling = static_cast<float>(avail_for_text)/text_height; 
             tile_singlet_width_pixels = settings_height_max * pixel_6a_setting_panel_aspect / 3.f;
         } else {
-            float device_independent_x_padding = 2. * ImGuiStyle().WindowPadding.x + ImGuiStyle().ItemSpacing.x;
             // all lengths on a given device are scaled by main_scale, so can't compare pixels to pixels directly across devices.
-            float screen_width_delta = static_cast<double>(io.DisplaySize.x / main_scale - device_independent_x_padding) - (pixel_6a_screen_width / pixel_6a_main_scale - device_independent_x_padding);
-            font_scaling = screen_width_ratio / 1.02; //1.02: fudge factor to account for padding that's not scaled
+            adjustment = static_cast<double>(io.DisplaySize.x) - (pixel_6a_screen_width * main_scale / pixel_6a_main_scale); // will be transferred from singlet-width pixels (which tend to be more space-constrained width-wise) to duplex-width pixels
+            LOGW("%.2f", adjustment);
             tile_singlet_width_pixels = (io.DisplaySize.x - style.ItemSpacing.x - 2 * style.WindowPadding.x)/3.;
-            ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
-            settings_height_max = inputs_ui.get_height() + trigger_ui.get_height(); 
-            ImGui::PopFont();
+//             ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
+//             settings_height_max = inputs_ui.get_height() + trigger_ui.get_height(); 
+//             ImGui::PopFont();
         };
 
         plot_ui.recompute_x_bounds(inputs_ui.changed_since_last(), inputs_ui.mode);
@@ -449,7 +449,7 @@ int main(int, char**)
                                 if(!first)
                                     INDENTUP
                                 first=false;
-                                float adjustment = 0.1;
+                                float adjustment = 0.f;
     // "singlet"-width tiles are (tile_singlet_width_pixels + adjustment) wide
     // "duplex"-width tiles are (tile_singlet_width_pixels - adjustment) wide
                                 tiles[i]->draw((static_cast<int>(tiles[i]->width) + 1) * tile_singlet_width_pixels + (-2*static_cast<int>(tiles[i]->width) + 1) * adjustment, &inputs_ui);
