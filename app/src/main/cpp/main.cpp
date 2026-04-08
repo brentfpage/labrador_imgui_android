@@ -210,6 +210,8 @@ int main(int, char**)
     sigGenUI sig_gen_ui = sigGenUI();
     psuUI psu_ui = psuUI();
     logicDecodeUI logic_decode_ui = logicDecodeUI();
+    logic_decode_ui.is_expanded = false;
+    logic_decode_ui.is_visible = false;
     plotUI plot_ui = plotUI();
 
     // Main loop
@@ -291,7 +293,7 @@ int main(int, char**)
             tile_singlet_width_pixels = settings_height_max * pixel_6a_setting_panel_aspect / 3.f;
         } else {
             // all lengths on a given device are scaled by main_scale, so can't compare pixels to pixels directly across devices.
-            adjustment = static_cast<double>(io.DisplaySize.x) - (pixel_6a_screen_width * main_scale / pixel_6a_main_scale); // will be transferred from singlet-width pixels (which tend to be more space-constrained width-wise) to duplex-width pixels
+            adjustment = (pixel_6a_screen_width * main_scale / pixel_6a_main_scale) - static_cast<double>(io.DisplaySize.x); // will be transferred from singlet-width pixels (which tend to be more space-constrained width-wise) to duplex-width pixels
             LOGW("%.2f", adjustment);
             tile_singlet_width_pixels = (io.DisplaySize.x - style.ItemSpacing.x - 2 * style.WindowPadding.x)/3.;
 //             ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
@@ -301,8 +303,6 @@ int main(int, char**)
 
         plot_ui.recompute_x_bounds(inputs_ui.changed_since_last(), inputs_ui.mode);
 
-        sig_gen_ui.is_visible = false;
-        sig_gen_ui.is_expanded = false;
         const int n_tiles = 6;
         UI_tile* tiles[n_tiles] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui};
         selectorUI selector_ui = selectorUI(tiles, n_tiles);
@@ -451,7 +451,6 @@ int main(int, char**)
                                 if(!first)
                                     INDENTUP
                                 first=false;
-                                float adjustment = 0.f;
     // "singlet"-width tiles are (tile_singlet_width_pixels + adjustment) wide
     // "duplex"-width tiles are (tile_singlet_width_pixels - adjustment) wide
                                 tiles[i]->draw((static_cast<int>(tiles[i]->width) + 1) * tile_singlet_width_pixels + (-2*static_cast<int>(tiles[i]->width) + 1) * adjustment, &inputs_ui);

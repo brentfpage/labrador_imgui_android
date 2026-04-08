@@ -46,8 +46,8 @@ void virtualTransformUI::draw(float width_pixels, inputsUI* inputs_ui)
 
     const float offset_button_width = style.FramePadding.x*2 + ImGui::CalcTextSize("Offset").x;
     if(ImGui::BeginTable("helper2",2, ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_RowBg , ImVec2(width_pixels, 0.))) {
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.75f);
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.25f);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.7f);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.3f);
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::PushItemWidth(-1); 
