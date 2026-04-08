@@ -58,8 +58,8 @@ void virtualTransformUI::draw(float width_pixels, inputsUI* inputs_ui)
         ImGui::EndTable();
     }
     if(ImGui::BeginTable("helper3", 2, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH, ImVec2(width_pixels, 0.f))) {
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.5f);
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.5f);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.4f);
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
 //         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {style.FramePadding.x/4.f,style.FramePadding.y});

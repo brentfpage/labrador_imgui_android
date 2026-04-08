@@ -161,11 +161,12 @@ void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
 
     if (ImGui::BeginTable("logic_settings_table", 2, ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH , ImVec2(width_pixels, 0.f)) )
     {
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.75f);
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.25f);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.4f);
         ImGui::TableNextRow();
         for(int j : {1,2}) {
             ImGui::TableNextColumn();
+            ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2( (ImGui::GetContentRegionAvail().x - CHECKBOX_SIZE - ImGui::CalcTextSize(labels[j-1]).x - style.ItemInnerSpacing.x)/2., 0.f ));
             ImGui::BeginDisabled(!allowed[j-1]);
             if(ImGui::custom_RadioButton(labels[j-1], (int *) &protocol_sel, j))
                 *changed[j-1] = true;
@@ -175,21 +176,21 @@ void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
                 *changed[j-1] = true;
                 protocol_sel = Protocol::None;
             }
-
-            if(prots[j-1] == Protocol::UART) {
-                for (int ch: {1,2})
-                {
-                    ImGui::SameLine();
-                    ImGui::BeginDisabled(!logic_enable[ch-1] || !(protocol_sel==Protocol::UART));
-                    char buf[20];
-                    sprintf(buf,"CH %c##serial_decode",chAB[ch-1]);
-                    if(ImGui::Button(buf)) {
-                        open_ch_serial_settings = true;
-                        ch_sel = ch;
-                    }
-                    ImGui::EndDisabled(); 
-                }
+        }
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2( (ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("CH ACH B").x - style.ItemSpacing.x - 4 * style.FramePadding.x)/2., 0.f ));
+        for (int ch: {1,2})
+        {
+            ImGui::BeginDisabled(!logic_enable[ch-1] || !(protocol_sel==Protocol::UART));
+            char buf[20];
+            sprintf(buf,"CH %c##serial_decode",chAB[ch-1]);
+            if(ImGui::Button(buf)) {
+                open_ch_serial_settings = true;
+                ch_sel = ch;
             }
+            ImGui::EndDisabled(); 
+            ImGui::SameLine();
         }
         ImGui::EndTable();
     }
@@ -259,6 +260,7 @@ int logicDecodeUI::get_height()
 {
     ImGuiStyle& style = ImGui::GetStyle();
     int calc_height = 2 * style.ItemSpacing.y + ImGui::GetFontSize() + \
+                      2 * style.CellPadding.y + 2 * style.FramePadding.y + ImGui::GetFontSize() + \
                       2 * style.CellPadding.y + 2 * style.FramePadding.y + ImGui::GetFontSize();
     return calc_height;
 }
