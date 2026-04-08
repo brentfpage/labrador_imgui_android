@@ -31,12 +31,13 @@ void virtualTransformUI::draw(float width_pixels, inputsUI* inputs_ui)
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.f, style.FramePadding.y - style.ItemSpacing.y));
+#define ALIGN_Y ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(0.f, style.FramePadding.y - style.ItemSpacing.y));
         ImGui::Text("CH: ");
         ImGui::SameLine();
-        ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(0.f, style.FramePadding.y - style.ItemSpacing.y));
+        ALIGN_Y
         ImGui::RadioButton("A  ", &ch_sel, 1);
         ImGui::SameLine();
-        ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(0.f, style.FramePadding.y - style.ItemSpacing.y));
+        ALIGN_Y
         ImGui::RadioButton("B", &ch_sel, 2); 
         ImGui::TableNextColumn();
         ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2((ImGui::GetContentRegionAvail().x - CHECKBOX_SIZE - ImGui::CalcTextSize("||").x - style.ItemInnerSpacing.x)/2.,0.f));

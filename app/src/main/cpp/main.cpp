@@ -296,6 +296,10 @@ int main(int, char**)
             settings_height_max = io.DisplaySize.y - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
             int avail_for_text = settings_height_max - padding;
             font_scaling = static_cast<float>(avail_for_text)/text_height; 
+
+            // 
+
+
             tile_singlet_width_pixels = settings_height_max * pixel_6a_setting_panel_aspect / 3.f;
         } else {
             adjustment = ((pixel_6a_screen_width * dpi / pixel_6a_dpi) - static_cast<double>(io.DisplaySize.x))/3.; // will be transferred from singlet-width pixels (which tend to be more space-constrained width-wise) to duplex-width pixels
