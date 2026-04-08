@@ -26,11 +26,21 @@ void virtualTransformUI::draw(float width_pixels, inputsUI* inputs_ui)
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, 0.f));
     ImGui::BeginGroup(); // for bounding rect
     if(ImGui::BeginTable("helper1",2, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_SizingFixedSame | ImGuiTableFlags_NoHostExtendX, ImVec2(width_pixels, 0.))) {
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.4f);
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::RadioButton("CH A", &ch_sel, 1);
+        ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.f, style.FramePadding.y - style.ItemSpacing.y));
+        ImGui::Text("CH: ");
+        ImGui::SameLine();
+        ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(0.f, style.FramePadding.y - style.ItemSpacing.y));
+        ImGui::RadioButton("A  ", &ch_sel, 1);
+        ImGui::SameLine();
+        ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(0.f, style.FramePadding.y - style.ItemSpacing.y));
+        ImGui::RadioButton("B", &ch_sel, 2); 
         ImGui::TableNextColumn();
-        ImGui::RadioButton("CH B", &ch_sel, 2); 
+        ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2((ImGui::GetContentRegionAvail().x - CHECKBOX_SIZE - ImGui::CalcTextSize("||").x - style.ItemInnerSpacing.x)/2.,0.f));
+        ImGui::Checkbox("||", &curr_ch_settings->is_paused);
         ImGui::EndTable();
     }
 
@@ -47,10 +57,9 @@ void virtualTransformUI::draw(float width_pixels, inputsUI* inputs_ui)
         button_common("Offset", "##offset", ImVec2(0.f,0.f), style);
         ImGui::EndTable();
     }
-    if(ImGui::BeginTable("helper3", 3, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH, ImVec2(width_pixels, 0.f))) {
+    if(ImGui::BeginTable("helper3", 2, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH, ImVec2(width_pixels, 0.f))) {
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.5f);
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.25);
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.25);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.5f);
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
 //         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {style.FramePadding.x/4.f,style.FramePadding.y});
@@ -58,9 +67,8 @@ void virtualTransformUI::draw(float width_pixels, inputsUI* inputs_ui)
         ImGui::Combo("Gain", &curr_ch_settings->gain_sel, gain_labels, IM_COUNTOF(gain_labels));
 //         ImGui::PopStyleVar();
         ImGui::TableNextColumn();
+        ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2((ImGui::GetContentRegionAvail().x - CHECKBOX_SIZE - ImGui::CalcTextSize("AC").x - style.ItemInnerSpacing.x)/2.,0.f));
         ImGui::Checkbox("AC", &curr_ch_settings->is_ac);
-        ImGui::TableNextColumn();
-        ImGui::Checkbox("||", &curr_ch_settings->is_paused);
         ImGui::EndTable();
     }
     ImGui::PopStyleVar(); //iteminnerspacing
