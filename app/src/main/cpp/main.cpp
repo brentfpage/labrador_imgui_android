@@ -92,9 +92,16 @@ int main(int, char**)
 
     float pixel_6a_main_scale = 2.625;
     float pixel_6a_screen_width = 1080.f;
-    float pixel_6a_single_width = 1038.f/3;
+    float pixel_6a_single_width = 1038.f;
+    int pixel_6a_dpi = 420;
     float pixel_6a_setting_panel_aspect = 1.13; // width to height
-//     float pixel_6a_profile_aspect_ratio = 0.49; // relevant to profile b/c it excludes navigation, status bars
+
+    JNIEnv *env = (JNIEnv *) SDL_GetAndroidJNIEnv();
+    jobject MainActivityObject = (jobject) SDL_GetAndroidActivity();
+    jclass MainActivity(env->GetObjectClass(MainActivityObject));
+    jmethodID getDpiID = env->GetMethodID(MainActivity, "getDpi", "()I");
+    int dpi = (int) env->CallIntMethod(MainActivityObject,getDpiID);
+    LOGW("dpi: %d", dpi);
     SDL_WindowFlags window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
     SDL_Window* window = SDL_CreateWindow("main window", (int)bounds.w, (int)bounds.h, window_flags);
     if (window == nullptr)
@@ -132,8 +139,10 @@ int main(int, char**)
 
     // Setup scaling
     ImGuiStyle& style = ImGui::GetStyle();
-    style.ScaleAllSizes(main_scale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
+//     style.ScaleAllSizes(main_scale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again). 
+    style.ScaleAllSizes( (pixel_6a_main_scale / pixel_6a_dpi) * dpi); // brentfpage : not scaling by a given device's main_scale because doing so doesn't actually bring about consistent sizing across devices.  
     style.FontScaleDpi = main_scale;        // Set initial font scale. (in docking branch: using io.ConfigDpiScaleFonts=true automatically overrides this for every window depending on the current monitor)
+    
     style.FontSizeBase = 18.5f;
     style.WindowPadding = ImVec2(style.WindowPadding.x/2,style.WindowPadding.y/2);
 
@@ -162,11 +171,8 @@ int main(int, char**)
     ImFont* defaultFont = io.Fonts->AddFontDefault();
 
 
-    // for accessing android app resources
-    JNIEnv *env = (JNIEnv *) SDL_GetAndroidJNIEnv();
-    jobject MainActivityObject = (jobject) SDL_GetAndroidActivity();
-    jclass MainActivity(env->GetObjectClass(MainActivityObject));
 
+    // for accessing android app resources
     jfieldID asset_manager_id = env->GetFieldID(MainActivity, "mgr", "Landroid/content/res/AssetManager;");
     jobject mgr_java = (jobject)env->GetObjectField(MainActivityObject, asset_manager_id);
     AAssetManager * mgr = AAssetManager_fromJava(env, mgr_java);
@@ -292,9 +298,8 @@ int main(int, char**)
             font_scaling = static_cast<float>(avail_for_text)/text_height; 
             tile_singlet_width_pixels = settings_height_max * pixel_6a_setting_panel_aspect / 3.f;
         } else {
-            // all lengths on a given device are scaled by main_scale, so can't compare pixels to pixels directly across devices.
-            adjustment = (pixel_6a_screen_width * main_scale / pixel_6a_main_scale) - static_cast<double>(io.DisplaySize.x); // will be transferred from singlet-width pixels (which tend to be more space-constrained width-wise) to duplex-width pixels
-            LOGW("%.2f", adjustment);
+            adjustment = ((pixel_6a_screen_width * dpi / pixel_6a_dpi) - static_cast<double>(io.DisplaySize.x))/3.; // will be transferred from singlet-width pixels (which tend to be more space-constrained width-wise) to duplex-width pixels
+            adjustment = adjustment < 0 ? 0 : adjustment;
             tile_singlet_width_pixels = (io.DisplaySize.x - style.ItemSpacing.x - 2 * style.WindowPadding.x)/3.;
 //             ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
 //             settings_height_max = inputs_ui.get_height() + trigger_ui.get_height(); 
@@ -451,9 +456,13 @@ int main(int, char**)
                                 if(!first)
                                     INDENTUP
                                 first=false;
+                                if(landscape) {
+                                    tiles[i]->draw((static_cast<int>(tiles[i]->width) + 1) * tile_singlet_width_pixels, &inputs_ui);
+                                } else {
     // "singlet"-width tiles are (tile_singlet_width_pixels + adjustment) wide
     // "duplex"-width tiles are (tile_singlet_width_pixels - adjustment) wide
-                                tiles[i]->draw((static_cast<int>(tiles[i]->width) + 1) * tile_singlet_width_pixels + (-2*static_cast<int>(tiles[i]->width) + 1) * adjustment, &inputs_ui);
+                                    tiles[i]->draw((static_cast<int>(tiles[i]->width) + 1) * tile_singlet_width_pixels + (-2*static_cast<int>(tiles[i]->width) + 1) * adjustment, &inputs_ui);
+                                }
                                 maybe_clicked_background &= !ImGui::IsItemHovered();
                             }
                         }
@@ -468,9 +477,6 @@ int main(int, char**)
         }
         ImGui::PopFont();
 
-        if(maybe_clicked_background) {
-            LOGW("reached");
-        }
         char label[36];
 
         style = ImGui::GetStyle();

@@ -255,6 +255,12 @@ public class MainActivity extends SDLActivity {
         return getResources().getSystem().getDisplayMetrics().heightPixels;
     }
 
+    public int getDpi()
+    {
+        return getResources().getSystem().getDisplayMetrics().densityDpi;
+    }
+
+
     // called by usbcallhandler.cpp
     public void requestFirmwareFlash()
     {
