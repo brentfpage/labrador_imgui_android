@@ -74,7 +74,6 @@ void logicDecodeUI::print_stream(int id, const char * text, bool *at_bottom, flo
 
         ImGui::EndChild();
     }
-    LOGW("ch_c%d_h%.2f",id,ch_console_height);
     ImGui::PopID();
 }
 
@@ -145,7 +144,6 @@ void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
     } else {
         memcpy(logic_enable, inputs_ui->logic_enable, 2 * sizeof(bool));
     }
-    bool uart_changed = false;
     bool i2c_changed = false;
     bool uart_allowed = logic_enable[0] || logic_enable[1];
     bool i2c_allowed = logic_enable[0] && logic_enable[1] && !both_ch_uart_settings[0].decode_on && !both_ch_uart_settings[1].decode_on;
@@ -160,8 +158,6 @@ void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
     bool open_ch_serial_settings = false;
     char chAB[2] = {'A', 'B'};
 
-//     ImVec2 saved_pos = ImGui::GetCursorScreenPos();
-//     ImGui::SetCursorScreenPos(saved_pos);
     ImGui::BeginGroup(); // for bounding rect
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,{0.f,0.f});
     ImGui::Dummy(ImVec2(width_pixels,0.f));
@@ -175,8 +171,8 @@ void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
         char buf[20];
         sprintf(buf,"CH %c##serial_decode",chAB[ch-1]);
         if(ImGui::Button(buf)) {
-            open_ch_serial_settings = true;
-            ch_sel = ch;
+            ImGui::OpenPopup("ch_serial_settings");
+            popup_ch_sel = ch;
         }
         ImGui::EndDisabled(); 
         ImGui::SameLine();
@@ -200,69 +196,18 @@ void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
     ImGui::Dummy({0.f,0.f}); // prevents issue with this draw() command affecting the vertical alignment of whatever ui element comes after it
     ImGui::EndGroup();
 
-
-//     if (ImGui::BeginTable("logic_settings_table", 2, ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH , ImVec2(width_pixels, 0.f)) )
-//     {
-//         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.5f);
-//         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.5f);
-//         ImGui::TableNextRow();
-//         for(int j : {1,2}) {
-//             ImGui::TableNextColumn();
-//             ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2( (ImGui::GetContentRegionAvail().x - CHECKBOX_SIZE - ImGui::CalcTextSize(labels[j-1]).x - style.ItemInnerSpacing.x)/2., 0.f ));
-//             ImGui::BeginDisabled(!allowed[j-1]);
-//             if(ImGui::custom_RadioButton(labels[j-1], (int *) &protocol_sel, j))
-//                 *changed[j-1] = true;
-//             ImGui::EndDisabled();
-//             if(!allowed[j-1] && protocol_sel==prots[j-1])
-//             {
-//                 *changed[j-1] = true;
-//                 protocol_sel = Protocol::None;
-//             }
-//         }
-//         ImGui::TableNextRow();
-//         ImGui::TableNextColumn();
-//         ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2( (ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("CH ACH B").x - style.ItemSpacing.x - 4 * style.FramePadding.x)/2., 0.f ));
-//         for (int ch: {1,2})
-//         {
-//             ImGui::BeginDisabled(!logic_enable[ch-1] || !(protocol_sel==Protocol::UART));
-//             char buf[20];
-//             sprintf(buf,"CH %c##serial_decode",chAB[ch-1]);
-//             if(ImGui::Button(buf)) {
-//                 open_ch_serial_settings = true;
-//                 ch_sel = ch;
-//             }
-//             ImGui::EndDisabled(); 
-//             ImGui::SameLine();
-//         }
-//         ImGui::EndTable();
-//     }
-//     ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.f, -style.ItemSpacing.y));
-// 
-//     for (int ch : {1,2})
-//     {
-//         if((!logic_enable[ch-1] || !(protocol_sel==Protocol::UART)) && both_ch_uart_settings[ch-1].decode_on) 
-//         {
-//             uart_changed = true;
-//             both_ch_uart_settings[ch-1].decode_on = false; 
-//         }
-//     }
-
-    if(open_ch_serial_settings)
-    {
-        curr_ch_uart_settings = &both_ch_uart_settings[ch_sel-1];
-        ImGui::OpenPopup("ch_serial_settings");
-    }
-
+    bool uart_changed = false;
     if(ImGui::BeginPopup("ch_serial_settings")) {
-        ImGui::Text("CH%c serial settings", chAB[ch_sel-1]);
+        curr_ch_uart_settings = &both_ch_uart_settings[popup_ch_sel-1];
+        ImGui::Text("CH%c serial settings", chAB[popup_ch_sel-1]);
         ImGui::Separator();
         if(ImGui::Checkbox("Enable decoding", &curr_ch_uart_settings->decode_on))
         {
             uart_changed=true;
             if (curr_ch_uart_settings->decode_on) {
-                ch_console_height[ch_sel-1] = init_console_height_per_ch - grabber_height;
+                ch_console_height[popup_ch_sel-1] = init_console_height_per_ch - grabber_height;
             } else {
-                ch_console_height[ch_sel-1] = 0.f;
+                ch_console_height[popup_ch_sel-1] = 0.f;
             }
         }
         const char * uart_options_labels[2] = {"Baud Rate", "Parity"};
@@ -284,9 +229,8 @@ void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
     }
     ImGui::EndDisabled(); //!logic_enable[0] && !logic_enable[1]);
 
-
     if(uart_changed)
-        librador_set_uart_decode_settings(ch_sel, 
+        librador_set_uart_decode_settings(popup_ch_sel, 
                 (UartSettings)
                 {.decode_on=curr_ch_uart_settings->decode_on, .baudRate=static_cast<double>(baud_rates[curr_ch_uart_settings->baud_idx_sel]), .parity=parities[curr_ch_uart_settings->parity_idx_sel]});
     if(i2c_changed)
@@ -295,6 +239,34 @@ void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
         if(protocol_sel == Protocol::I2C)
             ch_console_height[0] = init_console_height_per_ch - grabber_height;
     }
+}
+
+void logicDecodeUI::update(inputsUI* inputs)
+{
+    bool logic_enable[2];
+    if(inputs->scopelogic_mode()) {
+        logic_enable[0] = false;
+        logic_enable[1] = true;
+    } else {
+        memcpy(logic_enable, inputs->logic_enable, 2 * sizeof(bool));
+    }
+    for (int ch : {1,2})
+    {
+        curr_ch_uart_settings = &both_ch_uart_settings[ch-1];
+        if((!logic_enable[ch-1] || !(protocol_sel==Protocol::UART)) && curr_ch_uart_settings->decode_on) 
+        {
+            curr_ch_uart_settings->decode_on = false; 
+            librador_set_uart_decode_settings(ch, 
+                    (UartSettings)
+                    {.decode_on=curr_ch_uart_settings->decode_on, .baudRate=static_cast<double>(baud_rates[curr_ch_uart_settings->baud_idx_sel]), .parity=parities[curr_ch_uart_settings->parity_idx_sel]});
+        }
+    }
+    if((!logic_enable[0] || !logic_enable[1]) && (protocol_sel==Protocol::I2C))
+    {
+        protocol_sel=Protocol::UART; //with ch_uart_settings->decode_on = false for both channels, so effectively disabling decoding;
+        librador_set_i2c_is_decoding(false);
+    }
+
 }
 
 int logicDecodeUI::get_height()

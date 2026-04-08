@@ -48,7 +48,7 @@ class logicDecodeUI : public UI_tile
         int parity_idx_sel = 0;
     };
 
-    int ch_sel = 1;
+    int popup_ch_sel = 1;
     uart_settings both_ch_uart_settings[2];
     uart_settings* curr_ch_uart_settings = both_ch_uart_settings;
     float ch_console_height[2] = {0.f, 0.f};
@@ -62,6 +62,7 @@ public:
     logicDecodeUI() : UI_tile("Logic Dec.", UI_tile::Width::singlet, 4) {};
     bool decoding_on();
     void draw(float width, inputsUI* inputs_ui = nullptr) override;
+    void update(inputsUI* inputs_ui);
     void draw_console(float window_content_width);//const char * from_librador_1, const char * from_librador_2 = nullptr);
     int get_height() override;
 };
