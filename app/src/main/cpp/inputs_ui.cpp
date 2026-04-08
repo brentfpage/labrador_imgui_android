@@ -49,7 +49,7 @@ void inputsUI::draw(float width_pixels, inputsUI* inputs_ui)
     {
         ImGui::TableNextRow();
         int i = 0;
-        for(const char * ch_header : {"CH1","CH2"})
+        for(const char * ch_header : {"1","2","CH"})
         {
             ImGui::TableNextColumn();
             ImGui::SetCursorScreenPos(center_text(ImGui::GetColumnWidth() + 2*style.CellPadding.x, ImGui::CalcTextSize(ch_header).x, style));
