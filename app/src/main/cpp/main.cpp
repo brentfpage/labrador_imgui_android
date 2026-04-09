@@ -145,7 +145,7 @@ int main(int, char**)
     style.ScaleAllSizes( (pixel_6a_main_scale / pixel_6a_dpi) * dpi); // brentfpage : not scaling by a given device's main_scale because doing so doesn't actually bring about consistent sizing across devices.  
     style.FontScaleDpi = (pixel_6a_main_scale / pixel_6a_dpi) * dpi;        // brentfpage : same for the font sizes
     
-    style.FontSizeBase = 20.f;
+    style.FontSizeBase = 19.f;
     style.WindowPadding = ImVec2(style.WindowPadding.x/2,style.WindowPadding.y/2);
 
     // Setup Platform/Renderer backends
