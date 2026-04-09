@@ -34,6 +34,8 @@ void triggerUI::draw(float width_pixels, inputsUI* inputs_ui)
         ImGui::RadioButton("CH B", &ch_sel, 2); 
         ImGui::EndTable();
     }
+    curr_ch_trigger_settings = &both_ch_trigger_settings[ch_sel - 1];
+    ImGui::BeginDisabled(!enable_helper[ch_sel-1]);
     if(ImGui::BeginTable("trigger_helper2",2, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_SizingFixedSame | ImGuiTableFlags_NoHostExtendX, ImVec2(width_pixels, 0.))) {
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.5f);
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch, 0.5f);
@@ -68,6 +70,7 @@ void triggerUI::draw(float width_pixels, inputsUI* inputs_ui)
         ImGui::Text("Single shot");
         ImGui::EndTable();
     }
+    ImGui::EndDisabled();
 
     ImGui::PopStyleVar(); //itemspacing
     ImGui::EndGroup();
