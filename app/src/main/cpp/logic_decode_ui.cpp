@@ -32,41 +32,11 @@ float logicDecodeUI::draw_grabber(const char * label, float* backlog)
     return return_val;
 }
 
-//#define USB_ON
 void logicDecodeUI::print_stream(int id, const char * text, bool *at_bottom, float window_content_width, float ch_console_height)
 {
     ImGui::PushID(id);
     if (ImGui::BeginChild("console",ImVec2(window_content_width, ch_console_height ))) {
-#ifdef USB_ON
         ImGui::TextWrapped("%s", text);
-#else
-        static int addchar1 = 0;
-        static int addchar2 = 0;
-        static char temptext1[5012];
-        static char temptext2[5012];
-        if(id==1) {
-            if((addchar1%6)==0)
-            {
-                char buf2[3];
-                sprintf(buf2, "a%d", id);
-                strcat(temptext1,buf2);
-                addchar1=0;
-            }
-            addchar1+=1;
-            ImGui::TextWrapped("%s", temptext1);
-        } else {
-            if((addchar2%6)==0)
-            {
-                char buf2[3];
-                sprintf(buf2, "a%d", id);
-                strcat(temptext2,buf2);
-                addchar2=0;
-            }
-            addchar2+=1;
-            ImGui::TextWrapped("%s", temptext2);
-        }
-#endif
-
         ImGuiContext& g = *ImGui::GetCurrentContext();
         ImGuiWindow* window = g.CurrentWindow;
 
