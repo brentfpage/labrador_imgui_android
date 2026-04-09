@@ -266,8 +266,10 @@ bool logicDecodeUI::draw_uart_settings(float width_pixels)
         ImGui::PushID(uart_options_labels[k]);
         if(ImGui::BeginCombo("##uart_option_combo", uart_options_labels[k])) {
             for(int n=0; n < sublabels_counts[k]; n++)
-                if(ImGui::Selectable(uart_options_sublabels[k][n], *curr_options_sel[k]==n))
+                if(ImGui::Selectable(uart_options_sublabels[k][n], *curr_options_sel[k]==n)) {
+                    uart_changed = true;
                     *curr_options_sel[k]=n;
+                }
             ImGui::EndCombo();
         }
 //         if(ImGui::Combo(, curr_options_sel[k], uart_options_sublabels[k], sublabels_counts[k])) uart_changed=true;
