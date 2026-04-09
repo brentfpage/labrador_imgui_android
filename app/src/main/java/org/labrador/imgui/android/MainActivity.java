@@ -255,9 +255,9 @@ public class MainActivity extends SDLActivity {
         return getResources().getSystem().getDisplayMetrics().heightPixels;
     }
 
-    public int getDpi()
+    public float getDpi()
     {
-        return getResources().getSystem().getDisplayMetrics().densityDpi;
+        return getResources().getSystem().getDisplayMetrics().xdpi;
     }
 
 

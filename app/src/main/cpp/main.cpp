@@ -93,15 +93,15 @@ int main(int, char**)
     float pixel_6a_main_scale = 2.625;
     float pixel_6a_screen_width = 1080.f;
     float pixel_6a_single_width = 1038.f;
-    int pixel_6a_dpi = 420;
+    float pixel_6a_dpi = 428.6;
     float pixel_6a_setting_panel_aspect = 1.13; // width to height
 
     JNIEnv *env = (JNIEnv *) SDL_GetAndroidJNIEnv();
     jobject MainActivityObject = (jobject) SDL_GetAndroidActivity();
     jclass MainActivity(env->GetObjectClass(MainActivityObject));
-    jmethodID getDpiID = env->GetMethodID(MainActivity, "getDpi", "()I");
-    int dpi = (int) env->CallIntMethod(MainActivityObject,getDpiID);
-    LOGW("dpi: %d", dpi);
+    jmethodID getDpiID = env->GetMethodID(MainActivity, "getDpi", "()F");
+    float dpi = (float) env->CallFloatMethod(MainActivityObject,getDpiID);
+    LOGW("dpi: %.2f", dpi);
     SDL_WindowFlags window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
     SDL_Window* window = SDL_CreateWindow("main window", (int)bounds.w, (int)bounds.h, window_flags);
     if (window == nullptr)
@@ -300,7 +300,7 @@ int main(int, char**)
         float adjustment = 0.f;
         float tile_singlet_width_pixels;
         float settings_width;
-// should compute these values only once, but there's no way to get the navigation/status bar heights in landscape mode when in portrait mode or vice-versa; it's necessary to wait until the device actually enters a given orientation to compute the values
+// should compute these values only once, but there's no way to get the navigation/status bar heights in landscape mode when in portrait mode or vice-versa; it's necessary to wait until the device actually enters a given orientation to access the heights
 // in landscape mode, allow for the possibility of needing to scroll in the y direction
         if(landscape) { 
             settings_height_max = io.DisplaySize.y - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
@@ -340,7 +340,7 @@ int main(int, char**)
         float col2_width = (tile_col_heights[1] > 0) ? 2 * tile_singlet_width_pixels : 0;
 
         bool row_col_tiling = (!landscape && (n_singlet_tiles_visible == 2) && ((tile_col_heights[1] + singlet_tile_height_when_row_col_tiling) < fmax(tile_col_heights[0], tile_col_heights[1]))) || \
-            (landscape && (n_singlet_tiles_visible > 0) && (0 < tile_col_heights[1]) && ((tile_col_heights[1] + singlet_tile_height_when_row_col_tiling) < settings_height_max));
+            (landscape && (n_singlet_tiles_visible > 0) && ((tile_col_heights[1] + singlet_tile_height_when_row_col_tiling) < settings_height_max));
 
         ImGui::SetNextWindowPos(ImVec2(0.f,statusBarHeight));
         ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x,io.DisplaySize.y - statusBarHeight - navigationBarHeight));
@@ -369,6 +369,11 @@ int main(int, char**)
                     }
                 } else {
                     settings_width = col1_width + col2_width + ((col1_width>0)&&(col2_width>0)) * style.ItemSpacing.x;
+                    float max_col_height = fmax(tile_col_heights[0], tile_col_heights[1]);
+                    if(max_col_height > settings_height_max) {
+                        settings_width += style.ScrollbarSize;
+
+                    }
                 }
                 settings_width = fmax(settings_width, ImGui::GetFontSize() + 2 * style.FramePadding.x);
                 data_width = ImGui::GetContentRegionAvail().x - style.ItemSpacing.x - settings_width;
