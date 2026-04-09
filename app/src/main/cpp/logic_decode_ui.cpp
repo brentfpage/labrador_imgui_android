@@ -140,6 +140,7 @@ bool logicDecodeUI::decoding_on()
 
 void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
 {
+    int popup_ch_sel = next_popup_ch_sel;
     ImGui::BeginGroup();
     standard_header(width_pixels);
     if(!is_expanded)
@@ -181,14 +182,30 @@ void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
         ImGui::BeginDisabled(!logic_enable[ch-1] || !(protocol_sel==Protocol::UART));
         char buf[20];
         sprintf(buf,"CH %c##serial_decode",chAB[ch-1]);
+        bool need_pop = false;
+        if(popup_ch_sel == ch) {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_ButtonHovered));
+            need_pop = true;
+        }
         if(ImGui::Button(buf)) {
             ImGui::OpenPopup("ch_serial_settings");
-            popup_ch_sel = ch;
+            if(popup_ch_sel == ch) {
+                next_popup_ch_sel = 0;
+            } else {
+                next_popup_ch_sel = ch;
+            }
+        }
+        if(need_pop) {
+            ImGui::PopStyleColor();
         }
         ImGui::EndDisabled(); 
         ImGui::SameLine();
     }
     ImGui::NewLine();
+    bool uart_changed = false;
+    if(popup_ch_sel != 0) {
+        uart_changed = draw_uart_settings(width_pixels);
+    }
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     draw_list->AddLine(ImGui::GetCursorScreenPos(), ImGui::GetCursorScreenPos() + ImVec2(width_pixels,0.f), IM_COL32(90, 90, 120, 255));
     
@@ -207,39 +224,7 @@ void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
     ImGui::Dummy({0.f,0.f}); // prevents issue with this draw() command affecting the vertical alignment of whatever ui element comes after it
     ImGui::EndGroup();
 
-    bool uart_changed = false;
-    if(ImGui::BeginPopup("ch_serial_settings")) {
-        curr_ch_uart_settings = &both_ch_uart_settings[popup_ch_sel-1];
-        ImGui::Text("CH%c serial settings", chAB[popup_ch_sel-1]);
-        ImGui::Separator();
-        if(ImGui::Checkbox("Enable decoding", &curr_ch_uart_settings->decode_on))
-        {
-            uart_changed=true;
-            if (curr_ch_uart_settings->decode_on) {
-                ch_console_height[popup_ch_sel-1] = init_console_height_per_ch - grabber_height;
-            } else {
-                ch_console_height[popup_ch_sel-1] = 0.f;
-            }
-        }
-        const char * uart_options_labels[2] = {"Baud Rate", "Parity"};
-        const char ** uart_options_sublabels[2] = {baud_rate_labels, parity_labels};
-        int sublabels_counts[2] = {IM_COUNTOF(baud_rate_labels), IM_COUNTOF(parity_labels)};
-        int * curr_options_sel[2] = {&curr_ch_uart_settings->baud_idx_sel, &curr_ch_uart_settings->parity_idx_sel};
-        ImGui::BeginDisabled(!curr_ch_uart_settings->decode_on);
-        for(int k: {0,1})
-        {
-            ImGui::PushItemWidth(ImGui::CalcTextSize(baud_rate_labels[IM_COUNTOF(baud_rate_labels)-1]).x + 2*ImGui::GetFontSize());
-            ImGui::PushID(uart_options_labels[k]);
-            if(ImGui::Combo("##uart_option_combo", curr_options_sel[k], uart_options_sublabels[k], sublabels_counts[k])) uart_changed=true;
-            ImGui::PopID();
-            ImGui::SameLine();
-            ImGui::Text("%s",uart_options_labels[k]);
-        }
-        ImGui::EndDisabled();
-        ImGui::EndPopup();
-    }
     ImGui::EndDisabled(); //!logic_enable[0] && !logic_enable[1]);
-
     if(uart_changed)
         librador_set_uart_decode_settings(popup_ch_sel, 
                 (UartSettings)
@@ -271,6 +256,9 @@ void logicDecodeUI::update(inputsUI* inputs)
                     (UartSettings)
                     {.decode_on=curr_ch_uart_settings->decode_on, .baudRate=static_cast<double>(baud_rates[curr_ch_uart_settings->baud_idx_sel]), .parity=parities[curr_ch_uart_settings->parity_idx_sel]});
         }
+        if((!logic_enable[ch-1] || !(protocol_sel==Protocol::UART)) && (next_popup_ch_sel==ch)) {
+            next_popup_ch_sel = 0;
+        }
     }
     if((!logic_enable[0] || !logic_enable[1]) && (protocol_sel==Protocol::I2C))
     {
@@ -280,12 +268,54 @@ void logicDecodeUI::update(inputsUI* inputs)
 
 }
 
+bool logicDecodeUI::draw_uart_settings(float width_pixels)
+{
+    ImGuiStyle& style = ImGui::GetStyle();
+    int popup_ch_sel = next_popup_ch_sel;
+    bool uart_changed = false;
+    curr_ch_uart_settings = &both_ch_uart_settings[popup_ch_sel-1];
+    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(style.ItemSpacing.x,0.f));
+    if(ImGui::Checkbox("On", &curr_ch_uart_settings->decode_on))
+    {
+        uart_changed=true;
+        if (curr_ch_uart_settings->decode_on) {
+            ch_console_height[popup_ch_sel-1] = init_console_height_per_ch - grabber_height;
+        } else {
+            ch_console_height[popup_ch_sel-1] = 0.f;
+        }
+    }
+    const char * uart_options_labels[2] = {"Baud", "Parity"};
+    const char ** uart_options_sublabels[2] = {baud_rate_labels, parity_labels};
+    int sublabels_counts[2] = {IM_COUNTOF(baud_rate_labels), IM_COUNTOF(parity_labels)};
+    int * curr_options_sel[2] = {&curr_ch_uart_settings->baud_idx_sel, &curr_ch_uart_settings->parity_idx_sel};
+    ImGui::BeginDisabled(!curr_ch_uart_settings->decode_on);
+    for(int k: {0,1})
+    {
+        ImGui::PushItemWidth(ImGui::CalcTextSize(baud_rate_labels[IM_COUNTOF(baud_rate_labels)-1]).x + 2*ImGui::GetFontSize());
+        ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(style.ItemSpacing.x,0.f));
+        ImGui::PushID(uart_options_labels[k]);
+        if(ImGui::BeginCombo("##uart_option_combo", uart_options_labels[k])) {
+            for(int n=0; n < sublabels_counts[k]; n++)
+                if(ImGui::Selectable(uart_options_sublabels[k][n], *curr_options_sel[k]==n))
+                    *curr_options_sel[k]=n;
+            ImGui::EndCombo();
+        }
+//         if(ImGui::Combo(, curr_options_sel[k], uart_options_sublabels[k], sublabels_counts[k])) uart_changed=true;
+        ImGui::PopID();
+    }
+    ImGui::EndDisabled();
+    return uart_changed;
+}
+
 int logicDecodeUI::get_height()
 {
     ImGuiStyle& style = ImGui::GetStyle();
     int calc_height = 2 * style.ItemSpacing.y + ImGui::GetFontSize() + \
                       style.FramePadding.y + ImGui::GetFontSize() + style.ItemSpacing.y + \
                       2 * style.FramePadding.y + ImGui::GetFontSize() + 2 * style.ItemSpacing.y + \
-                      3 * style.FramePadding.y + ImGui::GetFontSize();
+                      3 * style.FramePadding.y + ImGui::GetFontSize() + \
+                      (next_popup_ch_sel != 0) * ( \
+                              3 * (CHECKBOX_SIZE + style.ItemSpacing.y) \
+                              );
     return calc_height;
 }

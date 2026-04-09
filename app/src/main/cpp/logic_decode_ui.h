@@ -48,10 +48,11 @@ class logicDecodeUI : public UI_tile
         int parity_idx_sel = 0;
     };
 
-    int popup_ch_sel = 1;
+    int next_popup_ch_sel = 0;
     uart_settings both_ch_uart_settings[2];
     uart_settings* curr_ch_uart_settings = both_ch_uart_settings;
     float ch_console_height[2] = {0.f, 0.f};
+    bool draw_uart_settings(float width_pixels);
     float init_console_height_per_ch = 300.f;
     float grabber_height = 60.f;
     float grabber1_backlog = 0.f;

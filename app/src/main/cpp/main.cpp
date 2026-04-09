@@ -230,8 +230,6 @@ int main(int, char**)
     virtual_transform_ui.is_visible = true;
     virtual_transform_ui.is_expanded = false;
     virtual_transform_ui.next_is_expanded = false;
-    logic_decode_ui.is_expanded = false;
-    logic_decode_ui.is_visible = false;
     psu_ui.is_expanded = false;
     psu_ui.is_visible = false;
     plotUI plot_ui = plotUI();
