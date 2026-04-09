@@ -21,10 +21,13 @@ void draw_rules(ImVec2 p0, double row_height, double header_row_height, double c
     ImVec2 row1_col2_pos = row1_col1_pos + ImVec2(col_width,0);
     ImVec2 row3_col2_pos = row1_col1_pos + ImVec2(col_width,2*row_height);
     ImVec2 row4_col1_pos = row1_col1_pos + ImVec2(0.,3*row_height);
+    ImVec2 row4_col2_pos = row1_col1_pos + ImVec2(col_width,3*row_height);
+    ImVec2 row5_col2_pos = row1_col1_pos + ImVec2(col_width,4*row_height);
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     draw_list->AddLine(row1_col1_pos, row4_col1_pos, IM_COL32(120, 120, 160, 255));
     draw_list->AddLine(row1_col2_pos, row3_col2_pos, IM_COL32(120, 120, 160, 255));
+    draw_list->AddLine(row4_col2_pos, row5_col2_pos, IM_COL32(120, 120, 160, 255));
 }
 
 void inputsUI::draw(float width_pixels, inputsUI* inputs_ui)
@@ -45,7 +48,7 @@ void inputsUI::draw(float width_pixels, inputsUI* inputs_ui)
     float header_row_height = ImGui::GetFontSize() + style.CellPadding.y*2;
     float row_height = (ImGui::GetFontSize() + (style.FramePadding.y + style.CellPadding.y)*2);
     float col_width;
-    if (ImGui::BeginTable("scope_mode", 3, ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_RowBg , ImVec2(width_pixels,0.f)))
+    if (ImGui::BeginTable("scope_mode", 3, ImGuiTableFlags_SizingStretchSame|ImGuiTableFlags_BordersOuterV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_RowBg , ImVec2(width_pixels,0.f)))
     {
         ImGui::TableNextRow();
         int i = 0;
@@ -54,7 +57,7 @@ void inputsUI::draw(float width_pixels, inputsUI* inputs_ui)
             ImGui::TableNextColumn();
             ImGui::SetCursorScreenPos(center_text(ImGui::GetColumnWidth() + 2*style.CellPadding.x, ImGui::CalcTextSize(ch_header).x, style));
             ImGui::Text("%s", ch_header);
-            col_width = ImGui::GetColumnWidth();
+            col_width = ImGui::GetColumnWidth() + 2 * style.CellPadding.x;
             i+=1;
             ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, ImGui::GetColorU32(ImGuiCol_TableHeaderBg) );
         }
@@ -112,19 +115,18 @@ void inputsUI::draw(float width_pixels, inputsUI* inputs_ui)
     ImVec2 p0 = ImGui::GetItemRectMin();
     ImVec2 end_pos = ImGui::GetItemRectMax();
     int real_height = (end_pos - start_pos).y;
-    draw_rules(p0, row_height, header_row_height, col_width + 2* style.CellPadding.x );
+    draw_rules(p0, row_height, header_row_height, col_width);
     ImVec2 row3_pos = p0 + ImVec2(style.CellPadding.x,header_row_height + 2*row_height + style.CellPadding.y);;
     ImVec2 row4_pos = row3_pos + ImVec2(0.f,row_height);
 
     bool* checkbox_bool[2] = {&scope750, &mm};
     bool checkbox_enable[2] = {scope_enable[0] && !(scope_enable[1] || logic_enable[0]), (!scope_enable[0] && !scope_enable[1] && !logic_enable[0] && !logic_enable[1])};
-    const char* print_labels[2] = {" 750 kHz", ""};
-    const char* internal_labels[2] = {"##750 kHz","##MM Mode"};
     ImVec2 positions[2] = 
     {
-        row3_pos + center_checkbox_delta(col_width + 2*style.CellPadding.x, style),
-        row4_pos + ImVec2(2 * col_width + 2*style.CellPadding.x ,0.f) + center_checkbox_delta(col_width + 4*style.CellPadding.x, style)
+        row3_pos + center_checkbox_delta(col_width, style),
+        row4_pos + ImVec2(2 * col_width  ,0.f) + center_checkbox_delta(col_width, style)
     };
+    const char* internal_labels[2] = {"##750 kHz","##multimeter Mode"};
 
     for(int i = 0; i < 2; i++)
     {
@@ -136,11 +138,11 @@ void inputsUI::draw(float width_pixels, inputsUI* inputs_ui)
         }
         *checkbox_bool[i] &= checkbox_enable[i];
         ImGui::EndDisabled();
-        ImGui::SameLine();
-        ImGui::Text("%s",print_labels[i]);
     }
+    ImGui::SetCursorScreenPos(row3_pos + ImVec2(col_width - style.CellPadding.x + (2*col_width - ImGui::CalcTextSize("750 kHz").x)/2.,2 * style.FramePadding.y - style.ItemSpacing.y));
+    ImGui::Text("750 kHz");
     ImGui::PushFont(NULL, style.FontSizeBase * 1.3);
-    ImGui::SetCursorScreenPos(row4_pos + ImVec2(col_width + style.CellPadding.x - ImGui::CalcTextSize("\xee\xa4\x82").x/2.,0.f));
+    ImGui::SetCursorScreenPos(row4_pos + ImVec2(col_width - style.CellPadding.x - ImGui::CalcTextSize("\xee\xa4\x82").x/2.,0.f));
     ImGui::Text("\xee\xa4\x82");
     ImGui::PopFont();
     ImGui::PopStyleVar();
