@@ -86,7 +86,7 @@ void logicDecodeUI::draw_console(float window_content_width)
         }
         for(int i:{1,0}) {
             if(both_ch_uart_settings[i].decode_on) {
-                ch_console_height[i] = fmin(ch_console_height[i], y_avail - ch_console_height[(i+1)%2] - grabber_height * (1 + both_ch_uart_settings[(i+1)%2].decode_on) - 4);
+                ch_console_height[i] = fmin(ch_console_height[i], y_avail - ch_console_height[(i+1)%2] - grabber_height * (1 + both_ch_uart_settings[(i+1)%2].decode_on) - 6 * grabber_height);
                 ch_console_height[i] = fmax(ch_console_height[i], 2 * grabber_height);
             } 
         }
@@ -110,7 +110,7 @@ void logicDecodeUI::draw_console(float window_content_width)
         }
     } else if(protocol_sel == Protocol::I2C) {
         ch_console_height[1] = 0.f;
-        ch_console_height[0] = fmin(ch_console_height[0], y_avail - grabber_height - 4);
+        ch_console_height[0] = fmin(ch_console_height[0], y_avail - grabber_height - 6 * grabber_height);
         ch_console_height[0] = fmax(ch_console_height[0], 2 * grabber_height);
         print_stream(3, librador_get_i2c_string(), &i2c_console_at_bottom, window_content_width, ch_console_height[0]);
     }
