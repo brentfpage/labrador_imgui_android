@@ -350,9 +350,10 @@ int main(int, char**)
 
         ImGuiStyle& style = ImGui::GetStyle();
 
+        bool screen_keyboard_shown = SDL_ScreenKeyboardShown(window);
         ImGui::Begin("MainWindow",
                      &show_mainwindow,
-                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove);   
+                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | (screen_keyboard_shown ? ImGuiWindowFlags_NoMouseInputs : 0));   
 
         float data_width;
         float data_height;
@@ -398,7 +399,7 @@ int main(int, char**)
         }
 
         ImGui::PopFont();
-        ImGui::BeginChild("data",ImVec2(data_width, data_height));
+        ImGui::BeginChild("data",ImVec2(data_width, data_height), 0, (screen_keyboard_shown ? ImGuiWindowFlags_NoMouseInputs : 0));
         {
             float console_height;
             if(logic_decode_ui.decoding_on()) {
@@ -425,15 +426,15 @@ int main(int, char**)
         ImGuiID col2_id;
         ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
         bool maybe_clicked_background = false;
-        bool screen_keyboard_shown = SDL_ScreenKeyboardShown(window);
+//         bool screen_keyboard_shown = SDL_ScreenKeyboardShown(window);
         ImVec2 settings_window_center;
         if(!collapse_settings) {
-            ImGui::BeginChild("settings",ImVec2(0.f, 0.f),0 );
+            ImGui::BeginChild("settings",ImVec2(0.f, 0.f), 0, (screen_keyboard_shown ? ImGuiWindowFlags_NoMouseInputs : 0));
             settings_window_center = ImGui::GetWindowPos() + ImGui::GetWindowSize()/2.;
             ImGuiContext& g = *GImGui;
             ImVec2 settings_start_pos = ImGui::GetCursorScreenPos();
             ImGui::SetNextItemAllowOverlap();
-            if(!screen_keyboard_shown && ImGui::InvisibleButton("open ui_tile selector", {0.f, 0.f})) {
+            if(ImGui::InvisibleButton("open ui_tile selector", {0.f, 0.f})) {
                     maybe_clicked_background = true;
             }
             ImGui::SetCursorScreenPos(settings_start_pos);
