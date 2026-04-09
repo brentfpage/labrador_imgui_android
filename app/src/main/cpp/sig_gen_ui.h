@@ -30,7 +30,7 @@ class sigGenUI : public UI_tile
     bool need_usb_send;
     int ch_sel = 1;
 public:
-    sigGenUI() : UI_tile("Signal Generator", UI_tile::Width::duplex, 6) {};
+    sigGenUI() : UI_tile("Signal Generator", "Signal Generator", UI_tile::Width::duplex, 6) {};
     void draw(float width, inputsUI* inputs_ui = nullptr) override;
     void usb_send_data(int ch);
     int get_height() override;

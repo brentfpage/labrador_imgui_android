@@ -10,9 +10,9 @@ void UI_tile::standard_header(float width_pixels)
     float close_button_width = ImGui::GetFontSize() + style.FramePadding.x;
     ImVec2 start_pos = ImGui::GetCursorScreenPos();
     ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.f,style.ItemSpacing.y)); // combined with lines in main.cpp, effectively folds itemspacing.y into the individual ui_tile groups
-    ImGui::Text("%s",name);
+    ImGui::Text("%s",short_name);
     ImGui::SetCursorScreenPos(start_pos);
-    ImGui::PushID(name);
+    ImGui::PushID(short_name);
 //     TODO : make button larger, remove Dummy at the end
     float invisible_button_width;
     ImVec2 close_button_pos = start_pos + ImVec2(width_pixels - close_button_width,style.ItemSpacing.y);
@@ -32,7 +32,7 @@ void UI_tile::standard_header(float width_pixels)
     if(!is_expanded)
     {
         char buf[64];
-        sprintf(buf, "%s_close", name);
+        sprintf(buf, "%s_close", short_name);
         if(ImGui::CloseButton(ImGui::GetID(buf), close_button_pos))
         {
             is_visible = false;

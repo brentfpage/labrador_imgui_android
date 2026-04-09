@@ -18,7 +18,7 @@ class virtualTransformUI : public UI_tile
     ch_settings both_ch_settings[2];
     ch_settings* curr_ch_settings = both_ch_settings;
 public:
-    virtualTransformUI() : UI_tile("Virtual Transforms", UI_tile::Width::duplex, 4) {};
+    virtualTransformUI() : UI_tile("Virtual Transforms", "Virtual Transforms", UI_tile::Width::duplex, 4) {};
     void draw(float width, inputsUI* inputs_ui = nullptr) override;
     int get_height() override;
 };

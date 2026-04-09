@@ -315,7 +315,7 @@ int main(int, char**)
         plot_ui.recompute_x_bounds(inputs_ui.changed_since_last(), inputs_ui.mode);
 
         const int n_tiles = 6;
-        UI_tile* tiles[n_tiles] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui}; // inputs_ui should be first
+        UI_tile* tiles[n_tiles] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui}; 
         selectorUI selector_ui = selectorUI(tiles, n_tiles);
 
         // col1 and grp1 contain singlet-width tiles, col2 and grp2 have duplex-width tiles
