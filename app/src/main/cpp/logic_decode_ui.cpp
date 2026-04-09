@@ -18,15 +18,15 @@ float logicDecodeUI::draw_grabber(const char * label, float* backlog)
     draw_list->AddLine(ImVec2(hcenter - ImGui::GetFontSize(), ycenter - yspan/4),ImVec2(hcenter + ImGui::GetFontSize(), ycenter - yspan/4), IM_COL32(120, 120, 160, 255));
     draw_list->AddLine(ImVec2(hcenter - ImGui::GetFontSize(), ycenter + yspan/4),ImVec2(hcenter + ImGui::GetFontSize(), ycenter + yspan/4), IM_COL32(120, 120, 160, 255));
     if (ImGui::IsItemActivated()) {
-        backlog = 0.f;
+        *backlog = 0.f;
     }
     float return_val = 0.f;
     if (ImGui::IsItemActive()) {
         float mouse_delta = ImGui::GetIO().MouseDelta.y;
-        if( (mouse_delta > 0) == (backlog > 0) ) {
+        if( (*backlog==0) || ((mouse_delta > 0) == (*backlog > 0)) ) {
             return_val = mouse_delta;
         } else {
-            backlog += mouse_delta;
+            *backlog += mouse_delta;
         }
     }
     return return_val;
@@ -108,18 +108,11 @@ void logicDecodeUI::draw_console(float window_content_width)
         if(both_ch_uart_settings[0].decode_on && both_ch_uart_settings[1].decode_on)
         {
             float console_sep_delta = draw_grabber("chA_chB_splitter", &grabber1_backlog);
-            if(ImGui::IsItemActivated()) {
-                grabber1_backlog = 0.f;
-            }
-            if((console_sep_delta > 0) != (grabber1_backlog > 0)) {
-                grabber1_backlog += console_sep_delta;
-            } else {
-                float clamped_console_sep_delta = fmin(console_sep_delta, (ch_console_height[1] - 2 * grabber_height));
-                clamped_console_sep_delta = fmax(clamped_console_sep_delta, -(ch_console_height[0] - 2 * grabber_height));
-                next_ch1_height -= clamped_console_sep_delta;
-                ch_console_height[0] += clamped_console_sep_delta;
-                grabber1_backlog += console_sep_delta - clamped_console_sep_delta;
-            }
+            float clamped_console_sep_delta = fmin(console_sep_delta, (ch_console_height[1] - 2 * grabber_height));
+            clamped_console_sep_delta = fmax(clamped_console_sep_delta, -(ch_console_height[0] - 2 * grabber_height));
+            next_ch1_height -= clamped_console_sep_delta;
+            ch_console_height[0] += clamped_console_sep_delta;
+            grabber1_backlog += console_sep_delta - clamped_console_sep_delta;
         }
         if(both_ch_uart_settings[1].decode_on)
         {
@@ -133,17 +126,10 @@ void logicDecodeUI::draw_console(float window_content_width)
         print_stream(3, librador_get_i2c_string(), &i2c_console_at_bottom, window_content_width, ch_console_height[0]);
     }
     float console_height_delta = draw_grabber("plot_console_splitter", &grabber2_backlog);
-    if(ImGui::IsItemActivated()) {
-        grabber2_backlog = 0.f;
-    }
-    if((console_height_delta > 0) != (grabber2_backlog > 0)) {
-        grabber2_backlog += console_height_delta;
-    } else {
-        if(both_ch_uart_settings[1].decode_on) {
-            ch_console_height[1] += console_height_delta;
-        } else if (both_ch_uart_settings[0].decode_on || (protocol_sel == Protocol::I2C)) {
-            ch_console_height[0] += console_height_delta;
-        }
+    if(both_ch_uart_settings[1].decode_on) {
+        ch_console_height[1] += console_height_delta;
+    } else if (both_ch_uart_settings[0].decode_on || (protocol_sel == Protocol::I2C)) {
+        ch_console_height[0] += console_height_delta;
     }
 }
 
