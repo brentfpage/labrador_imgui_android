@@ -25,13 +25,19 @@ void triggerUI::draw(float width_pixels, inputsUI* inputs_ui)
         return;
     }
     ImGui::BeginGroup(); // for bounding rect
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(style.ItemSpacing.x, 0.f));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, 0.f));
     if(ImGui::BeginTable("trigger_helper1",1, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_NoHostExtendX, ImVec2(width_pixels, 0.))) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::RadioButton("CH A", &ch_sel, 1);
+        ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.f, style.FramePadding.y - style.ItemSpacing.y));
+#define ALIGN_Y ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(0.f, style.FramePadding.y - style.ItemSpacing.y));
+        ImGui::Text("CH: ");
         ImGui::SameLine();
-        ImGui::RadioButton("CH B", &ch_sel, 2); 
+        ALIGN_Y
+        ImGui::RadioButton("A  ", &ch_sel, 1);
+        ImGui::SameLine();
+        ALIGN_Y
+        ImGui::RadioButton("B", &ch_sel, 2); 
         ImGui::EndTable();
     }
     curr_ch_trigger_settings = &both_ch_trigger_settings[ch_sel - 1];
