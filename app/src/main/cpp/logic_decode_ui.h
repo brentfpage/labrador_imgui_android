@@ -54,7 +54,10 @@ class logicDecodeUI : public UI_tile
     float ch_console_height[2] = {0.f, 0.f};
     float init_console_height_per_ch = 300.f;
     float grabber_height = 60.f;
-    float draw_grabber(const char * label);
+    float grabber1_backlog = 0.f;
+    float grabber2_backlog = 0.f;
+    float grabber_delta_tracker2 = 0.f;
+    float draw_grabber(const char * label, float* backlog);
     void print_stream(int id, const char * text, bool *at_bottom, float window_content_width, float ch_console_height);
     bool uart_ch_console_at_bottom[2] = {true, true};
     bool i2c_console_at_bottom = true;

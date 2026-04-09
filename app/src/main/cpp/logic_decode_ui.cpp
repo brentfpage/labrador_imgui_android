@@ -6,7 +6,7 @@
 #include "logic_decode_ui.h"
 #include "inputs_ui.h"
 
-float logicDecodeUI::draw_grabber(const char * label)
+float logicDecodeUI::draw_grabber(const char * label, float* backlog)
 {
     ImGui::InvisibleButton(label, ImVec2(-1, grabber_height));
     ImVec2 p0 = ImGui::GetItemRectMin();
@@ -17,11 +17,19 @@ float logicDecodeUI::draw_grabber(const char * label)
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     draw_list->AddLine(ImVec2(hcenter - ImGui::GetFontSize(), ycenter - yspan/4),ImVec2(hcenter + ImGui::GetFontSize(), ycenter - yspan/4), IM_COL32(120, 120, 160, 255));
     draw_list->AddLine(ImVec2(hcenter - ImGui::GetFontSize(), ycenter + yspan/4),ImVec2(hcenter + ImGui::GetFontSize(), ycenter + yspan/4), IM_COL32(120, 120, 160, 255));
-    if (ImGui::IsItemActive()) {
-        return ImGui::GetIO().MouseDelta.y;
-    } else {
-        return 0.0;
+    if (ImGui::IsItemActivated()) {
+        backlog = 0.f;
     }
+    float return_val = 0.f;
+    if (ImGui::IsItemActive()) {
+        float mouse_delta = ImGui::GetIO().MouseDelta.y;
+        if( (mouse_delta > 0) == (backlog > 0) ) {
+            return_val = mouse_delta;
+        } else {
+            backlog += mouse_delta;
+        }
+    }
+    return return_val;
 }
 
 //#define USB_ON
@@ -86,8 +94,10 @@ void logicDecodeUI::draw_console(float window_content_width)
         }
         for(int i:{1,0}) {
             if(both_ch_uart_settings[i].decode_on) {
-                ch_console_height[i] = fmin(ch_console_height[i], y_avail - ch_console_height[(i+1)%2] - grabber_height * (1 + both_ch_uart_settings[(i+1)%2].decode_on) - 6 * grabber_height);
-                ch_console_height[i] = fmax(ch_console_height[i], 2 * grabber_height);
+                float clamped_console_height = fmin(ch_console_height[i], y_avail - ch_console_height[(i+1)%2] - grabber_height * (1 + both_ch_uart_settings[(i+1)%2].decode_on) - 6 * grabber_height);
+                clamped_console_height = fmax(clamped_console_height, 2 * grabber_height);
+                grabber2_backlog += ch_console_height[i] - clamped_console_height; // note: the grabber is only ever changing one of the console heights, so grabber2_backlog will only ever be incremented for one of the consoles
+                ch_console_height[i] = clamped_console_height;
             } 
         }
         if(both_ch_uart_settings[0].decode_on)
@@ -97,11 +107,19 @@ void logicDecodeUI::draw_console(float window_content_width)
         float next_ch1_height = ch_console_height[1];
         if(both_ch_uart_settings[0].decode_on && both_ch_uart_settings[1].decode_on)
         {
-            float console_sep_delta = draw_grabber("chA_chB_splitter");
-            console_sep_delta = fmin(console_sep_delta, (ch_console_height[1] - 2 * grabber_height));
-            console_sep_delta = fmax(console_sep_delta, -(ch_console_height[0] - 2 * grabber_height));
-            next_ch1_height -= console_sep_delta;
-            ch_console_height[0] += console_sep_delta;
+            float console_sep_delta = draw_grabber("chA_chB_splitter", &grabber1_backlog);
+            if(ImGui::IsItemActivated()) {
+                grabber1_backlog = 0.f;
+            }
+            if((console_sep_delta > 0) != (grabber1_backlog > 0)) {
+                grabber1_backlog += console_sep_delta;
+            } else {
+                float clamped_console_sep_delta = fmin(console_sep_delta, (ch_console_height[1] - 2 * grabber_height));
+                clamped_console_sep_delta = fmax(clamped_console_sep_delta, -(ch_console_height[0] - 2 * grabber_height));
+                next_ch1_height -= clamped_console_sep_delta;
+                ch_console_height[0] += clamped_console_sep_delta;
+                grabber1_backlog += console_sep_delta - clamped_console_sep_delta;
+            }
         }
         if(both_ch_uart_settings[1].decode_on)
         {
@@ -114,11 +132,18 @@ void logicDecodeUI::draw_console(float window_content_width)
         ch_console_height[0] = fmax(ch_console_height[0], 2 * grabber_height);
         print_stream(3, librador_get_i2c_string(), &i2c_console_at_bottom, window_content_width, ch_console_height[0]);
     }
-    float console_height_delta = draw_grabber("plot_console_splitter");
-    if(both_ch_uart_settings[1].decode_on) {
-        ch_console_height[1] += console_height_delta;
-    } else if (both_ch_uart_settings[0].decode_on || (protocol_sel == Protocol::I2C)) {
-        ch_console_height[0] += console_height_delta;
+    float console_height_delta = draw_grabber("plot_console_splitter", &grabber2_backlog);
+    if(ImGui::IsItemActivated()) {
+        grabber2_backlog = 0.f;
+    }
+    if((console_height_delta > 0) != (grabber2_backlog > 0)) {
+        grabber2_backlog += console_height_delta;
+    } else {
+        if(both_ch_uart_settings[1].decode_on) {
+            ch_console_height[1] += console_height_delta;
+        } else if (both_ch_uart_settings[0].decode_on || (protocol_sel == Protocol::I2C)) {
+            ch_console_height[0] += console_height_delta;
+        }
     }
 }
 
