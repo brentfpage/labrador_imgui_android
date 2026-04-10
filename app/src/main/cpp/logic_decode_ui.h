@@ -10,7 +10,8 @@ class logicDecodeUI : public UI_tile
     Protocol protocol_sel = Protocol::UART;
 
     static const int num_baud_options = 12;
-    const int baud_rates[num_baud_options] = {      
+    const int baud_rates[num_baud_options+1] = {      
+      -1,
       300,
       600,
       1200,
@@ -24,7 +25,8 @@ class logicDecodeUI : public UI_tile
       57600,
       115200
     };
-    const char* baud_rate_labels[num_baud_options] = {
+    const char* baud_rate_labels[num_baud_options+1] = {
+      "Baud:",
       "300",
       "600",
       "1200",
@@ -44,24 +46,23 @@ class logicDecodeUI : public UI_tile
 
     struct uart_settings {
         bool decode_on = false;
-        int baud_idx_sel = 0;
+        int baud_idx_sel = 1;
         int parity_idx_sel = 0;
     };
 
-    int next_popup_ch_sel = 0;
     uart_settings both_ch_uart_settings[2];
-    uart_settings* curr_ch_uart_settings = both_ch_uart_settings;
     float ch_console_height[2] = {0.f, 0.f};
-    bool draw_uart_settings(float width_pixels);
+    bool draw_uart_settings(float grabber_height, float width_pixels);
     float init_console_height_per_ch = 300.f;
-    float grabber_height = 60.f;
+    float grabber_height;
     float grabber1_backlog = 0.f;
     float grabber2_backlog = 0.f;
     float grabber_delta_tracker2 = 0.f;
-    float draw_grabber(const char * label, float* backlog);
+    float draw_grabber(float grabber_height, const char * label, float* backlog, int ch_idx);
     void print_stream(int id, const char * text, bool *at_bottom, float window_content_width, float ch_console_height);
     bool uart_ch_console_at_bottom[2] = {true, true};
     bool i2c_console_at_bottom = true;
+    float get_grabber_height();
 public:
     logicDecodeUI() : UI_tile("Logic Decoding", "Logic Dec.", UI_tile::Width::singlet, 4) {};
     bool decoding_on();
