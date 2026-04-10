@@ -173,24 +173,24 @@ void logicDecodeUI::draw(float width_pixels, inputsUI* inputs_ui)
         ImGui::EndDisabled(); 
         ImGui::SameLine();
     }
-    ImGui::NewLine();
     bool uart_changed = false;
     if(popup_ch_sel != 0) {
+        ImGui::NewLine();
         uart_changed = draw_uart_settings(width_pixels);
     }
-    ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    draw_list->AddLine(ImGui::GetCursorScreenPos(), ImGui::GetCursorScreenPos() + ImVec2(width_pixels,0.f), IM_COL32(90, 90, 120, 255));
-    
-    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2( (width_pixels - ImGui::CalcTextSize("I2C").x - style.ItemInnerSpacing.x - CHECKBOX_SIZE)/2., style.FramePadding.y ));
-    ImGui::BeginDisabled(!i2c_allowed);
-    if(ImGui::Checkbox("I2C", (bool *) &protocol_sel)) {
-        i2c_changed = true;
-    }
-    ImGui::EndDisabled();
+//     draw_list->AddLine(ImGui::GetCursorScreenPos(), ImGui::GetCursorScreenPos() + ImVec2(width_pixels,0.f), IM_COL32(90, 90, 120, 255));
+//     
+//     ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2( (width_pixels - ImGui::CalcTextSize("I2C").x - style.ItemInnerSpacing.x - CHECKBOX_SIZE)/2., style.FramePadding.y ));
+//     ImGui::BeginDisabled(!i2c_allowed);
+//     if(ImGui::Checkbox("I2C", (bool *) &protocol_sel)) {
+//         i2c_changed = true;
+//     }
+//     ImGui::EndDisabled();
 
     ImGui::EndGroup();
     ImVec2 p0 = ImGui::GetItemRectMin();
     ImVec2 p1 = ImGui::GetItemRectMax() + ImVec2(0.f,style.FramePadding.y);
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
     draw_list->AddRect(p0, p1, IM_COL32(90, 90, 120, 255));
     ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.f,style.FramePadding.y - style.ItemSpacing.y));
     ImGui::Dummy({0.f,0.f}); // prevents issue with this draw() command affecting the vertical alignment of whatever ui element comes after it
@@ -247,7 +247,7 @@ bool logicDecodeUI::draw_uart_settings(float width_pixels)
     bool uart_changed = false;
     curr_ch_uart_settings = &both_ch_uart_settings[popup_ch_sel-1];
     ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(style.ItemSpacing.x,0.f));
-    if(ImGui::Checkbox("On", &curr_ch_uart_settings->decode_on))
+    if(ImGui::Checkbox("Enable", &curr_ch_uart_settings->decode_on))
     {
         uart_changed=true;
         if (curr_ch_uart_settings->decode_on) {
@@ -287,9 +287,9 @@ int logicDecodeUI::get_height()
     int calc_height = 2 * style.ItemSpacing.y + ImGui::GetFontSize() + \
                       style.FramePadding.y + ImGui::GetFontSize() + style.ItemSpacing.y + \
                       2 * style.FramePadding.y + ImGui::GetFontSize() + 2 * style.ItemSpacing.y + \
-                      3 * style.FramePadding.y + ImGui::GetFontSize() + \
                       (next_popup_ch_sel != 0) * ( \
                               3 * (CHECKBOX_SIZE + style.ItemSpacing.y) \
                               );
     return calc_height;
+//                       3 * style.FramePadding.y + ImGui::GetFontSize() + // for i2c checkbox
 }
