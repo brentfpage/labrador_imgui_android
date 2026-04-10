@@ -24,8 +24,9 @@ float logicDecodeUI::draw_grabber(float grabber_height, const char * label, floa
     float ycenter = (p0.y + p1.y)/2.;
     float yspan = (p1.y - p0.y)/2.;
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    draw_list->AddLine(ImVec2(hcenter - ImGui::GetFontSize(), ycenter - yspan/4),ImVec2(hcenter + ImGui::GetFontSize(), ycenter - yspan/4), IM_COL32(120, 120, 160, 255));
-    draw_list->AddLine(ImVec2(hcenter - ImGui::GetFontSize(), ycenter + yspan/4),ImVec2(hcenter + ImGui::GetFontSize(), ycenter + yspan/4), IM_COL32(120, 120, 160, 255));
+    draw_list->AddLine(ImVec2(hcenter - ImGui::GetFontSize(), ycenter - yspan/2),ImVec2(hcenter + ImGui::GetFontSize(), ycenter - yspan/2), IM_COL32(120, 120, 160, 255));
+    draw_list->AddLine(ImVec2(hcenter - ImGui::GetFontSize(), ycenter),ImVec2(hcenter + ImGui::GetFontSize(), ycenter ), IM_COL32(120, 120, 160, 255));
+    draw_list->AddLine(ImVec2(hcenter - ImGui::GetFontSize(), ycenter + yspan/2),ImVec2(hcenter + ImGui::GetFontSize(), ycenter + yspan/2), IM_COL32(120, 120, 160, 255));
     float return_val = 0.f;
     if (ImGui::IsItemActive()) {
         float mouse_delta = ImGui::GetIO().MouseDelta.y;
@@ -37,7 +38,6 @@ float logicDecodeUI::draw_grabber(float grabber_height, const char * label, floa
     }
 
     // uart settings
-
     uart_settings* curr_ch_uart_settings = &both_ch_uart_settings[ch-1];
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGui::GetColorU32(ImGuiCol_ChildBg,0));
     bool uart_changed = false;
@@ -51,7 +51,6 @@ float logicDecodeUI::draw_grabber(float grabber_height, const char * label, floa
     {
         ImGui::PushID(k);
         ImGui::SetCursorScreenPos(positions[k]);
-// #define RESET_Y ImGui::SetCursorScreenPos({ImGui::GetCursorScreenPos().x,positions[k].y});
         if(k==0) {
             ImGui::PushItemWidth(ImGui::CalcTextSize(" A ").x + 2*style.FramePadding.x);
             ImGui::LabelText("##console_ch_label"," %c ",chAB[ch-1]);
@@ -60,7 +59,6 @@ float logicDecodeUI::draw_grabber(float grabber_height, const char * label, floa
             draw_list = ImGui::GetWindowDrawList();
             draw_list->AddRect(p0, p1, IM_COL32(255, 255, 255, 255));
             ImGui::SameLine();
-//             RESET_Y
         }
 
         ImGui::PushItemWidth(ImGui::CalcTextSize(uart_options_sublabels[k][*curr_options_sel[k] + 1]).x + 2 * style.FramePadding.x);
