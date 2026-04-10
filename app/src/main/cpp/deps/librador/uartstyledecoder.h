@@ -35,6 +35,7 @@ private:
 	// Indicates the current bit being decoded.
     int serialPtr_bit;
 
+    bool allZeroes = false;
     bool uartTransmitting = false;
     bool newUartSymbol = false;
     uint32_t dataBit_current = 0;

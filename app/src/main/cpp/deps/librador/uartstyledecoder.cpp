@@ -22,7 +22,7 @@ void uartStyleDecoder::UartDecode()
     double bitPeriod_seconds = 1.0 / m_settings.baudRate;
 
     // Used to check for wire disconnects.  You should get at least one "1" for a stop bit.
-    bool allZeroes = true;
+    allZeroes = true;
 
     while(dist_seconds > (bitPeriod_seconds + SERIAL_DELAY))
 	{
@@ -133,7 +133,7 @@ void uartStyleDecoder::decodeNextUartBit(bool bitValue)
             }
             else
             {
-                if(decodedDatabit=='\0')
+                if(decodedDatabit=='\0' && !allZeroes)
                     m_serialBuffer.insert("\\0"); //insert escaped null terminator in place of null terminator
                 else
                     m_serialBuffer.insert(decodedDatabit);
