@@ -65,11 +65,10 @@ float logicDecodeUI::draw_grabber(float grabber_height, const char * label, floa
 
         ImGui::PushItemWidth(ImGui::CalcTextSize(uart_options_sublabels[k][*curr_options_sel[k] + 1]).x + 2 * style.FramePadding.x);
 #define POP_COLOR if(need_pop) {ImGui::PopStyleColor(); need_pop = false;}
-        bool need_pop = false;
-        parity_check = false;
         
         ImU32 label_col = IM_COL32(255,255,255,255);
 
+        bool need_pop = false;
         if(k==1 && !parity_check) {
             label_col = IM_COL32(255,0,0,255);
             ImGui::PushStyleColor(ImGuiCol_Text, label_col);
