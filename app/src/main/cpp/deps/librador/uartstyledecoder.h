@@ -39,7 +39,7 @@ private:
     bool newUartSymbol = false;
     uint32_t dataBit_current = 0;
     uint32_t parityIndex = UINT_MAX;
-    uint32_t dataBit_max = 7;
+    uint32_t dataBit_max = 8;
     unsigned short currentUartSymbol = 0;
     bool jitterCompensationNeeded = true;
 
@@ -74,8 +74,8 @@ private:
 
 	std::mutex mutex;
 
-    bool isParityCorrect(uint32_t bitField) const;
-	UartParity parityOf(uint32_t bitField) const;
+    bool isParityCorrect(unsigned short bitField, bool bitValue) const;
+	UartParity parityOf(unsigned short bitField) const;
 
     bool parityCheckFailed = false;
 

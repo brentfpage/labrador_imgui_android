@@ -97,7 +97,7 @@ void uartStyleDecoder::decodeNextUartBit(bool bitValue)
 {
     if (dataBit_current == parityIndex)
     {
-        parityCheckFailed = !isParityCorrect(dataBit_current);
+        parityCheckFailed = !isParityCorrect(currentUartSymbol, bitValue);
         dataBit_current++;
     }
     else if (dataBit_current < dataBit_max)
@@ -107,7 +107,7 @@ void uartStyleDecoder::decodeNextUartBit(bool bitValue)
     }
     else
     {
-        char decodedDatabit = decodeDatabit(dataBit_max + 1, currentUartSymbol);
+        char decodedDatabit = currentUartSymbol;
 
 // 		if (parityCheckFailed)
 // 		{
@@ -143,7 +143,6 @@ void uartStyleDecoder::decodeNextUartBit(bool bitValue)
         currentUartSymbol = 0;
         dataBit_current = 0;
         uartTransmitting = false;
-        newUartSymbol = true;
     }
 }
 
@@ -182,42 +181,24 @@ bool uartStyleDecoder::jitterCompensationProcedure(bool current_bit)
     return true;
 }
 
-//Basically scaffolding to add character maps for other modes (5 bit, for example).
-char uartStyleDecoder::decodeDatabit(int mode, short symbol) const
-{
-    switch(mode)
-	{
-        case 5:
-            return decodeBaudot(symbol);
-            break;
-        case 8:  //8-bit ASCII;
-            return symbol;
-            break;
-        default:
-//                 m_serialBuffer.insert(" ");
-// 			m_serialBuffer.insert("\n<FAIL>\n");
-            LOGW("uartStyleDecoder::decodeDatabit is failing...");
-			return -1; // Garbage
-    }
-}
-
 char uartStyleDecoder::decodeBaudot(short symbol) const
 {
     return 'a';
 }
 
-bool uartStyleDecoder::isParityCorrect(uint32_t bitField) const
+bool uartStyleDecoder::isParityCorrect(unsigned short bitField, bool bitValue) const
 {
 	assert(m_settings.parity != UartParity::None);
+    bitField |= (bitValue << parityIndex);
 	
 	return parityOf(bitField) == m_settings.parity;
 }
 
-UartParity uartStyleDecoder::parityOf(uint32_t bitField) const
+UartParity uartStyleDecoder::parityOf(unsigned short bitField) const
 {
 	bool result = false;
 
-	for (uint32_t mask = 1 << (dataBit_max-1); mask != 0; mask >>= 1)
+	for (uint32_t mask = 1 << dataBit_max; mask != 0; mask >>= 1)
 		result ^= static_cast<bool>(bitField & mask);
 
 	return result ? UartParity::Odd : UartParity::Even;
