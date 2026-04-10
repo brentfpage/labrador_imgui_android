@@ -101,7 +101,7 @@ public:
     template <typename T>
     void setSettingsForChannel(int ch, T channel_scope_settings, o1buffer* ch1_375, o1buffer* ch2_375, o1buffer* ch1_750, bool (o1buffer::*setSettings)(T));
     void setUartDecodeSettings(int channel, UartSettings new_settings);
-    char * getUart_String(int channel);
+    char * getUart_String(int channel, bool* parity_check);
     char * getI2c_String();
     void setI2cIsDecoding(bool new_decode_on);
     bool isoThreadIsActive();

@@ -437,13 +437,13 @@ std::vector<double> * usbCallHandler::getMany_singleBit(int channel, int numToGe
     return temp_to_return;
 }
 
-char * usbCallHandler::getUart_String(int channel)
+char * usbCallHandler::getUart_String(int channel, bool* parity_check)
 {
     char * temp_to_return = nullptr;
     if(channel == 1)
-        temp_to_return = internal_o1_buffer_375_CHA->getUart_String();
+        temp_to_return = internal_o1_buffer_375_CHA->getUart_String(parity_check);
     else if (channel == 2)
-        temp_to_return = internal_o1_buffer_375_CHB->getUart_String();
+        temp_to_return = internal_o1_buffer_375_CHB->getUart_String(parity_check);
     return temp_to_return;
 }
 

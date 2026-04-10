@@ -86,7 +86,7 @@ LIBRADORSHARED_EXPORT void librador_set_virtual_transform_settings(int ch, o1buf
 
 LIBRADORSHARED_EXPORT void librador_set_uart_decode_settings(int ch, UartSettings new_settings);
 LIBRADORSHARED_EXPORT void librador_set_i2c_is_decoding(bool new_decode_on);
-LIBRADORSHARED_EXPORT char * librador_get_uart_string(int ch);
+LIBRADORSHARED_EXPORT char * librador_get_uart_string(int ch, bool* parity_check);
 LIBRADORSHARED_EXPORT char * librador_get_i2c_string();
 
 LIBRADORSHARED_EXPORT int librador_init_libusb();

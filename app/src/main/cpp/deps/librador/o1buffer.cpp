@@ -445,7 +445,7 @@ void o1buffer::setUartDecodeSettings(UartSettings new_settings)
     m_uart_decoder->setSettings(new_settings);
 }
 
-char * o1buffer::getUart_String()
+char * o1buffer::getUart_String(bool* parity_check)
 {
-    return m_uart_decoder->getString();
+    return m_uart_decoder->getString(parity_check);
 }

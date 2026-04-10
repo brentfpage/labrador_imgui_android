@@ -63,7 +63,7 @@ public:
     double m_samples_per_second;
     int m_bufferLen = NUM_SAMPLES_PER_CHANNEL;
     void UartDecode();
-    char * getUart_String();
+    char * getUart_String(bool* parity_check);
 private:
     trigger_settings m_trigger_settings;
     virtual_transform_settings m_virtual_transform_settings;

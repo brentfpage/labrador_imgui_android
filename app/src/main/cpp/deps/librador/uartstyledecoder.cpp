@@ -109,11 +109,10 @@ void uartStyleDecoder::decodeNextUartBit(bool bitValue)
     {
         char decodedDatabit = decodeDatabit(dataBit_max + 1, currentUartSymbol);
 
-		if (parityCheckFailed)
-		{
-			m_serialBuffer.insert("\n<ERROR: Following character contains parity error>\n");
-			parityCheckFailed = false;
-		}
+// 		if (parityCheckFailed)
+// 		{
+// 			m_serialBuffer.insert("\n<ERROR: Following character contains parity error>\n");
+// 		}
 
         // Start + body of escape code
         if(decodedDatabit == 0x1b || (escape_code_started && !((decodedDatabit >= 'A' && decodedDatabit <= 'Z') || (decodedDatabit >= 'a' && decodedDatabit <= 'z'))))
@@ -246,8 +245,10 @@ void uartStyleDecoder::setSettings(UartSettings new_settings)
     m_settings = new_settings;
 }
 
-char * uartStyleDecoder::getString()
+char * uartStyleDecoder::getString(bool* parity_check)
 {
+    *parity_check = !parityCheckFailed;
+    parityCheckFailed = false;
     memcpy(convertedStream_string, m_serialBuffer.begin(), sizeof(char) * m_serialBuffer.size());
     convertedStream_string[m_serialBuffer.size()] = '\0';
     return convertedStream_string;

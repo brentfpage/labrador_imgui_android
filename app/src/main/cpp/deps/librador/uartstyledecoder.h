@@ -67,7 +67,7 @@ public:
 
     void setSettings(UartSettings new_settings);
 
-    char * getString();
+    char * getString(bool* parity_check);
 private:
     char decodeDatabit(int mode, short symbol) const;
     char decodeBaudot(short symbol) const;

@@ -10,8 +10,7 @@ class logicDecodeUI : public UI_tile
     Protocol protocol_sel = Protocol::UART;
 
     static const int num_baud_options = 12;
-    const int baud_rates[num_baud_options+1] = {      
-      -1,
+    const int baud_rates[num_baud_options] = {      
       300,
       600,
       1200,
@@ -42,11 +41,11 @@ class logicDecodeUI : public UI_tile
 
     static const int num_parity_options = 3;
     const UartParity parities[num_parity_options] = {UartParity::None, UartParity::Even, UartParity::Odd};
-    const char* parity_labels[num_parity_options] = {"None", "Even", "Odd"};
+    const char* parity_labels[num_parity_options+1] = {"Parity:", "None", "Even", "Odd"};
 
     struct uart_settings {
         bool decode_on = false;
-        int baud_idx_sel = 1;
+        int baud_idx_sel = 0;
         int parity_idx_sel = 0;
     };
 
@@ -58,7 +57,7 @@ class logicDecodeUI : public UI_tile
     float grabber1_backlog = 0.f;
     float grabber2_backlog = 0.f;
     float grabber_delta_tracker2 = 0.f;
-    float draw_grabber(float grabber_height, const char * label, float* backlog, int ch_idx);
+    float draw_grabber(float grabber_height, const char * label, float* backlog, int ch_idx, bool parity_check);
     void print_stream(int id, const char * text, bool *at_bottom, float window_content_width, float ch_console_height);
     bool uart_ch_console_at_bottom[2] = {true, true};
     bool i2c_console_at_bottom = true;

@@ -375,9 +375,9 @@ void librador_set_virtual_transform_settings(int channel, o1buffer::virtual_tran
     return internal_librador_object->usb_driver->setVirtualTransformSettings(channel, new_virtual_transform_settings);
 }
  
-char * librador_get_uart_string(int channel)
+char * librador_get_uart_string(int channel, bool* parity_check)
 {
-    return internal_librador_object->usb_driver->getUart_String(channel);
+    return internal_librador_object->usb_driver->getUart_String(channel, parity_check);
 }
 
 void librador_set_uart_decode_settings(int ch, UartSettings new_settings) {
