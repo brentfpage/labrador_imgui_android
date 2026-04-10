@@ -133,8 +133,9 @@ void uartStyleDecoder::decodeNextUartBit(bool bitValue)
             }
             else
             {
-                if(decodedDatabit=='\0' && !allZeroes)
-                    m_serialBuffer.insert("\\0"); //insert escaped null terminator in place of null terminator
+                if(decodedDatabit=='\0')
+                    if(!allZeroes)
+                        m_serialBuffer.insert("\\0"); //insert escaped null terminator in place of null terminator
                 else
                     m_serialBuffer.insert(decodedDatabit);
             }
