@@ -14,7 +14,10 @@ float logicDecodeUI::draw_grabber(float grabber_height, const char * label, floa
     ImVec2 init_pos = ImGui::GetCursorScreenPos();
     ImVec2 end_pos = init_pos + ImVec2(ImGui::GetContentRegionAvail().x,0.f);
     ImGui::SetNextItemAllowOverlap();
-    ImGui::InvisibleButton(label, ImVec2(-1, grabber_height));
+    ImGui::InvisibleButton(label, ImVec2(-1, grabber_height - 2 * style.ItemSpacing.y));
+    if (ImGui::IsItemActivated()) {
+        *backlog = 0.f;
+    }
     ImVec2 p0 = ImGui::GetItemRectMin();
     ImVec2 p1 = ImGui::GetItemRectMax();
     float hcenter = (p0.x + p1.x)/2.;
@@ -23,9 +26,6 @@ float logicDecodeUI::draw_grabber(float grabber_height, const char * label, floa
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     draw_list->AddLine(ImVec2(hcenter - ImGui::GetFontSize(), ycenter - yspan/4),ImVec2(hcenter + ImGui::GetFontSize(), ycenter - yspan/4), IM_COL32(120, 120, 160, 255));
     draw_list->AddLine(ImVec2(hcenter - ImGui::GetFontSize(), ycenter + yspan/4),ImVec2(hcenter + ImGui::GetFontSize(), ycenter + yspan/4), IM_COL32(120, 120, 160, 255));
-    if (ImGui::IsItemActivated()) {
-        *backlog = 0.f;
-    }
     float return_val = 0.f;
     if (ImGui::IsItemActive()) {
         float mouse_delta = ImGui::GetIO().MouseDelta.y;
@@ -42,7 +42,7 @@ float logicDecodeUI::draw_grabber(float grabber_height, const char * label, floa
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGui::GetColorU32(ImGuiCol_ChildBg,0));
     bool uart_changed = false;
     ImGui::SetCursorScreenPos(init_pos);
-    ImVec2 positions[2] = {init_pos, end_pos - ImVec2(ImGui::CalcTextSize("Even").x + 2 * style.FramePadding.x, 0.f)};
+    ImVec2 positions[2] = {init_pos, end_pos + ImVec2(-ImGui::CalcTextSize("Even").x - 2 * style.FramePadding.x, 0.f)};
     const char ** uart_options_sublabels[2] = {baud_rate_labels, parity_labels};
     int sublabels_counts[2] = {IM_COUNTOF(baud_rate_labels), IM_COUNTOF(parity_labels)};
     int * curr_options_sel[2] = {&curr_ch_uart_settings->baud_idx_sel, &curr_ch_uart_settings->parity_idx_sel};
@@ -51,7 +51,7 @@ float logicDecodeUI::draw_grabber(float grabber_height, const char * label, floa
     {
         ImGui::PushID(k);
         ImGui::SetCursorScreenPos(positions[k]);
-#define RESET_Y ImGui::SetCursorScreenPos({ImGui::GetCursorScreenPos().x,positions[k].y});
+// #define RESET_Y ImGui::SetCursorScreenPos({ImGui::GetCursorScreenPos().x,positions[k].y});
         if(k==0) {
             ImGui::PushItemWidth(ImGui::CalcTextSize(" A ").x + 2*style.FramePadding.x);
             ImGui::LabelText("##console_ch_label"," %c ",chAB[ch-1]);
@@ -60,7 +60,7 @@ float logicDecodeUI::draw_grabber(float grabber_height, const char * label, floa
             draw_list = ImGui::GetWindowDrawList();
             draw_list->AddRect(p0, p1, IM_COL32(255, 255, 255, 255));
             ImGui::SameLine();
-            RESET_Y
+//             RESET_Y
         }
 
         ImGui::PushItemWidth(ImGui::CalcTextSize(uart_options_sublabels[k][*curr_options_sel[k] + 1]).x + 2 * style.FramePadding.x);
@@ -108,7 +108,9 @@ float logicDecodeUI::draw_grabber(float grabber_height, const char * label, floa
 void logicDecodeUI::print_stream(int id, const char * text, bool *at_bottom, float window_content_width, float ch_console_height)
 {
     ImGui::PushID(id);
-    if (ImGui::BeginChild("console",ImVec2(window_content_width, ch_console_height ))) {
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, style.FramePadding);
+    if (ImGui::BeginChild("console",ImVec2(window_content_width, ch_console_height ), ImGuiChildFlags_AlwaysUseWindowPadding)) {
         ImGui::TextWrapped("%s", text);
         ImGuiContext& g = *ImGui::GetCurrentContext();
         ImGuiWindow* window = g.CurrentWindow;
@@ -125,13 +127,14 @@ void logicDecodeUI::print_stream(int id, const char * text, bool *at_bottom, flo
 
         ImGui::EndChild();
     }
+    ImGui::PopStyleVar();
     ImGui::PopID();
 }
 
 float logicDecodeUI::get_grabber_height()
 {
     ImGuiStyle& style = ImGui::GetStyle();
-    return style.FramePadding.y + ImGui::GetFontSize();
+    return 2 * style.ItemSpacing.y + 2 * style.FramePadding.y + ImGui::GetFontSize();
 }
 
 void logicDecodeUI::draw_console(float window_content_width)

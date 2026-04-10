@@ -401,14 +401,14 @@ int main(int, char**)
         {
             float console_height;
             if(logic_decode_ui.decoding_on()) {
-                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,0));
+//                 ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,0));
                 logic_decode_ui.draw_console(data_width);
             }
                 
             plot_ui.draw(iso_thread_active, inputs_ui.mode, inputs_ui.ch_enabled(1), inputs_ui.ch_enabled(2), data_width, 0.);
-            if(logic_decode_ui.decoding_on()) {
-                ImGui::PopStyleVar();
-            }
+//             if(logic_decode_ui.decoding_on()) {
+//                 ImGui::PopStyleVar();
+//             }
 
         }
         ImVec2 dataWindowBottomLeft = ImGui::GetWindowPos() + ImVec2(0.f,ImGui::GetWindowSize().y);

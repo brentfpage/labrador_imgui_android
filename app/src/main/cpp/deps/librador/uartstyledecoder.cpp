@@ -97,7 +97,7 @@ void uartStyleDecoder::decodeNextUartBit(bool bitValue)
 {
     if (dataBit_current == parityIndex)
     {
-        parityCheckFailed = ! isParityCorrect(dataBit_current);
+        parityCheckFailed = !isParityCorrect(dataBit_current);
         dataBit_current++;
     }
     else if (dataBit_current < dataBit_max)
@@ -247,8 +247,11 @@ void uartStyleDecoder::setSettings(UartSettings new_settings)
 
 char * uartStyleDecoder::getString(bool* parity_check)
 {
-    *parity_check = !parityCheckFailed;
-    parityCheckFailed = false;
+	if(m_settings.parity == UartParity::None) {
+        *parity_check = true;
+    } else {
+        *parity_check = !parityCheckFailed;
+    }
     memcpy(convertedStream_string, m_serialBuffer.begin(), sizeof(char) * m_serialBuffer.size());
     convertedStream_string[m_serialBuffer.size()] = '\0';
     return convertedStream_string;
