@@ -91,8 +91,10 @@ void logicDecodeUI::draw_console(float window_content_width)
         }
     } else if(protocol_sel == Protocol::I2C) {
         ch_console_height[1] = 0.f;
-        ch_console_height[0] = fmin(ch_console_height[0], y_avail - grabber_height - 6 * grabber_height);
-        ch_console_height[0] = fmax(ch_console_height[0], 2 * grabber_height);
+        float clamped_console_height = fmin(ch_console_height[0], y_avail - grabber_height - 6 * grabber_height);
+        clamped_console_height = fmax(clamped_console_height, 2 * grabber_height);
+        grabber2_backlog += ch_console_height[0] - clamped_console_height;
+        ch_console_height[0] = clamped_console_height;
         print_stream(3, librador_get_i2c_string(), &i2c_console_at_bottom, window_content_width, ch_console_height[0]);
     }
     float console_height_delta = draw_grabber("plot_console_splitter", &grabber2_backlog);
