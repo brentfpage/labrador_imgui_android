@@ -176,27 +176,21 @@ int main(int, char**)
 
     ImFontConfig config;
     config.MergeMode = true;
-    config.GlyphOffset = { 0.f, 3.f };
     config.FontDataOwnedByAtlas = false; // prevents imperceptible crash when the app is closed
 //     https://stackoverflow.com/a/13317651/3474552
-    const char* filename = "font/waveform-glyphs3.ttf";
-    AAsset* asset = AAssetManager_open(mgr, filename, AASSET_MODE_STREAMING);
-    char buf[2048];
-    int nb_read = 0;
-    nb_read = AAsset_read(asset, buf, 2048);
-    ImFont* waveform_glyph_font;
-    waveform_glyph_font = io.Fonts->AddFontFromMemoryTTF(buf, nb_read, 13.f, &config);
-    AAsset_close(asset);
 
-    config.GlyphOffset = { 0.f, 4.5f };
-    const char* filename2 = "font/greek_delta.ttf";
-    AAsset* asset2 = AAssetManager_open(mgr, filename2, AASSET_MODE_STREAMING);
-    char buf2[2048];
-    int nb_read2 = 0;
-    nb_read2 = AAsset_read(asset2, buf2, 2048);
-    ImFont* greek_delta_glyph;
-    greek_delta_glyph = io.Fonts->AddFontFromMemoryTTF(buf2, nb_read2, 13.f, &config);
-    AAsset_close(asset);
+    float glyph_y_offsets[2] = {3.f, 4.5f};
+    char buf[2][2048];
+    int fi = 0;
+    for (const char* filename: {"font/waveform-glyphs3.ttf","font/greek_delta.ttf"}) {
+        config.GlyphOffset = { 0.f, glyph_y_offsets[fi] };
+        AAsset* asset = AAssetManager_open(mgr, filename, AASSET_MODE_STREAMING);
+        int nb_read = 0;
+        nb_read = AAsset_read(asset, buf[fi], 2048);
+        ImFont* new_font = io.Fonts->AddFontFromMemoryTTF(buf[fi], nb_read, 13.f, &config);
+        AAsset_close(asset);
+        fi++;
+    }
 
     jmethodID getStatusBarHeightID = env->GetMethodID(MainActivity, "getStatusBarHeight", "()I");
     jmethodID getNavigationBarHeightID = env->GetMethodID(MainActivity, "getNavigationBarHeight", "()I");
