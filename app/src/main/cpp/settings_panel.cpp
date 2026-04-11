@@ -9,7 +9,6 @@ logicDecodeUI logic_decode_ui = logicDecodeUI();
 
 const int n_tiles = 6;
 UI_tile* tiles[n_tiles] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui}; 
-selectorUI selector_ui = selectorUI(tiles, n_tiles);
 
 float pixel_6a_screen_width = 1080.f;
 float pixel_6a_setting_panel_aspect = 1.13; // width to height
@@ -184,15 +183,35 @@ void draw_settings_panel(bool landscape, bool screen_keyboard_shown) {
     }
 }
 
+int get_selector_popup_height()
+{
+    ImGuiStyle& style = ImGui::GetStyle();
+    return style.WindowPadding.y + style.WindowBorderSize + \
+            style.ItemSpacing.y + ImGui::GetFontSize() + \
+            style.ItemSpacing.y + style.SeparatorSize + \
+            CHECKBOX_SIZE * n_tiles + style.ItemSpacing.y * (n_tiles - 1) + \
+            style.WindowPadding.y + style.WindowBorderSize;
+}
+
+int get_selector_popup_width()
+{
+    ImGuiStyle& style = ImGui::GetStyle();
+    float text_width = 0;
+    for(int i = 0; i < n_tiles; i++) {
+        text_width = fmax(text_width, ImGui::CalcTextSize(tiles[i]->name).x);
+    }
+    return CHECKBOX_SIZE + style.ItemInnerSpacing.x + text_width + 2 * (style.WindowBorderSize + style.WindowPadding.x);
+}
+
 void draw_selector_popup(bool landscape, bool orientation_changed) {
     if(maybe_clicked_background || (orientation_changed && ImGui::IsPopupOpen("config_settings"))) {
         ImVec2 main_window_bottom_right = ImGui::GetWindowPos() + ImGui::GetWindowSize();
-        ImVec2 centered_selector_window_bottom_right = settings_window_center + ImVec2(selector_ui.get_width(), selector_ui.get_height())/2.;
+        ImVec2 centered_selector_window_bottom_right = settings_window_center + ImVec2(get_selector_popup_width(), get_selector_popup_height())/2.;
         if(\
             (landscape && (centered_selector_window_bottom_right.x > main_window_bottom_right.x)) || 
             (!landscape && (centered_selector_window_bottom_right.y > main_window_bottom_right.y))) {
             ImVec2 edge_selector_window_pos = ImGui::GetWindowPos() + \
-                                     ImVec2((ImGui::GetWindowSize().x - selector_ui.get_width()) * (landscape ? 1. : 0.5), (ImGui::GetWindowSize().y - selector_ui.get_height()) * (landscape ? 0.5 : 1));
+                                     ImVec2((ImGui::GetWindowSize().x - get_selector_popup_width()) * (landscape ? 1. : 0.5), (ImGui::GetWindowSize().y - get_selector_popup_height()) * (landscape ? 0.5 : 1));
             ImGui::SetNextWindowPos(edge_selector_window_pos,0,ImVec2(0.f,0.f));
         } else {
             ImGui::SetNextWindowPos(settings_window_center,0,ImVec2(0.5f,0.5f));
@@ -200,7 +219,19 @@ void draw_selector_popup(bool landscape, bool orientation_changed) {
         ImGui::OpenPopup("config_settings");
         maybe_clicked_background = false;
     }
-    selector_ui.draw_popup();
+    if(ImGui::BeginPopup("config_settings")) {
+        ImGui::Text("Select tiles");
+        ImGui::Separator();
+        for (int i=0; i< n_tiles; i++) {
+            if(ImGui::Checkbox(tiles[i]->name, &tiles[i]->is_visible)) {
+                if(tiles[i]->is_visible)
+                {
+                    tiles[i]->next_is_expanded = true; // so that it opens up in an expanded state if it is opened again
+                }
+            }
+        }
+        ImGui::EndPopup();
+    }
 }
 
 void draw_collapse_button(bool landscape, ImVec2 dataWindowBottomLeft, ImVec2 dataWindowBottomRight) {
