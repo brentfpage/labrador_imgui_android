@@ -28,15 +28,17 @@ bool collapse_settings = false;
 
 ImVec2 settings_window_center;
 
-#define INDENTUP ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(0.f,style.ItemSpacing.y)); // remove gaps between ui_tile groups in order to avoid unwanted presses on the background that open the ui_tile selector popup.  this ItemSpacing is added back in by the tiles within their BeginGroup()/EndGroup() wrappings.  ImGuiContext.DebugShowGroupRects is very handy for debugging the groups
-
+// singlet-width tiles are (tile_singlet_width_pixels + adjustment) wide
+// duplex-width tiles are (2 * tile_singlet_width_pixels - adjustment) wide
+// two-col tiling: two columns of tiles side-by-side, the one on the left containing singlet-width tiles and the one on the right containing duplex-width tiles
+// row-col tiling: draw singlet-width tiles in the top row; below this row, draw duplex-width tiles in a column
 void do_settings_panel_layout(float* data_width, float* data_height, bool landscape, int y_size, float dpi, float pixel_6a_dpi) {
     ImGuiIO& io = ImGui::GetIO();
     ImGuiStyle& style = ImGui::GetStyle();
 
     adjustment = 0.f;
     // should compute these values only once, but there's no way to get the navigation/status bar heights in landscape mode when in portrait mode or vice-versa; it's necessary to wait until the device actually enters a given orientation to access the heights
-    // in landscape mode, allow scrolling the settings panel in the y direction, so don't vare about the height
+    // in landscape mode, allow scrolling the settings panel in the y direction, so there's no need to account for different y sizes across devices
     if(landscape) { 
         settings_height_max = y_size;
         *data_height = y_size;
@@ -89,7 +91,6 @@ void do_settings_panel_layout(float* data_width, float* data_height, bool landsc
                 float max_col_height = fmax(tile_col_heights[0], tile_col_heights[1]);
                 if(max_col_height > settings_height_max) {
                     settings_width += style.ScrollbarSize;
-
                 }
             }
             settings_width = fmax(settings_width, ImGui::GetFontSize() + 2 * style.FramePadding.x);
@@ -111,6 +112,8 @@ void do_settings_panel_layout(float* data_width, float* data_height, bool landsc
         }
     }
 }
+
+#define INDENTUP ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(0.f,style.ItemSpacing.y)); // remove gaps between ui_tile groups in order to avoid unwanted presses on the background that open the ui_tile selector popup.  this ItemSpacing is added back in by the tiles within their BeginGroup()/EndGroup() wrappings.  ImGuiContext.DebugShowGroupRects is very handy for debugging the groups
 
 void draw_settings_panel(bool landscape, bool screen_keyboard_shown) {
     ImGuiIO& io = ImGui::GetIO();
@@ -165,8 +168,6 @@ void draw_settings_panel(bool landscape, bool screen_keyboard_shown) {
                             if(landscape) {
                                 tiles[i]->draw((static_cast<int>(tiles[i]->width) + 1) * tile_singlet_width_pixels, &inputs_ui);
                             } else {
-// "singlet"-width tiles are (tile_singlet_width_pixels + adjustment) wide
-// "duplex"-width tiles are (tile_singlet_width_pixels - adjustment) wide
                                 tiles[i]->draw((static_cast<int>(tiles[i]->width) + 1) * tile_singlet_width_pixels + (-2*static_cast<int>(tiles[i]->width) + 1) * adjustment, &inputs_ui);
                             }
                             maybe_clicked_background &= !ImGui::IsItemHovered();

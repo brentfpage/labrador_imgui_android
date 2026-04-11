@@ -91,7 +91,6 @@ int main(int, char**)
     SDL_GetDisplayBounds(SDL_GetPrimaryDisplay(), &bounds);
 
     float pixel_6a_main_scale = 2.625;
-    float pixel_6a_single_width = 1038.f;
     float pixel_6a_dpi = 428.6;
 
     JNIEnv *env = (JNIEnv *) SDL_GetAndroidJNIEnv();
@@ -169,8 +168,6 @@ int main(int, char**)
     //IM_ASSERT(font != nullptr);
 
     ImFont* defaultFont = io.Fonts->AddFontDefault();
-
-
 
     // for accessing android app resources
     jfieldID asset_manager_id = env->GetFieldID(MainActivity, "mgr", "Landroid/content/res/AssetManager;");
@@ -265,7 +262,6 @@ int main(int, char**)
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
 
-
 // important to have this iso_thread_active check after the new frame starts.  Otherwise, (board connected -> user puts phone to sleep -> user unplugs board -> user wakes phone) leads to a crash.  The crash arises from the librador_get_(analog/digital)_data block below thinking iso_thread_active=true when it's not.
         iso_thread_active = librador_iso_thread_is_active();
         if(!iso_thread_active) {
@@ -321,9 +317,7 @@ int main(int, char**)
         }
 
         draw_settings_panel(landscape, screen_keyboard_shown);
-
         draw_collapse_button(landscape, dataWindowBottomLeft, dataWindowBottomRight);
-
         draw_selector_popup(landscape, orientation_changed);
 
         ImGui::End();
