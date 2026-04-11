@@ -71,9 +71,7 @@ void triggerUI::draw(float width_pixels, inputsUI* inputs_ui)
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2((ImGui::GetContentRegionAvail().x - CHECKBOX_SIZE - style.ItemInnerSpacing.x - ImGui::CalcTextSize("Single shot").x)/2.,0.f));
-        ImGui::Checkbox("##ss", &curr_ch_trigger_settings->is_single_shot);
-        ImGui::SameLine();
-        ImGui::Text("Single shot");
+        ImGui::Checkbox("Single shot", &curr_ch_trigger_settings->is_single_shot);
         ImGui::EndTable();
     }
     ImGui::EndDisabled();
