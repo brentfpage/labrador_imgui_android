@@ -48,21 +48,20 @@ void do_settings_panel_layout(float* data_width, float* data_height, bool landsc
         adjustment = ((pixel_6a_screen_width * dpi / pixel_6a_dpi) - static_cast<double>(io.DisplaySize.x))/3.; 
         adjustment = adjustment < 0 ? 0 : adjustment;
         tile_singlet_width_pixels = (io.DisplaySize.x - style.ItemSpacing.x - 2 * style.WindowPadding.x)/3.;
+    }
+    // col1 and grp1 contain singlet-width tiles, col2 and grp2 have duplex-width tiles
+    tile_col_heights[0] = 0.f;
+    tile_col_heights[1] = 0.f;
 
-        // col1 and grp1 contain singlet-width tiles, col2 and grp2 have duplex-width tiles
-        tile_col_heights[0] = 0.f;
-        tile_col_heights[1] = 0.f;
-
-        n_singlet_tiles_visible = 0;
-        singlet_tile_height_when_row_col_tiling = 0.f; 
-        for(int i=0; i < n_tiles; i++) {
-            if(tiles[i]->is_visible) {
-                float height = tiles[i]->next_is_expanded ? tiles[i]->get_height() : tiles[i]->get_collapsed_height();
-                tile_col_heights[static_cast<int>(tiles[i]->width)] += height;
-                if(tiles[i]->width == UI_tile::Width::singlet) {
-                    singlet_tile_height_when_row_col_tiling = fmax(singlet_tile_height_when_row_col_tiling, height);
-                    n_singlet_tiles_visible++;
-                }
+    n_singlet_tiles_visible = 0;
+    singlet_tile_height_when_row_col_tiling = 0.f; 
+    for(int i=0; i < n_tiles; i++) {
+        if(tiles[i]->is_visible) {
+            float height = tiles[i]->next_is_expanded ? tiles[i]->get_height() : tiles[i]->get_collapsed_height();
+            tile_col_heights[static_cast<int>(tiles[i]->width)] += height;
+            if(tiles[i]->width == UI_tile::Width::singlet) {
+                singlet_tile_height_when_row_col_tiling = fmax(singlet_tile_height_when_row_col_tiling, height);
+                n_singlet_tiles_visible++;
             }
         }
     }
