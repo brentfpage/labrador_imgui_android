@@ -95,7 +95,6 @@ int main(int, char**)
     float pixel_6a_screen_width = 1080.f;
     float pixel_6a_single_width = 1038.f;
     float pixel_6a_dpi = 428.6;
-    float pixel_6a_setting_panel_aspect = 1.13; // width to height
 
     JNIEnv *env = (JNIEnv *) SDL_GetAndroidJNIEnv();
     jobject MainActivityObject = (jobject) SDL_GetAndroidActivity();
@@ -291,21 +290,11 @@ int main(int, char**)
         bool new_landscape = io.DisplaySize.y < io.DisplaySize.x;
         bool orientation_changed = (landscape != new_landscape);
         landscape = new_landscape;
-        float settings_height_max;
-        float adjustment = 0.f;
-        float tile_singlet_width_pixels;
-        float settings_width;
-// should compute these values only once, but there's no way to get the navigation/status bar heights in landscape mode when in portrait mode or vice-versa; it's necessary to wait until the device actually enters a given orientation to access the heights
-// in landscape mode, allow scrolling the settings panel in the y direction
-        if(landscape) { 
-            settings_height_max = io.DisplaySize.y - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
-            tile_singlet_width_pixels = settings_height_max * pixel_6a_setting_panel_aspect / 3.f;
-        } else {
-            // if the current device's screen is smaller width-wise than the pixel 6a's screen, make sure the singlet-width tiles remain the same width in inches as on the pixel 6a.  do this by transfering space from the duplex-width tiles (which aren't as space-constrained)
-            adjustment = ((pixel_6a_screen_width * dpi / pixel_6a_dpi) - static_cast<double>(io.DisplaySize.x))/3.; 
-            adjustment = adjustment < 0 ? 0 : adjustment;
-            tile_singlet_width_pixels = (io.DisplaySize.x - style.ItemSpacing.x - 2 * style.WindowPadding.x)/3.;
-        };
+
+        do_settings_panel_layout(layout, io.DisplaySize.x, io.DisplaySize.y - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y, dpi, pixel_6a_dpi);
+
+
+
 
         plot_ui.recompute_x_bounds(inputs_ui.changed_since_last(), inputs_ui.mode);
 
