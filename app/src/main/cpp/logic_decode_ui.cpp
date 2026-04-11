@@ -137,6 +137,7 @@ float logicDecodeUI::get_grabber_height()
 
 void logicDecodeUI::draw_console(float window_content_width)
 {
+    ImGuiStyle& style = ImGui::GetStyle();
     bool parity_check;
     float grabber_height = get_grabber_height();
     float y_avail = ImGui::GetContentRegionAvail().y;
@@ -146,7 +147,7 @@ void logicDecodeUI::draw_console(float window_content_width)
         }
         for(int i:{1,0}) {
             if(both_ch_uart_settings[i].decode_on) {
-                float clamped_console_height = fmin(ch_console_height[i], y_avail - ch_console_height[(i+1)%2] - grabber_height * (1 + both_ch_uart_settings[(i+1)%2].decode_on) - 6 * grabber_height);
+                float clamped_console_height = fmin(ch_console_height[i], y_avail - ch_console_height[(i+1)%2] - grabber_height * (1 + both_ch_uart_settings[(i+1)%2].decode_on) - style.ItemSpacing.y);
                 clamped_console_height = fmax(clamped_console_height, 2 * grabber_height);
                 grabber2_backlog += ch_console_height[i] - clamped_console_height; // note: the grabber is only ever changing one of the console heights, so grabber2_backlog will only ever be incremented for one of the consoles
                 ch_console_height[i] = clamped_console_height;
@@ -173,7 +174,7 @@ void logicDecodeUI::draw_console(float window_content_width)
         }
     } else if(protocol_sel == Protocol::I2C) {
         ch_console_height[1] = 0.f;
-        float clamped_console_height = fmin(ch_console_height[0], y_avail - grabber_height - 6 * grabber_height);
+        float clamped_console_height = fmin(ch_console_height[0], y_avail - grabber_height - style.ItemSpacing.y);
         clamped_console_height = fmax(clamped_console_height, 2 * grabber_height);
         grabber2_backlog += ch_console_height[0] - clamped_console_height;
         ch_console_height[0] = clamped_console_height;
