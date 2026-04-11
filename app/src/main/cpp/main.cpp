@@ -295,7 +295,6 @@ int main(int, char**)
 
         ImGui::BeginChild("data",ImVec2(data_width, data_height), 0, (screen_keyboard_shown ? ImGuiWindowFlags_NoMouseInputs : 0));
         {
-            float console_height;
             if(logic_decode_ui.decoding_on()) {
                 logic_decode_ui.draw_console(data_width);
             }

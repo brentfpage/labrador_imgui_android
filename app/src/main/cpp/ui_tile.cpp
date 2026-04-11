@@ -9,7 +9,7 @@ void UI_tile::standard_header(float width_pixels)
 
     float close_button_width = ImGui::GetFontSize() + style.FramePadding.x;
     ImVec2 start_pos = ImGui::GetCursorScreenPos();
-    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.f,style.ItemSpacing.y)); // combined with lines in main.cpp, effectively folds itemspacing.y into the individual ui_tile groups
+    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(0.f,style.ItemSpacing.y)); // combined with lines in settings_panel.cpp, effectively folds ItemSpacing.y into the individual ui_tile groups
     ImGui::Text("%s",short_name);
     ImGui::SetCursorScreenPos(start_pos);
     ImGui::PushID(short_name);
