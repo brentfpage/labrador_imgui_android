@@ -11,6 +11,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "implot.h"
 #include "imgui.h"
+#include "settings_panel.h"
 #include "ui_tile.h"
 #include "sig_gen_ui.h"
 #include "inputs_ui.h"
@@ -221,12 +222,6 @@ int main(int, char**)
     bool show_mainwindow = true;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     
-    inputsUI inputs_ui = inputsUI();
-    triggerUI trigger_ui = triggerUI();
-    virtualTransformUI virtual_transform_ui = virtualTransformUI();
-    sigGenUI sig_gen_ui = sigGenUI();
-    psuUI psu_ui = psuUI();
-    logicDecodeUI logic_decode_ui = logicDecodeUI();
     virtual_transform_ui.is_visible = true;
     virtual_transform_ui.is_expanded = false;
     virtual_transform_ui.next_is_expanded = false;
@@ -297,12 +292,11 @@ int main(int, char**)
         bool orientation_changed = (landscape != new_landscape);
         landscape = new_landscape;
         float settings_height_max;
-        float font_scaling = 1.f;
         float adjustment = 0.f;
         float tile_singlet_width_pixels;
         float settings_width;
 // should compute these values only once, but there's no way to get the navigation/status bar heights in landscape mode when in portrait mode or vice-versa; it's necessary to wait until the device actually enters a given orientation to access the heights
-// in landscape mode, allow for the possibility of needing to scroll in the y direction
+// in landscape mode, allow scrolling the settings panel in the y direction
         if(landscape) { 
             settings_height_max = io.DisplaySize.y - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
             tile_singlet_width_pixels = settings_height_max * pixel_6a_setting_panel_aspect / 3.f;
@@ -315,16 +309,12 @@ int main(int, char**)
 
         plot_ui.recompute_x_bounds(inputs_ui.changed_since_last(), inputs_ui.mode);
 
-        const int n_tiles = 6;
-        UI_tile* tiles[n_tiles] = {&inputs_ui, &trigger_ui, &virtual_transform_ui, &sig_gen_ui, &psu_ui, &logic_decode_ui}; 
-        selectorUI selector_ui = selectorUI(tiles, n_tiles);
 
         // col1 and grp1 contain singlet-width tiles, col2 and grp2 have duplex-width tiles
         float tile_col_heights[2] = {0.f, 0.f};
 
         int n_singlet_tiles_visible = 0;
         float singlet_tile_height_when_row_col_tiling = 0.f; 
-        ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
         for(int i=0; i < n_tiles; i++) {
             if(tiles[i]->is_visible) {
                 float height = tiles[i]->next_is_expanded ? tiles[i]->get_height() : tiles[i]->get_collapsed_height();
@@ -401,14 +391,10 @@ int main(int, char**)
         {
             float console_height;
             if(logic_decode_ui.decoding_on()) {
-//                 ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,0));
                 logic_decode_ui.draw_console(data_width);
             }
                 
             plot_ui.draw(iso_thread_active, inputs_ui.mode, inputs_ui.ch_enabled(1), inputs_ui.ch_enabled(2), data_width, 0.);
-//             if(logic_decode_ui.decoding_on()) {
-//                 ImGui::PopStyleVar();
-//             }
 
         }
         ImVec2 dataWindowBottomLeft = ImGui::GetWindowPos() + ImVec2(0.f,ImGui::GetWindowSize().y);
@@ -422,7 +408,6 @@ int main(int, char**)
         }
 
         ImGuiID col2_id;
-        ImGui::PushFont(NULL,  style.FontSizeBase * font_scaling);
         bool maybe_clicked_background = false;
 //         bool screen_keyboard_shown = SDL_ScreenKeyboardShown(window);
         ImVec2 settings_window_center;
