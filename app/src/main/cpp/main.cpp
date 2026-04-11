@@ -16,7 +16,6 @@
 #include "sig_gen_ui.h"
 #include "inputs_ui.h"
 #include "trigger_ui.h"
-#include "selector_ui.h"
 #include "virtual_transform_ui.h"
 #include "psu_ui.h"
 #include "logic_decode_ui.h"
