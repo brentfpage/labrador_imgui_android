@@ -216,8 +216,10 @@ void plotUI::draw(bool iso_thread_active, inputsUI::Mode mode, bool chA_enabled,
                 if(enable_xcursors) {
                     ImGui::Text("X1: %.3f\nX2: %.3f\n\xee\xa4\x84X: %.3f", fmin(xval1,xval2), fmax(xval1,xval2), fabs(xval2 - xval1));
                 }
-                if(enable_ycursors) {
+                if(enable_xcursors && enable_ycursors) {
                     ImGui::SameLine();
+                }
+                if(enable_ycursors) {
                     ImGui::Text("Y1: %.3f\nY2: %.3f\n\xee\xa4\x84Y: %.3f", fmin(yval1,yval2), fmax(yval1,yval2), fabs(yval2 - yval1));
                 }
                 ImGui::EndGroup();
