@@ -266,7 +266,7 @@ int main(int, char**)
             sig_gen_ui.usb_send_data(1);
             sig_gen_ui.usb_send_data(2);
             psu_ui.usb_send_data();
-            librador_set_oscilloscope_gain(8.);
+            librador_set_oscilloscope_gain(4.);
             need_board_init = false;
         }
 
