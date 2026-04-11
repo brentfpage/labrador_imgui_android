@@ -204,30 +204,24 @@ void plotUI::draw(bool iso_thread_active, inputsUI::Mode mode, bool chA_enabled,
                 ImGuiStyle& style = ImGui::GetStyle();
 
                 ImPlotContext& gp = *GImPlot;
-                ImGui::SetNextWindowPos(mainplot->PlotRect.Max - gp.Style.LegendPadding, 0, {1.f,1.f});
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {2 * style.ItemSpacing.x, style.ItemSpacing.y});
+                float ref_legend_width = (enable_xcursors + enable_ycursors) * ImGui::CalcTextSize("X1: -0.000").x + (enable_xcursors && enable_ycursors) * style.ItemSpacing.x + 2 * style.FramePadding.x;
+                float ref_legend_height = 3 * ImGui::GetFontSize() + 2 * style.FramePadding.y;
+                ImGui::SetCursorScreenPos(mainplot->PlotRect.Max - ImVec2(ref_legend_width, ref_legend_height) - gp.Style.LegendPadding );
+                ImDrawList* draw_list = ImGui::GetWindowDrawList();
+                draw_list->AddRectFilled(ImGui::GetCursorScreenPos(), ImGui::GetCursorScreenPos() + ImVec2(ref_legend_width, ref_legend_height), ImGui::GetColorU32(ImGuiCol_WindowBg,.75));
+                ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + style.FramePadding);
 
-                ImGui::Begin("why", &show_ref_line_window, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_AlwaysAutoResize);
-                ImGui::BringWindowToDisplayFront(g.CurrentWindow);
+                ImGui::BeginGroup();
                 if(enable_xcursors) {
-                    ImGui::BeginGroup();
-                    ImGui::Text("X1: %.3f", fmin(xval1,xval2));
-                    ImGui::Text("X2: %.3f", fmax(xval1,xval2));
-                    ImGui::Text("\xee\xa4\x84X: %.3f", fabs(xval2 - xval1));
-                    ImGui::EndGroup();
-                }
-                char prefix[3] = "";
-                if(enable_xcursors && enable_ycursors) {
-                    ImGui::SameLine();
-                    strcpy(prefix," ");
+                    ImGui::Text("X1: %.3f\nX2: %.3f\n\xee\xa4\x84X: %.3f", fmin(xval1,xval2), fmax(xval1,xval2), fabs(xval2 - xval1));
                 }
                 if(enable_ycursors) {
-                    ImGui::BeginGroup();
-                    ImGui::Text("%sY1: %.2f", prefix, fmin(yval1,yval2));
-                    ImGui::Text("%sY2: %.2f", prefix, fmax(yval1,yval2));
-                    ImGui::Text("%s\xee\xa4\x84Y: %.2f", prefix, fabs(yval2 - yval1));
-                    ImGui::EndGroup();
+                    ImGui::SameLine();
+                    ImGui::Text("Y1: %.3f\nY2: %.3f\n\xee\xa4\x84Y: %.3f", fmin(yval1,yval2), fmax(yval1,yval2), fabs(yval2 - yval1));
                 }
-                ImGui::End();
+                ImGui::EndGroup();
+                ImGui::PopStyleVar();
             }
 
         }
