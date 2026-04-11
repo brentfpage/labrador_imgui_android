@@ -31,6 +31,7 @@ add_library(
         plot_ui.cpp
         selector_ui.cpp
         ui_tile.cpp
+        settings_panel.cpp
         deps/imgui/imgui.cpp
         deps/imgui/imgui_demo.cpp
         deps/imgui/imgui_draw.cpp

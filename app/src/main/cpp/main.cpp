@@ -92,7 +92,6 @@ int main(int, char**)
     SDL_GetDisplayBounds(SDL_GetPrimaryDisplay(), &bounds);
 
     float pixel_6a_main_scale = 2.625;
-    float pixel_6a_screen_width = 1080.f;
     float pixel_6a_single_width = 1038.f;
     float pixel_6a_dpi = 428.6;
 
@@ -262,8 +261,6 @@ int main(int, char**)
         int statusBarHeight = (int) env->CallIntMethod(MainActivityObject,getStatusBarHeightID);
         int navigationBarHeight = (int) env->CallIntMethod(MainActivityObject,getNavigationBarHeightID);
 
-        static bool collapse_settings = false;
-
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
@@ -291,36 +288,8 @@ int main(int, char**)
         bool orientation_changed = (landscape != new_landscape);
         landscape = new_landscape;
 
-        do_settings_panel_layout(layout, io.DisplaySize.x, io.DisplaySize.y - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y, dpi, pixel_6a_dpi);
-
-
-
-
         plot_ui.recompute_x_bounds(inputs_ui.changed_since_last(), inputs_ui.mode);
-
-
-        // col1 and grp1 contain singlet-width tiles, col2 and grp2 have duplex-width tiles
-        float tile_col_heights[2] = {0.f, 0.f};
-
-        int n_singlet_tiles_visible = 0;
-        float singlet_tile_height_when_row_col_tiling = 0.f; 
-        for(int i=0; i < n_tiles; i++) {
-            if(tiles[i]->is_visible) {
-                float height = tiles[i]->next_is_expanded ? tiles[i]->get_height() : tiles[i]->get_collapsed_height();
-                tile_col_heights[static_cast<int>(tiles[i]->width)] += height;
-                if(tiles[i]->width == UI_tile::Width::singlet) {
-                    singlet_tile_height_when_row_col_tiling = fmax(singlet_tile_height_when_row_col_tiling, height);
-                    n_singlet_tiles_visible++;
-                }
-            }
-        }
         logic_decode_ui.update(&inputs_ui);
-        // these widths only relevent to two-col tiling
-        float col1_width = (n_singlet_tiles_visible > 0) ? tile_singlet_width_pixels : 0;
-        float col2_width = (tile_col_heights[1] > 0) ? 2 * tile_singlet_width_pixels : 0;
-
-        bool row_col_tiling = (!landscape && (n_singlet_tiles_visible == 2) && ((tile_col_heights[1] + singlet_tile_height_when_row_col_tiling) < fmax(tile_col_heights[0], tile_col_heights[1]))) || \
-            (landscape && (n_singlet_tiles_visible > 0) && ((tile_col_heights[1] + singlet_tile_height_when_row_col_tiling) < settings_height_max));
 
         ImGui::SetNextWindowPos(ImVec2(0.f,statusBarHeight));
         ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x,io.DisplaySize.y - statusBarHeight - navigationBarHeight));
@@ -331,51 +300,10 @@ int main(int, char**)
         ImGui::Begin("MainWindow",
                      &show_mainwindow,
                      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | (screen_keyboard_shown ? ImGuiWindowFlags_NoMouseInputs : 0));   
-
         float data_width;
         float data_height;
-        float settings_height;
-        if(landscape) {
-            data_height = io.DisplaySize.y - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y;
-            if(collapse_settings) {
-                data_width = ImGui::GetContentRegionAvail().x;
-            } else {
-                if(row_col_tiling) {
-                    if (tile_col_heights[1] > 0.f) {
-                        settings_width = 2 * tile_singlet_width_pixels + style.ItemSpacing.x;
-                    } else if (n_singlet_tiles_visible > 0) {
-                        settings_width = tile_singlet_width_pixels + (n_singlet_tiles_visible == 2) * (tile_singlet_width_pixels + style.ItemSpacing.x);
-                    } else {
-                        settings_width = 0.f;
-                    }
-                } else {
-                    settings_width = col1_width + col2_width + ((col1_width>0)&&(col2_width>0)) * style.ItemSpacing.x;
-                    float max_col_height = fmax(tile_col_heights[0], tile_col_heights[1]);
-                    if(max_col_height > settings_height_max) {
-                        settings_width += style.ScrollbarSize;
+        do_settings_panel_layout(&data_width, &data_height, landscape, io.DisplaySize.y - statusBarHeight - navigationBarHeight - 2 * style.WindowPadding.y, dpi, pixel_6a_dpi);
 
-                    }
-                }
-                settings_width = fmax(settings_width, ImGui::GetFontSize() + 2 * style.FramePadding.x);
-                data_width = ImGui::GetContentRegionAvail().x - style.ItemSpacing.x - settings_width;
-            }
-        } else {
-            settings_width = io.DisplaySize.x - 2 * style.WindowPadding.x;
-            data_width = settings_width;
-            if(collapse_settings) {
-                data_height = ImGui::GetContentRegionAvail().y;
-            } else {
-                if(row_col_tiling) {
-                    settings_height = singlet_tile_height_when_row_col_tiling + tile_col_heights[1];
-                } else {
-                    settings_height = fmax(tile_col_heights[0], tile_col_heights[1]);
-                }
-                settings_height = fmax(settings_height, ImGui::GetFontSize() + 2 * style.ItemSpacing.y);
-                data_height = ImGui::GetContentRegionAvail().y - settings_height;
-            }
-        }
-
-        ImGui::PopFont();
         ImGui::BeginChild("data",ImVec2(data_width, data_height), 0, (screen_keyboard_shown ? ImGuiWindowFlags_NoMouseInputs : 0));
         {
             float console_height;
@@ -389,128 +317,15 @@ int main(int, char**)
         ImVec2 dataWindowBottomLeft = ImGui::GetWindowPos() + ImVec2(0.f,ImGui::GetWindowSize().y);
         ImVec2 dataWindowBottomRight = ImGui::GetWindowPos() + ImGui::GetWindowSize();
         ImGui::EndChild();
-#define INDENTUP ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(0.f,style.ItemSpacing.y)); // remove gaps between ui_tile groups in order to avoid unwanted presses on the background that open the ui_tile selector popup.  this ItemSpacing is added back in by the tiles within their BeginGroup()/EndGroup() wrappings.  ImGuiContext.DebugShowGroupRects is very handy for debugging the groups
         if(landscape) {
             ImGui::SameLine();
-        } else {
-            INDENTUP
         }
 
-        ImGuiID col2_id;
-        bool maybe_clicked_background = false;
-//         bool screen_keyboard_shown = SDL_ScreenKeyboardShown(window);
-        ImVec2 settings_window_center;
-        if(!collapse_settings) {
-            ImGui::BeginChild("settings",ImVec2(0.f, 0.f), 0, (screen_keyboard_shown ? ImGuiWindowFlags_NoMouseInputs : 0));
-            settings_window_center = ImGui::GetWindowPos() + ImGui::GetWindowSize()/2.;
-            ImGuiContext& g = *GImGui;
-            ImVec2 settings_start_pos = ImGui::GetCursorScreenPos();
-            ImGui::SetNextItemAllowOverlap();
-            if(ImGui::InvisibleButton("open ui_tile selector", {0.f, 0.f})) {
-                    maybe_clicked_background = true;
-            }
-            ImGui::SetCursorScreenPos(settings_start_pos);
+        draw_settings_panel(landscape, screen_keyboard_shown);
 
-            if(row_col_tiling) {
-                for(int grp : {0,1}) {
-                    if(grp==1)
-                        INDENTUP
-                    ImGui::BeginGroup();
-                    bool first = true;
-                    for(int i=0; i<n_tiles; i++) {
-                        if (tiles[i]->is_visible && (static_cast<int>(tiles[i]->width) == grp)) {
-                            if((grp==1)&&(!first)) {
-                                INDENTUP
-                            }
-                            first = false;
-                            tiles[i]->draw(tile_singlet_width_pixels + grp * (tile_singlet_width_pixels + style.ItemSpacing.x), &inputs_ui);
-                            maybe_clicked_background &= !ImGui::IsItemHovered();
-                            // items in group 0 are stacked side-by-side; those in group 1 are stacked vertically
-                            if(grp==0) {
-                                ImGui::SameLine(); // seems to be invalidated after endgroup, which is convenient here
-                            }
-                        }
-                    }
-                    ImGui::EndGroup();
-                }
-            } else {
-                for(int col : {0,1}) {
-                    if(tile_col_heights[col] > 0)
-                    {
-                        ImGui::BeginGroup();
-                        bool first = true;
-                        for(int i=0; i<n_tiles; i++) {
-                            if (tiles[i]->is_visible && (static_cast<int>(tiles[i]->width) == col)) {
-                                if(!first)
-                                    INDENTUP
-                                first=false;
-                                if(landscape) {
-                                    tiles[i]->draw((static_cast<int>(tiles[i]->width) + 1) * tile_singlet_width_pixels, &inputs_ui);
-                                } else {
-    // "singlet"-width tiles are (tile_singlet_width_pixels + adjustment) wide
-    // "duplex"-width tiles are (tile_singlet_width_pixels - adjustment) wide
-                                    tiles[i]->draw((static_cast<int>(tiles[i]->width) + 1) * tile_singlet_width_pixels + (-2*static_cast<int>(tiles[i]->width) + 1) * adjustment, &inputs_ui);
-                                }
-                                maybe_clicked_background &= !ImGui::IsItemHovered();
-                            }
-                        }
-                        ImGui::EndGroup();
-                        ImGui::SameLine();
-                    }
-                }
-                ImGui::NewLine();
-            }
-            ImGui::EndChild();
+        draw_collapse_button(landscape, dataWindowBottomLeft, dataWindowBottomRight);
 
-        }
-        ImGui::PopFont();
-
-        char label[36];
-
-        style = ImGui::GetStyle();
-        ImGuiID collapse_id = ImGui::GetID("collapse");
-        ImVec2 collapse_button_pos;
-        if(landscape) {
-            if(collapse_settings) {
-                strcpy(label, " < ");
-            } else {
-                strcpy(label, " > ");
-            }
-            collapse_button_pos = dataWindowBottomRight - ImGui::CalcTextSize(" < ") - style.FramePadding * 2;
-        } else {
-            if(collapse_settings) {
-                strcpy(label, " ^ ");
-            } else {
-                strcpy(label, " v ");
-            }
-            collapse_button_pos = dataWindowBottomLeft - ImVec2(0.f,ImGui::CalcTextSize(" ^ ").y + style.FramePadding.y * 2);
-        }
-        ImGui::BeginChild("data");
-        ImGui::BeginChild("plot");
-        ImGui::SetCursorScreenPos(collapse_button_pos);
-        if(ImGui::custom_ButtonEx(label)) {
-            collapse_settings = !collapse_settings;
-        }
-        ImGui::EndChild();
-        ImGui::EndChild();
-
-        // maybe_clicked_background = clicked_background at this point
-        if(maybe_clicked_background || (orientation_changed && ImGui::IsPopupOpen("config_settings"))) {
-            ImVec2 main_window_bottom_right = ImGui::GetWindowPos() + ImGui::GetWindowSize();
-            ImVec2 centered_selector_window_bottom_right = settings_window_center + ImVec2(selector_ui.get_width(), selector_ui.get_height())/2.;
-            if(\
-                (landscape && (centered_selector_window_bottom_right.x > main_window_bottom_right.x)) || 
-                (!landscape && (centered_selector_window_bottom_right.y > main_window_bottom_right.y))) {
-                ImVec2 edge_selector_window_pos = ImGui::GetWindowPos() + \
-                                         ImVec2((ImGui::GetWindowSize().x - selector_ui.get_width()) * (landscape ? 1. : 0.5), (ImGui::GetWindowSize().y - selector_ui.get_height()) * (landscape ? 0.5 : 1));
-                ImGui::SetNextWindowPos(edge_selector_window_pos,0,ImVec2(0.f,0.f));
-            } else {
-                ImGui::SetNextWindowPos(settings_window_center,0,ImVec2(0.5f,0.5f));
-            }
-            ImGui::OpenPopup("config_settings");
-            maybe_clicked_background = false;
-        }
-        selector_ui.draw_popup();
+        draw_selector_popup(landscape, orientation_changed);
 
         ImGui::End();
 
