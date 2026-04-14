@@ -360,7 +360,8 @@ buffer_read_write_mutex.lock();
         break;
     case 1:
         if(channel == 1) {
-            delay_including_trigger = internal_o1_buffer_375_CHA->getDelayIncludingFromTrigger(delay_sample, round(interval_samples * numToGet));
+            delay_including_trigger = internal_o1_buffer_375_CHA->getDelayIncludingFromTrigger(delay_sample, round(interval_samples * numToGet), &single_shot_reached, &trigger_delay);
+            internal_o1_buffer_375_CHB->setPaused(single_shot_reached,-trigger_delay, true); // dont multiply trigger_delay by 8 b/c each sample of the buffer is 8 subsamples
             temp_to_return = internal_o1_buffer_375_CHA->getMany_double(numToGet, interval_samples, delay_including_trigger, filter_mode, current_scope_gain, false);
         }
         break;
@@ -402,7 +403,17 @@ std::vector<double> * usbCallHandler::getMany_singleBit(int channel, int numToGe
         case 1:
             if(channel == 2) 
             {
-                temp_to_return = internal_o1_buffer_375_CHB->getMany_singleBit(numToGet, interval_subsamples, delay_subsamples);
+                int delay_including_trigger;
+                if(internal_o1_buffer_375_CHA->isTriggeringEnabled()) {
+                    bool single_shot_reached = false;
+                    int trigger_delay = 0;
+                    delay_including_trigger = internal_o1_buffer_375_CHA->getDelayIncludingFromTrigger(static_cast<int>(round(delay_subsamples/8.)), round(interval_subsamples/8. * numToGet), &single_shot_reached, &trigger_delay) * 8;
+                    internal_o1_buffer_375_CHB->setPaused(single_shot_reached,-trigger_delay, true); // dont multiply trigger_delay by 8 b/c each sample of the buffer is 8 subsamples
+                } else {
+                    delay_including_trigger = delay_subsamples;
+                }
+
+                temp_to_return = internal_o1_buffer_375_CHB->getMany_singleBit(numToGet, interval_subsamples, delay_including_trigger);
                 internal_o1_buffer_375_CHB->UartDecode();
             }
             break;
