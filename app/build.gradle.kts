@@ -43,7 +43,7 @@ android {
         }
     }
     aaptOptions{
-        ignoreAssetsPattern = "!pulse.svg:!svg(2)-converted.svg:!Readme.txt:!settings-gear-svgrepo-com.svg";
+        ignoreAssetsPattern = "!pulse.svg:!svg(2)-converted.svg:!settings-gear-svgrepo-com.svg:!mm.svg:!Greek_uc_delta.svg:!Readme.txt";
     }
 }
 

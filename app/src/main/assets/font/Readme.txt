@@ -3,10 +3,10 @@ Note: this readme and the .svg files in this directory are excluded from the ass
 waveform-glyphs3 resources:
 
 https://www.sinwaver.com/   (have to hack it a bit to get a wider stroke)
-https://freesvgeditor.com/en/svg-editor-online  (for repositioning the waveform from sinwaver)
+https://boxy-svg.com/app/   (handy online svg editor)
 https://10015.io/tools/svg-stroke-to-fill-converter ( apply to the waveform from sinwaver)
 
 greek delta from wiki commons https://commons.wikimedia.org/wiki/File:Greek_uc_delta.svg
 
-load pulse.svg and svg(2)-converted.svg and the settings gear into https://icomoon.io/app/#/select to generate the font
+load the .svg's into https://icomoon.io/app/#/select to generate the font
 
