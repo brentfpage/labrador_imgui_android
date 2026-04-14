@@ -123,8 +123,8 @@ void logicDecodeUI::print_stream(int id, const char * text, bool *at_bottom, flo
         else
             *at_bottom=false;
 
-        ImGui::EndChild();
     }
+    ImGui::EndChild();
     ImGui::PopStyleVar();
     ImGui::PopID();
 }
