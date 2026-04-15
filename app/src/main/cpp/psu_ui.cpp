@@ -19,7 +19,7 @@ void psuUI::draw(float width_pixels, inputsUI* inputs_ui)
     ImVec2 close_button_loc = baseline_loc + ImVec2(width_pixels - close_button_width, style.FramePadding.y );
 
     ImGui::BeginGroup(); // for bounding rect
-    button_common(" PSU ", "##psu_slider", ImVec2(psu_button_width,0.f), style);
+    ButtonForSlider(" PSU ", "##psu_slider", ImVec2(psu_button_width,0.f));
     ImGui::SameLine();
     ImGui::SetCursorScreenPos(slider_loc); 
     ImGui::PushItemWidth(width_pixels - psu_button_width - 2 * style.ItemInnerSpacing.x - 1 - close_button_width);  // -1 to give space for bounding rect

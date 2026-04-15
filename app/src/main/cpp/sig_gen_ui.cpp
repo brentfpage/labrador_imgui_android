@@ -26,7 +26,7 @@ void sigGenUI::amp_or_min_slider_and_button(const char* slider_label, const char
     }
     ImGui::TableNextColumn();
     ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(style.CellPadding.x,0.f));
-    button_common(button_label, slider_label, ImVec2(ImGui::GetContentRegionAvail().x + style.CellPadding.x,0.f), style);
+    ButtonForSlider(button_label, slider_label, ImVec2(ImGui::GetContentRegionAvail().x + style.CellPadding.x,0.f));
 }
 
 void sigGenUI::draw(float width_pixels, inputsUI* inputs_ui)
@@ -96,7 +96,7 @@ void sigGenUI::draw(float width_pixels, inputsUI* inputs_ui)
         ImGui::TableNextColumn();
 
         ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(style.CellPadding.x,0.f));
-        if(button_common("Freq.", "##sg_freq_slider", ImVec2(ImGui::GetContentRegionAvail().x + style.CellPadding.x,0.f), style)) { // short press on button
+        if(ButtonForSlider("Freq.", "##sg_freq_slider", ImVec2(ImGui::GetContentRegionAvail().x + style.CellPadding.x,0.f))) { // short press on button
             curr_ch_data->slider_base = (curr_ch_data->slider_base + 1) % n_bases; // toggle frequency base
             curr_ch_data->freq = std::min(curr_ch_data->freq, freq_slider_maxima[curr_ch_data->slider_base]); 
         }

@@ -64,7 +64,7 @@ void triggerUI::draw(float width_pixels, inputsUI* inputs_ui)
         ImGui::custom_SliderFloat("##trigger level", "V", &curr_ch_trigger_settings->trigger_level, -20.f, 20.f, "%.1f V", ImGuiSliderFlags_ClampOnInput);
         ImGui::TableNextColumn();
         ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() - ImVec2(style.CellPadding.x,0.f));
-        button_common("Level", "##trigger level", ImVec2(ImGui::GetContentRegionAvail().x + style.CellPadding.x,0.f), style);
+        ButtonForSlider("Level", "##trigger level", ImVec2(ImGui::GetContentRegionAvail().x + style.CellPadding.x,0.f));
         ImGui::EndTable();
     }
     if(ImGui::BeginTable("trigger_helper4",1, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_NoHostExtendX, ImVec2(width_pixels, 0.))) {
@@ -174,7 +174,7 @@ int triggerUI::get_height()
 //     ImVec2 value_text_button_pos = p1 + ImVec2(-value_text_button_size.x, 0.f);
 //     ImGui::SetCursorScreenPos(value_text_button_pos);
 //     // get_height() line 4 end
-//     button_common("##trigger_button", "##trigger_slider", value_text_button_size , style);
+//     ButtonForSlider("##trigger_button", "##trigger_slider", value_text_button_size);
 //     ImVec2 saved_pos2 = ImGui::GetCursorScreenPos();
 //     float slider_bottom = saved_pos2.y - style.ItemSpacing.y;
 // 
