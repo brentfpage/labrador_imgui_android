@@ -78,13 +78,6 @@ void plotUI::draw(bool iso_thread_active, inputsUI::Mode mode, bool chA_enabled,
         from_librador_chB = &blank_data;
         time_array = blank_data;
     }
-    static double xval1 = -.06;
-    static double xval2 = -.12;
-    static double yval1 = -.06;
-    static double yval2 = -.12;
-    static bool cursor_drag_tool_toggle = false;
-    static bool enable_xcursors = false;
-    static bool enable_ycursors = false;
 
     ImGui::BeginChild("plot",ImVec2(data_width, plot_height));
     {
@@ -106,50 +99,50 @@ void plotUI::draw(bool iso_thread_active, inputsUI::Mode mode, bool chA_enabled,
 
             if(ImPlot::IsAxisActivated(ImAxis_X1)) {
                 float mouse_down_clicked_val = ImPlot::getMouseDownClickedVal(ImAxis_X1);
-                cursor_drag_tool_toggle = fabs(xval1 - mouse_down_clicked_val) > fabs(xval2 - mouse_down_clicked_val);
+                cursor_drag_tool_toggle = fabs(x_ref_1 - mouse_down_clicked_val) > fabs(x_ref_2 - mouse_down_clicked_val);
             }
 
             ImPlotDragToolFlags x1_drag_tool_flags = cursor_drag_tool_toggle ? ImPlotDragToolFlags_NoAxisInputs : 0;
             ImPlotDragToolFlags x2_drag_tool_flags = cursor_drag_tool_toggle ? 0 : ImPlotDragToolFlags_NoAxisInputs;
 
             if(ImPlot::IsAxisClicked(ImAxis_X1)) {
-                if(!enable_xcursors) {
-                    xval1 = ImPlot::getMouseDownClickedVal(ImAxis_X1);
-                    xval2 = ImPlot::getMouseDownClickedVal(ImAxis_X1);
+                if(!enable_x_ref_lines) {
+                    x_ref_1 = ImPlot::getMouseDownClickedVal(ImAxis_X1);
+                    x_ref_2 = ImPlot::getMouseDownClickedVal(ImAxis_X1);
                 }
-                enable_xcursors = true;
+                enable_x_ref_lines = true;
                 if(g.IO.MouseClickedLastCount[0]==2) {
-                    enable_xcursors = false;
+                    enable_x_ref_lines = false;
                 }
             }
 
-            if(enable_xcursors) {
-                ImPlot::DragLineX(0,&xval1,ImVec4(1,1,1,1), 1.f, x1_drag_tool_flags);
-                ImPlot::DragLineX(1,&xval2,ImVec4(1,1,1,1), 1.f, x2_drag_tool_flags);
+            if(enable_x_ref_lines) {
+                ImPlot::DragLineX(0,&x_ref_1,ImVec4(1,1,1,1), 1.f, x1_drag_tool_flags);
+                ImPlot::DragLineX(1,&x_ref_2,ImVec4(1,1,1,1), 1.f, x2_drag_tool_flags);
             }
 
             if(ImPlot::IsAxisActivated(ImAxis_Y1)) {
                 float mouse_down_clicked_val = ImPlot::getMouseDownClickedVal(ImAxis_Y1);
-                cursor_drag_tool_toggle = fabs(yval1 - mouse_down_clicked_val) > fabs(yval2 - mouse_down_clicked_val);
+                cursor_drag_tool_toggle = fabs(y_ref_1 - mouse_down_clicked_val) > fabs(y_ref_2 - mouse_down_clicked_val);
             }
 
             ImPlotDragToolFlags y1_drag_tool_flags = cursor_drag_tool_toggle ? ImPlotDragToolFlags_NoAxisInputs : 0;
             ImPlotDragToolFlags y2_drag_tool_flags = cursor_drag_tool_toggle ? 0 : ImPlotDragToolFlags_NoAxisInputs;
 
             if(ImPlot::IsAxisClicked(ImAxis_Y1)) {
-                if(!enable_ycursors) {
-                    yval1 = ImPlot::getMouseDownClickedVal(ImAxis_Y1);
-                    yval2 = ImPlot::getMouseDownClickedVal(ImAxis_Y1);
+                if(!enable_y_ref_lines) {
+                    y_ref_1 = ImPlot::getMouseDownClickedVal(ImAxis_Y1);
+                    y_ref_2 = ImPlot::getMouseDownClickedVal(ImAxis_Y1);
                 }
-                enable_ycursors = true;
+                enable_y_ref_lines = true;
                 if(g.IO.MouseClickedLastCount[0]==2) {
-                    enable_ycursors = false;
+                    enable_y_ref_lines = false;
                 }
             }
 
-            if(enable_ycursors) {
-                ImPlot::DragLineY(0,&yval1,ImVec4(1,1,1,1), 1.f, y1_drag_tool_flags);
-                ImPlot::DragLineY(1,&yval2,ImVec4(1,1,1,1), 1.f, y2_drag_tool_flags);
+            if(enable_y_ref_lines) {
+                ImPlot::DragLineY(0,&y_ref_1,ImVec4(1,1,1,1), 1.f, y1_drag_tool_flags);
+                ImPlot::DragLineY(1,&y_ref_2,ImVec4(1,1,1,1), 1.f, y2_drag_tool_flags);
             }
 
             ImPlotRect axes_limits = ImPlot::GetPlotLimits();
@@ -196,16 +189,13 @@ void plotUI::draw(bool iso_thread_active, inputsUI::Mode mode, bool chA_enabled,
             ImPlot::SetNextAxisLimits(ImAxis_X1, xmin, xmax, ImPlotCond_Always);
             ImPlot::SetNextAxisLimits(ImAxis_Y1, ymin, ymax, ImPlotCond_Always);
 
-
-            static bool show_ref_line_window = enable_xcursors || enable_ycursors; 
-            show_ref_line_window = enable_xcursors || enable_ycursors; 
-            if(show_ref_line_window) {
+            if(enable_x_ref_lines || enable_y_ref_lines) {
                 ImGui::SetNextWindowBgAlpha(0.25f);
                 ImGuiStyle& style = ImGui::GetStyle();
 
                 ImPlotContext& gp = *GImPlot;
                 ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {2 * style.ItemSpacing.x, style.ItemSpacing.y});
-                float ref_legend_width = (enable_xcursors + enable_ycursors) * ImGui::CalcTextSize("X1: -0.000").x + (enable_xcursors && enable_ycursors) * style.ItemSpacing.x + 2 * style.FramePadding.x;
+                float ref_legend_width = (enable_x_ref_lines + enable_y_ref_lines) * ImGui::CalcTextSize("X1: -0.000").x + (enable_x_ref_lines && enable_y_ref_lines) * style.ItemSpacing.x + 2 * style.FramePadding.x;
                 float ref_legend_height = 3 * ImGui::GetFontSize() + 2 * style.FramePadding.y;
                 ImGui::SetCursorScreenPos(mainplot->PlotRect.Max - ImVec2(ref_legend_width, ref_legend_height) - gp.Style.LegendPadding );
                 ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -213,14 +203,14 @@ void plotUI::draw(bool iso_thread_active, inputsUI::Mode mode, bool chA_enabled,
                 ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + style.FramePadding);
 
                 ImGui::BeginGroup();
-                if(enable_xcursors) {
-                    ImGui::Text("X1: %.3f\nX2: %.3f\n\xee\xa4\x84X: %.3f", fmin(xval1,xval2), fmax(xval1,xval2), fabs(xval2 - xval1));
+                if(enable_x_ref_lines) {
+                    ImGui::Text("X1: %.3f\nX2: %.3f\n\xee\xa4\x84X: %.3f", fmin(x_ref_1,x_ref_2), fmax(x_ref_1,x_ref_2), fabs(x_ref_2 - x_ref_1));
                 }
-                if(enable_xcursors && enable_ycursors) {
+                if(enable_x_ref_lines && enable_y_ref_lines) {
                     ImGui::SameLine();
                 }
-                if(enable_ycursors) {
-                    ImGui::Text("Y1: %.3f\nY2: %.3f\n\xee\xa4\x84Y: %.3f", fmin(yval1,yval2), fmax(yval1,yval2), fabs(yval2 - yval1));
+                if(enable_y_ref_lines) {
+                    ImGui::Text("Y1: %.3f\nY2: %.3f\n\xee\xa4\x84Y: %.3f", fmin(y_ref_1,y_ref_2), fmax(y_ref_1,y_ref_2), fabs(y_ref_2 - y_ref_1));
                 }
                 ImGui::EndGroup();
                 ImGui::PopStyleVar();

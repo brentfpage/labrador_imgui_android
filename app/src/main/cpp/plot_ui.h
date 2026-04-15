@@ -13,6 +13,16 @@ class plotUI
     float ymax = 2.;
     double x_constraint_min = -10.;
     double x_constraint_max = 0.;
+
+    double x_ref_1;
+    double x_ref_2;
+    double y_ref_1;
+    double y_ref_2;
+
+    bool cursor_drag_tool_toggle; // determines which of the two reference lines for a given axis is begin dragged
+    bool enable_x_ref_lines = false;
+    bool enable_y_ref_lines = false;
+
 public:
     void recompute_x_bounds(bool mode_changed, inputsUI::Mode mode);
     void draw(bool iso_thread_active, inputsUI::Mode mode, bool chA_enabled, bool chB_enabled, double data_width, double plot_height);
