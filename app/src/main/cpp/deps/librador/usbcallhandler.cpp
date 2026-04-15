@@ -101,7 +101,7 @@ bool usbCallHandler::safe_to_exit_thread(){
 
 // it makes sense to call this iso_polling_function because we only use libusb's asynchronous API for isochronous transfers
 void usbCallHandler::iso_polling_function(libusb_context *ctx){
-    LOGW("iso_polling_function thread spawned\n");
+    LOGI("iso_polling_function thread spawned\n");
     struct timeval tv;
     tv.tv_sec = 1;
     tv.tv_usec = 0;//ISO_PACKETS_PER_CTX*4000;
@@ -114,7 +114,7 @@ void usbCallHandler::iso_polling_function(libusb_context *ctx){
     get_set_iso_thread_active_mutex.lock();
     iso_thread_active = false;
     get_set_iso_thread_active_mutex.unlock();
-    LOGW("iso_polling_function thread finished\n");
+    LOGI("iso_polling_function thread finished\n");
 }
 
 usbCallHandler::usbCallHandler(unsigned short VID_in, unsigned short PID_in)
@@ -179,7 +179,7 @@ void usbCallHandler::set_bootloader_mode_allowed(bool allowed) {
     jclass MainActivity(env->GetObjectClass(MainActivityObject));
     jfieldID bootloader_mode_allowedID = env->GetFieldID(MainActivity, "bootloader_mode_allowed", "Z");
     env->SetBooleanField(MainActivityObject, bootloader_mode_allowedID, allowed);
-    LOGW("bootloader_mode_allowed set");
+    LOGI("bootloader_mode_allowed set");
 }
 
 // call sequence: usbcallhandler.cpp(requestFirmwareFlash) -> MainActivity.java -> librador -> here, all just to get a dialog window before reset_device (below) triggers a usb permission request
@@ -198,9 +198,9 @@ void usbCallHandler::initiateFirmwareFlash()
 //Initialise libusb
 int usbCallHandler::init_libusb(){
     if(ctx){
-        LOGW("There is already a libusb context!\n");
+        LOGI("There is already a libusb context!\n");
         return 1;
-    } else LOGW("libusb context is null\n");
+    } else LOGI("libusb context is null\n");
     struct libusb_init_option libusb_options[2] = {
         {.option = LIBUSB_OPTION_NO_DEVICE_DISCOVERY},
         {.option = LIBUSB_OPTION_LOG_LEVEL, .value = {.ival = 3}}
@@ -210,26 +210,26 @@ int usbCallHandler::init_libusb(){
         LOGW("libusb_init FAILED\n");
         return -1;
     } else {
-        LOGW("Libusb context initialised\n");
+        LOGI("Libusb context initialised\n");
         return 0;
     }
 }
 
 int usbCallHandler::setup_usb_control(int file_descriptor){
-    LOGW("usbCallHandler::setup_usb_control()\n");
+    LOGI("usbCallHandler::setup_usb_control()\n");
     //Get a handle on the Labrador device
     libusb_wrap_sys_device(ctx, file_descriptor, &handle);
 
     if(!handle){
-        LOGW("DEVICE NOT FOUND\n");
+        LOGI("DEVICE NOT FOUND\n");
         return -2;
     }
-    LOGW("Device found!!\n");
+    LOGI("Device found!!\n");
 
     if(libusb_kernel_driver_active(handle, 0)) {
-        LOGW("KERNEL DRIVER ACTIVE");
+        LOGI("KERNEL DRIVER ACTIVE");
     } else {
-        LOGW("KERNEL DRIVER INACTIVE");
+        LOGI("KERNEL DRIVER INACTIVE");
     }
     if(libusb_kernel_driver_active(handle, 0)){
         libusb_detach_kernel_driver(handle, 0);
@@ -242,18 +242,18 @@ int usbCallHandler::setup_usb_control(int file_descriptor){
         libusb_close(handle);
         handle = nullptr;
         return -3;
-    } else LOGW("Interface claimed!\n");
+    } else LOGI("Interface claimed!\n");
     return 0;
 }
 
 // should only be called if iso_polling_thread is not active.  This means either the thread has never been set up OR it was previously set up but has exited iso_polling_function.
 int usbCallHandler::setup_usb_iso(){
-    LOGW("usbCallHandler::setup_usb_iso()\n");
+    LOGI("usbCallHandler::setup_usb_iso()\n");
     if(iso_polling_thread) {
-        LOGW("iso polling thead already exists");
+        LOGI("iso polling thead already exists");
         return -1;
     } else {
-        LOGW("creating iso polling thread");
+        LOGI("creating iso polling thread");
 
         alloc_iso_transfers();
 
@@ -295,7 +295,7 @@ int usbCallHandler::send_control_transfer(uint8_t RequestType, uint8_t Request, 
     unsigned char *controlBuffer;
 
     if(!connected){
-        LOGW("Control packet requested before device has connected!\n");
+        LOGI("Control packet requested before device has connected!\n");
         return -1;
     }
 
@@ -439,7 +439,7 @@ std::vector<double> * usbCallHandler::getMany_singleBit(int channel, int numToGe
             }
             catch(...)
             {
-                LOGW("Resetting I2C");
+                LOGI("Resetting I2C");
                 m_i2c_decoder->reset();
             }
             break;
@@ -641,7 +641,7 @@ int usbCallHandler::set_digital_state(uint8_t digState){
 }
 
 int usbCallHandler::reset_device(bool goToBootloader){
-    LOGW("resetting device: unimportant error LIBUSB_ERROR_NO_DEVICE for send_control_transfer expected"); // only if goToBootloader?
+    LOGI("resetting device: unimportant error LIBUSB_ERROR_NO_DEVICE for send_control_transfer expected"); // only if goToBootloader?
     send_control_transfer_with_error_checks(0x40, 0xa7, (goToBootloader ? 1 : 0), 0, 0, nullptr);
     return 0;
 }
@@ -778,7 +778,7 @@ int usbCallHandler::flashFirmware(int file_descriptor){
     strcpy(firmware_copy_filepath, external_filepath);
     strcat(firmware_copy_filepath, "/");
     strcat(firmware_copy_filepath, firmware_filename);
-    LOGW("firmware copy path: %s", firmware_copy_filepath);
+    LOGI("firmware copy path: %s", firmware_copy_filepath);
 
     AAsset* asset = AAssetManager_open(mgr, apk_firmware_filepath, AASSET_MODE_STREAMING);
     char buf[2048];
@@ -789,20 +789,20 @@ int usbCallHandler::flashFirmware(int file_descriptor){
     fclose(out);
     AAsset_close(asset);
 
-    LOGW("FLASHING %s", firmware_copy_filepath);
+    LOGI("FLASHING %s", firmware_copy_filepath);
 
     //Set up interface to dfuprog
     int exit_code;
     char command[256];
 
     //Run stage 1
-    LOGW("\n\nFlashing Firmware, stage 1.\n\n");
+    LOGI("\n\nFlashing Firmware, stage 1.\n\n");
     snprintf(command, sizeof command, "dfu-programmer atxmega32a4u erase --force --debug 300");
     exit_code = dfuprog_virtual_cmd(command, device_ptr, handle, ctx, 0);
     if (exit_code) {
         LOGW("ERROR ERASING FIRMWARE.");
     } else {
-        LOGW("ERASED FIRMWARE.");
+        LOGI("ERASED FIRMWARE.");
     }
     ctx = nullptr;
     handle=  nullptr;
@@ -811,7 +811,7 @@ int usbCallHandler::flashFirmware(int file_descriptor){
     error = setup_usb_control(file_descriptor);
 
     //Run stage 2
-    LOGW("\n\nFlashing Firmware, stage 2.\n\n");
+    LOGI("\n\nFlashing Firmware, stage 2.\n\n");
     snprintf(command, sizeof command, "dfu-programmer atxmega32a4u flash %s --debug 300", firmware_copy_filepath);
     exit_code = dfuprog_virtual_cmd(command, device_ptr, handle, ctx, 0);
     if (exit_code) {
@@ -825,14 +825,14 @@ int usbCallHandler::flashFirmware(int file_descriptor){
     error = setup_usb_control(file_descriptor);
 
     //Run stage 3
-    LOGW("\n\nFlashing Firmware, stage 3.\n\n");
+    LOGI("\n\nFlashing Firmware, stage 3.\n\n");
     dfu_launch();
     starting_after_flash = true;
     return 0;
 }
 
 void usbCallHandler::dfu_launch() {
-    LOGW("\n\n\nDFU LAUNCH.\n\n\n");
+    LOGI("\n\n\nDFU LAUNCH.\n\n\n");
     int exit_code;
     char command[256];
     libusb_device *device_ptr;
@@ -849,9 +849,9 @@ void usbCallHandler::dfu_launch() {
 void usbCallHandler::respondToStartupOrUsbStateChange(bool is_plugged_in, int file_descriptor, bool bootloader_mode){
     if(is_plugged_in) {
         if(bootloader_mode) {
-            LOGW("found in bootloader mode");
+            LOGI("found in bootloader mode");
             if(starting_after_flash) {
-                LOGW("startup after flash");
+                LOGI("startup after flash");
                 starting_after_flash = false;
                 init_libusb();
                 int error = setup_usb_control(file_descriptor);
@@ -865,7 +865,7 @@ void usbCallHandler::respondToStartupOrUsbStateChange(bool is_plugged_in, int fi
                 env->CallVoidMethod(MainActivityObject,dialID);
             } else {
                 int flashRet = flashFirmware(file_descriptor);
-                LOGW("flashRet: %d", flashRet);
+                LOGI("flashRet: %d", flashRet);
             }
         } else {
             if(connected) {
@@ -876,15 +876,15 @@ void usbCallHandler::respondToStartupOrUsbStateChange(bool is_plugged_in, int fi
             if(control_setup_success==0) {
                 connected = true;
                 uint16_t firmver = get_firmware_version();
-                LOGW("BOARD IS RUNNING FIRMWARE VERSION 0x%04hx", firmver);
-                LOGW("EXPECTING FIRMWARE VERSION 0x%04hx", EXPECTED_FIRMWARE_VERSION);
+                LOGI("BOARD IS RUNNING FIRMWARE VERSION 0x%04hx", firmver);
+                LOGI("EXPECTING FIRMWARE VERSION 0x%04hx", EXPECTED_FIRMWARE_VERSION);
 
                 uint8_t variant = get_firmware_variant();
-                LOGW("FIRMWARE VARIANT = 0x%02hx", variant);
-                LOGW("EXPECTED VARIANT = 0x%02hx", DEFINED_EXPECTED_VARIANT);
+                LOGI("FIRMWARE VARIANT = 0x%02hx", variant);
+                LOGI("EXPECTED VARIANT = 0x%02hx", DEFINED_EXPECTED_VARIANT);
 
                 if((firmver != EXPECTED_FIRMWARE_VERSION) || (variant != DEFINED_EXPECTED_VARIANT)){
-                    LOGW("Unexpected Firmware!!");
+                    LOGI("Unexpected Firmware!!");
 
                     JNIEnv *env = (JNIEnv *) SDL_GetAndroidJNIEnv();
                     jobject MainActivityObject = (jobject) SDL_GetAndroidActivity();
@@ -926,10 +926,10 @@ void usbCallHandler::respondToStartupOrUsbStateChange(bool is_plugged_in, int fi
         }
         if(handle){
             libusb_release_interface(handle, 0);
-            LOGW("Interface released\n");
+            LOGI("Interface released\n");
             libusb_close(handle);
             handle = nullptr;
-            LOGW("Device Closed\n");
+            LOGI("Device Closed\n");
         }
     }
 }

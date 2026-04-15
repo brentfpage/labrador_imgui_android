@@ -11,7 +11,7 @@ i2cDecoder::i2cDecoder(o1buffer* sda_in, o1buffer* scl_in) :
 
 void i2cDecoder::reset()
 {
-    LOGW("Resetting I2C");
+    LOGI("Resetting I2C");
 
     if (sda->mostRecentAddress != scl->mostRecentAddress)
     {
@@ -78,7 +78,7 @@ void i2cDecoder::runStateMachine()
         state = transmissionState::unknown;
         LOGW("Dumping I2C state and aborting...");
         for (int i=31; i>=0; i--)
-            LOGW("%02x\t%02x", sda->get(serialPtr_bit/8 - i) & 0xFF, scl->get(serialPtr_bit/8 - i) & 0xFF);
+            LOGI("%02x\t%02x", sda->get(serialPtr_bit/8 - i) & 0xFF, scl->get(serialPtr_bit/8 - i) & 0xFF);
         throw std::runtime_error("unknown i2c transmission state");
         return;
 	}
@@ -134,7 +134,7 @@ void i2cDecoder::decodeAddress(edge sdaEdge, edge sclEdge)
 
     if (currentBitIndex == addressBitStreamLength)
     {
-        LOGW("Finished Address Decode");
+        LOGI("Finished Address Decode");
         if (currentBitStream & 0b0000000000000010)
             m_serialBuffer.insert("READ:  ");
         else
@@ -167,7 +167,7 @@ void i2cDecoder::decodeData(edge sdaEdge, edge sclEdge)
 
     if (currentBitIndex == dataBitStreamLength)
     {
-        LOGW("Finished Data byte Decode");
+        LOGI("Finished Data byte Decode");
 
         m_serialBuffer.insert_hex((uint8_t)((currentBitStream & 0b0000000111111110) >> 1));
         m_serialBuffer.insert(' ');
@@ -188,14 +188,14 @@ void i2cDecoder::startCondition()
 	currentBitIndex = 0;
     currentBitStream = 0x0000;
 	state = transmissionState::address;	
-    LOGW("I2C START");
+    LOGI("I2C START");
 }
 
 void i2cDecoder::stopCondition()
 {
     state = transmissionState::idle;
     m_serialBuffer.insert('\n');
-    LOGW("I2C STOP");
+    LOGI("I2C STOP");
 }
 
 char * i2cDecoder::getString()

@@ -76,11 +76,6 @@ LIBRADORSHARED_EXPORT void librador_logger_set(void * userdata, librador_logger_
 LIBRADORSHARED_EXPORT librador_logger_p librador_logger_get(void);
 LIBRADORSHARED_EXPORT void * librador_logger_get_userdata(void);
 
-#define LOG_TAG "librador"
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
-#define LOGW(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)
-
-
 LIBRADORSHARED_EXPORT void librador_set_trigger_settings(int ch, o1buffer::trigger_settings new_trigger_settings);
 LIBRADORSHARED_EXPORT void librador_set_virtual_transform_settings(int ch, o1buffer::virtual_transform_settings new_virtual_transform_settings);
 

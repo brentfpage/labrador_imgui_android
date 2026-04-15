@@ -98,7 +98,7 @@ int main(int, char**)
     jclass MainActivity(env->GetObjectClass(MainActivityObject));
     jmethodID getDpiID = env->GetMethodID(MainActivity, "getDpi", "()F");
     float dpi = (float) env->CallFloatMethod(MainActivityObject,getDpiID);
-    LOGW("dpi: %.2f", dpi);
+    LOGI("dpi: %.2f", dpi);
     SDL_WindowFlags window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
     SDL_Window* window = SDL_CreateWindow("main window", (int)bounds.w, (int)bounds.h, window_flags);
     if (window == nullptr)
@@ -201,10 +201,10 @@ int main(int, char**)
     int sh = (int) env->CallIntMethod(MainActivityObject,getScreenHeight);
     int sbh = (int) env->CallIntMethod(MainActivityObject,getStatusBarHeightID);
     int nbh = (int) env->CallIntMethod(MainActivityObject,getNavigationBarHeightID);
-    LOGW("screen width: %d", sw);
-    LOGW("screen height: %d", sh);
-    LOGW("status bar beight: %d", sbh);
-    LOGW("navigation bar beight: %d", nbh);
+    LOGI("screen width: %d", sw);
+    LOGI("screen height: %d", sh);
+    LOGI("status bar beight: %d", sbh);
+    LOGI("navigation bar beight: %d", nbh);
     
     // Our state
     bool show_mainwindow = true;
