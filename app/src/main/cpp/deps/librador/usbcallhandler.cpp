@@ -861,8 +861,8 @@ void usbCallHandler::respondToStartupOrUsbStateChange(bool is_plugged_in, int fi
                 JNIEnv *env = (JNIEnv *) SDL_GetAndroidJNIEnv();
                 jobject MainActivityObject = (jobject) SDL_GetAndroidActivity();
                 jclass MainActivity(env->GetObjectClass(MainActivityObject));
-                jmethodID dialID = env->GetMethodID(MainActivity, "confirmFirmwareFlash", "()V");
-                env->CallVoidMethod(MainActivityObject,dialID);
+                jmethodID confirmFirmwareFlashID = env->GetMethodID(MainActivity, "confirmFirmwareFlash", "()V");
+                env->CallVoidMethod(MainActivityObject,confirmFirmwareFlashID);
             } else {
                 int flashRet = flashFirmware(file_descriptor);
                 LOGI("flashRet: %d", flashRet);
@@ -889,8 +889,8 @@ void usbCallHandler::respondToStartupOrUsbStateChange(bool is_plugged_in, int fi
                     JNIEnv *env = (JNIEnv *) SDL_GetAndroidJNIEnv();
                     jobject MainActivityObject = (jobject) SDL_GetAndroidActivity();
                     jclass MainActivity(env->GetObjectClass(MainActivityObject));
-                    jmethodID dialID = env->GetMethodID(MainActivity, "requestFirmwareFlash", "()V");
-                    env->CallVoidMethod(MainActivityObject,dialID);
+                    jmethodID requestFirmwareFlashID = env->GetMethodID(MainActivity, "requestFirmwareFlash", "()V");
+                    env->CallVoidMethod(MainActivityObject,requestFirmwareFlashID);
 
                     return;
                 } else {
