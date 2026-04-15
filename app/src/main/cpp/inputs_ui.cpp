@@ -44,7 +44,6 @@ void inputsUI::draw(float width_pixels, inputsUI* inputs_ui)
 
     bool mode_update = false;
     ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(style.CellPadding.x, style.CellPadding.y * 2));// if this line is active, make sure that the line that resets CellPadding at the end of this function is active as well
-    style = ImGui::GetStyle();
     float header_row_height = ImGui::GetFontSize() + style.CellPadding.y*2;
     float row_height = (ImGui::GetFontSize() + (style.FramePadding.y + style.CellPadding.y)*2);
     float col_width;
