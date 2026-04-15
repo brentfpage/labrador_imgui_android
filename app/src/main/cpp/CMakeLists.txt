@@ -72,8 +72,10 @@ target_compile_definitions(labrador-imgui-android PRIVATE IMGUI_IMPL_OPENGL_ES3)
 add_library(libusb SHARED IMPORTED)
 set_target_properties(libusb PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/deps/librador/librador_deps/libusb/android/${ANDROID_ABI}/libusb1.0.so)
 
-add_library(libdfuprog SHARED IMPORTED)
-set_target_properties(libdfuprog PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/deps/librador/librador_deps/libdfuprog/android/${ANDROID_ABI}/libdfuprog-0.9.so)
+#add_library(libdfuprog SHARED IMPORTED)
+#set_target_properties(libdfuprog PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/deps/librador/librador_deps/libdfuprog/android/${ANDROID_ABI}/libdfuprog-0.9.so)
+
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/deps/librador/librador_deps/libdfuprog)
 
 
 # add lib dependencies
