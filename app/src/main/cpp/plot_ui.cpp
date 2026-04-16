@@ -22,10 +22,10 @@ void plotUI::recompute_x_bounds(bool mode_changed, inputsUI::Mode mode)
 //             x_constraint_min = -20.;
 //             x_constraint_max = 20.;
         } else {
-            time_window = std::min(10., time_window);
-            delay = std::min(10. - time_window, delay);
+            time_window = std::min(max_time_window_375khz, time_window);
+            delay = std::min(max_time_window_375khz - time_window, delay);
             ImPlot::SetNextAxisLimits(ImAxis_X1, -(delay+time_window), -delay, ImPlotCond_Always);
-            x_constraint_min = -10.;
+            x_constraint_min = -max_time_window_375khz;
             x_constraint_max = 0.;
         }
     } else {
@@ -84,8 +84,9 @@ void plotUI::draw(bool iso_thread_active, inputsUI::Mode mode, bool chA_enabled,
         if (ImPlot::BeginPlot("##scope traces", ImGui::GetContentRegionAvail(),ImPlotFlags_NoMouseText)) {
             ImPlot::SetupAxes("time (s)","volts");
 
+            ImPlot::SetupAxisFormat(ImAxis_X1, ImPlot::Formatter_Offset_Plus_Delta, (void*) "%g");
             ImPlot::SetupAxisLimitsConstraints(ImAxis_X1, x_constraint_min, x_constraint_max);
-            ImPlot::SetupAxisLimitsConstraints(ImAxis_Y1, -20., 20.);
+            ImPlot::SetupAxisLimitsConstraints(ImAxis_Y1, -max_voltage, max_voltage);
             ImPlot::SetupAxesLimits(xmin, xmax, ymin, ymax, ImPlotCond_Once);
 
             ImPlotSpec spec = ImPlotSpec();

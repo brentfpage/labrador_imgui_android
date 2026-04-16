@@ -11,7 +11,9 @@ class plotUI
     float xmax = 0.;
     float ymin = -2.;
     float ymax = 2.;
-    double x_constraint_min = -10.;
+    const double max_time_window_375khz = 10;
+    const double max_voltage = 20;
+    double x_constraint_min = -max_time_window_375khz;
     double x_constraint_max = 0.;
 
     double x_ref_1;
