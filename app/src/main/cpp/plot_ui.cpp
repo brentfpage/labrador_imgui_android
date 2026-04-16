@@ -85,6 +85,7 @@ void plotUI::draw(bool iso_thread_active, inputsUI::Mode mode, bool chA_enabled,
             ImPlot::SetupAxes("time (s)","volts");
 
             ImPlot::SetupAxisFormat(ImAxis_X1, ImPlot::Formatter_Offset_Plus_Delta, (void*) "%g");
+            ImPlot::SetupAxisFormat(ImAxis_Y1, ImPlot::Formatter_Offset_Plus_Delta, (void*) "%g");
             ImPlot::SetupAxisLimitsConstraints(ImAxis_X1, x_constraint_min, x_constraint_max);
             ImPlot::SetupAxisLimitsConstraints(ImAxis_Y1, -max_voltage, max_voltage);
             ImPlot::SetupAxesLimits(xmin, xmax, ymin, ymax, ImPlotCond_Once);

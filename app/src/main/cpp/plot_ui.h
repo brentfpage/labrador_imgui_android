@@ -7,7 +7,7 @@
 #define GRAPH_SAMPLES 512
 class plotUI
 {
-    float xmin = -.1;
+    float xmin = -.5;
     float xmax = 0.;
     float ymin = -2.;
     float ymax = 2.;
