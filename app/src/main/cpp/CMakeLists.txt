@@ -17,36 +17,21 @@ find_package(SDL3 REQUIRED)
 
 # add_subdirectory(deps/librador)
 
+file(GLOB SOURCES "*.cpp")
+file(GLOB IMGUI_SOURCES "deps/imgui/*.cpp")
+file(GLOB IMPLOT_SOURCES "deps/implot/*.cpp")
+file(GLOB LIBRADOR_SOURCES "deps/librador/*.cpp")
+
 # now build app's shared lib
 add_library(
         labrador-imgui-android
         SHARED
-        main.cpp
-        sig_gen_ui.cpp
-        inputs_ui.cpp
-        trigger_ui.cpp
-        virtual_transform_ui.cpp
-        psu_ui.cpp
-        logic_decode_ui.cpp
-        plot_ui.cpp
-        ui_tile.cpp
-        settings_panel.cpp
-        deps/imgui/imgui.cpp
-        deps/imgui/imgui_demo.cpp
-        deps/imgui/imgui_draw.cpp
-        deps/imgui/imgui_tables.cpp
-        deps/imgui/imgui_widgets.cpp
+        ${SOURCES}
+        ${IMGUI_SOURCES}
         deps/imgui/backends/imgui_impl_sdl3.cpp
         deps/imgui/backends/imgui_impl_opengl3.cpp
-        deps/implot/implot.cpp
-        deps/implot/implot_items.cpp
-        deps/implot/implot_demo.cpp
-        deps/librador/librador.cpp
-        deps/librador/o1buffer.cpp
-        deps/librador/usbcallhandler.cpp
-        deps/librador/isobufferbuffer.cpp
-        deps/librador/uartstyledecoder.cpp
-        deps/librador/i2cdecoder.cpp
+        ${IMPLOT_SOURCES}
+        ${LIBRADOR_SOURCES}
         deps/SDL/src/core/android/SDL_android.c
         deps/SDL/src
 )
@@ -67,12 +52,12 @@ target_include_directories(labrador-imgui-android PRIVATE
         deps/SDL/include/build_config
     )
 
-target_compile_definitions(labrador-imgui-android PRIVATE IMGUI_IMPL_OPENGL_ES3)
+target_compile_definitions(labrador-imgui-android PRIVATE IMGUI_IMPL_OPENGL_ES3 PLATFORM_ANDROID)
 
 add_library(libusb SHARED IMPORTED)
 set_target_properties(libusb PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/deps/librador/librador_deps/libusb/android/${ANDROID_ABI}/libusb1.0.so)
 
-#add_library(libdfuprog SHARED IMPORTED)
+# add_library(libdfuprog STATIC)
 #set_target_properties(libdfuprog PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/deps/librador/librador_deps/libdfuprog/android/${ANDROID_ABI}/libdfuprog-0.9.so)
 
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/deps/librador/librador_deps/libdfuprog)
