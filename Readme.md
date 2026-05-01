@@ -1,7 +1,7 @@
 This is an Android app/GUI for the [EspoTek Labrador](https://espotek.com/labrador/) board.
 At present, the layout is designed for phone screens, although tablet support is planned for the future.
 
-<img src="https://github.com/brentfpage/labrador_imgui_android/blob/ab0de2962091b5640e98692ccd7ce5246166ebbe/.assets/labrador_imgui_android.png" width=240>
+<img src="https://github.com/brentfpage/labrador_imgui_android/blob/9ba069f76c896ca19d6df3600e124bb34a53807e/.assets/screen-20260429-195102-1777506657135.gif" width=240>
 
 A compiled version of the app is located in this repo's root directory at labrador\_imgui\_android\_v0.3.apk .
 It can be uploaded to your Android device using the procedure outlined in [this guide](https://www.thecustomdroid.com/how-to-install-apk-on-android/) or using Android Studio.
